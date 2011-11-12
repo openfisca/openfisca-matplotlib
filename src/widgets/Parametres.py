@@ -76,16 +76,13 @@ class ParamWidget(QDockWidget, Ui_Parametres):
 
     def saveXml(self):
         fileName = QFileDialog.getSaveFileName(self,
-                                               u"Sauver une réforme", "reformes/sans-titre", u"Paramètres OpenFisca (*.ofp)")
+                                               u"Enregistrer une réforme", "reformes/sans-titre", u"Paramètres OpenFisca (*.ofp)")
         if fileName:
             try:
-                xml = self._rootNode.asXml()        
-                newFile = open(fileName, 'w')
-                newFile.write(xml)
-                newFile.close()
+                self._rootNode.asXml(fileName)
             except Exception, e:
                 QMessageBox.critical(
-                    self, "Error saving file", str(e),
+                    self, "Erreur", u"Impossible d'enregistrer le fichier : " + str(e),
                     QMessageBox.Ok, QMessageBox.NoButton)
 
 
@@ -101,7 +98,7 @@ class ParamWidget(QDockWidget, Ui_Parametres):
                 self.changed()
             except Exception, e:
                 QMessageBox.critical(
-                    self, "Erreur", u"Fichier impossible à lire",
+                    self, "Erreur", u"Impossible de lire le fichier : " + str(e),
                     QMessageBox.Ok, QMessageBox.NoButton)
 
         

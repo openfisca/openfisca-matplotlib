@@ -382,7 +382,7 @@ def drawWaterfall(data, ax):
 def drawBareme(data, ax, xaxis, reforme = False, dataDefault = None, legend = True):
     if dataDefault == None: dataDefault = data
 
-    ax.figure.subplots_adjust(bottom = 0.09, top = 0.95, left = 0.1, right = 0.95)
+    ax.figure.subplots_adjust(bottom = 0.09, top = 0.95, left = 0.11, right = 0.95)
         
     if reforme: prefix = 'Variation '
     else: prefix = ''
@@ -392,7 +392,7 @@ def drawBareme(data, ax, xaxis, reforme = False, dataDefault = None, legend = Tr
     xdata = dataDefault[xaxis]
     
     NMEN = len(xdata.vals)
-    xlabel = xdata.desc + u' de la personne de référence'
+    xlabel = xdata.desc
 
     ax.set_xlabel(xlabel)
     ax.set_ylabel(prefix + u"Revenu disponible (€ par an)")
