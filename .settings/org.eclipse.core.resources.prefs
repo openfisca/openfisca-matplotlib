@@ -4,6 +4,7 @@ encoding//src/Config.py=utf-8
 encoding//src/Utils.py=utf-8
 encoding//src/buildUi.py=utf-8
 encoding//src/openFisca.pyw=utf-8
+encoding//src/prestation/famille.py=utf-8
 encoding//src/parametres/Delegate.py=utf-8
 encoding//src/parametres/paramData.py=utf-8
 encoding//src/parametres/paramModel.py=utf-8
@@ -23,3 +24,4 @@ encoding//src/widgets/MainWindow.py=utf-8
 encoding//src/widgets/Output.py=utf-8
 encoding//src/widgets/Parametres.py=utf-8
 encoding//src/widgets/matplotlibwidget.py=utf-8
+
