@@ -428,21 +428,29 @@ def percentFormatter(x, pos=0):
 
 def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None):
     if dataDefault == None: dataDefault = data
+    
+    if xaxis in ['salsuperbrut']:
+        RB = RevTot(dataDefault, 'superbrut')
+    elif xaxis in ['salbrut', 'chobrut', 'rstbrut']: 
+        RB = RevTot(dataDefault, 'brut')
+    elif xaxis in ['sal', 'cho', 'rst']:
+        RB = RevTot(dataDefault, 'imposable')
+    elif xaxis in ['salnet', 'chonet', 'rstnet']:
+        RB = RevTot(dataDefault, 'net')
 
     xdata = dataDefault[xaxis]
     RD = dataDefault['revdisp'].vals
-
     
-    div = xdata.vals*(xdata.vals != 0) + (xdata.vals == 0)
+    div = RB*(RB != 0) + (RB == 0)
     taumoy = (1 - RD/div)*100
 
-    RB = xdata.vals
     taumar = 100*(1 - (RD[:-1]-RD[1:])/(RB[:-1]-RB[1:]))
 
 
     ax.hold(True)
     ax.set_xlim(np.amin(xdata.vals), np.amax(xdata.vals))
-    ax.set_ylabel(u"Taux moyen d'imposition (%%)\n([prélèvements - prestations]/%s" % xdata.desc)
+    #$"
+    ax.set_ylabel(r"$\left(1 - \frac{RevDisponible}{RevInitial} \right)\ et\ \left(1 - \frac{d (RevDisponible)}{d (RevInitial)}\right)$")
     ax.plot(xdata.vals, taumoy, label = u"Taux moyen d'imposition", linewidth = 2)
     ax.plot(xdata.vals[1:], taumar, label = u"Taux marginal d'imposition", linewidth = 2)
 
@@ -463,7 +471,27 @@ def createLegend(ax):
             p.insert(0, Line2D([0,1],[.5,.5],color = line._color))
             l.insert(0, line._label)
     ax.legend(p,l, loc= 2, prop = {'size':'medium'})
-    
+
+def RevTot(data, typrev):
+    alim = data['alr'].vals + data['alv'].vals
+    penbrut = data['chobrut'].vals + data['rstbrut'].vals + alim
+    penimp  = data['cho'].vals + data['rst'].vals + alim
+    pennet  = data['chonet'].vals + data['rstnet'].vals + alim
+    capbrut = data['revcap_bar'].vals + data['revcap_lib'].vals + data['fon'].vals
+    capnet = capbrut + data['cotsoc_bar'].vals + data['cotsoc_lib'].vals
+
+    if   typrev == 'superbrut': 
+        out = data['salsuperbrut'].vals + penbrut + capbrut
+    elif typrev == 'brut':      
+        out = data['salbrut'].vals + penbrut + capbrut
+    elif typrev == 'imposable':
+        out = data['sal'].vals + penimp + capnet
+    elif typrev == 'net':       
+        out = data['salnet'].vals + pennet + capnet
+    else:
+        raise Exception("typrev should be in ('superbrut', 'brut', 'imposable', 'net'")
+    return out
+
 class OutTable(QDockWidget, Ui_Table):
     def __init__(self, parent = None):
         super(OutTable, self).__init__(parent)
