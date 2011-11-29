@@ -1,4 +1,4 @@
-#Tue Nov 29 14:10:18 CET 2011
+#Tue Nov 29 15:15:27 CET 2011
 eclipse.preferences.version=1
 encoding//src/Config.py=utf-8
 encoding//src/Utils.py=utf-8
@@ -13,9 +13,9 @@ encoding//src/france/irpp_old/charges_deductibles.py=utf-8
 encoding//src/france/irpp_old/credits_impots.py=utf-8
 encoding//src/france/irpp_old/reductions_impots.py=utf-8
 encoding//src/france/model.py=utf-8
-encoding//src/france/pfam/funcs.py=utf-8
-encoding//src/france/pfam/model.py=utf-8
-encoding//src/france/pfam/test.py=utf-8
+encoding//src/france/pfam.py=utf-8
+encoding//src/france/pfam_old/model.py=utf-8
+encoding//src/france/pfam_old/test.py=utf-8
 encoding//src/france/test.py=utf-8
 encoding//src/openFisca.pyw=utf-8
 encoding//src/parametres/Delegate.py=utf-8
