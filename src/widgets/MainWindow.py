@@ -63,7 +63,7 @@ class MainWindow(QMainWindow, ui_mainwindow.Ui_MainWindow):
         self.scenario = Scenario()
         # Preferences
         self.general_prefs = [SimConfigPage]
-        self.oldXAXIS = 'sali'
+        self.oldXAXIS = 'sal'
         self.reforme = False
         self.apply_settings()
         
@@ -250,7 +250,7 @@ class MainWindow(QMainWindow, ui_mainwindow.Ui_MainWindow):
         """Apply settings changed in 'Preferences' dialog box"""
         self.XAXIS = CONF.get('simulation', 'xaxis')
         if not self.XAXIS == self.oldXAXIS:
-            self.scenario.indiv[0][self.oldXAXIS]=0
+            self.scenario.indiv[0][self.oldXAXIS + 'i']=0
         if self.isLoaded == True:
             self._parametres.initialize()
             self.refresh()

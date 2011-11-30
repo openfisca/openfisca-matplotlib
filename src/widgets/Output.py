@@ -255,18 +255,18 @@ class Graph(QDockWidget, Ui_Graph):
         self.absBox.setEnabled(True)
         self.hidelegend_btn.setEnabled(True)
         
-        if xaxis == 'sali':
+        if xaxis == 'sal':
             self.absBox.addItems([u'Salaire super brut', 
                                   u'Salaire brut', 
                                   u'Salaire imposable', 
                                   u'Salaire net'])
             self.absBox.setCurrentIndex(2)
-        elif xaxis == 'choi':
+        elif xaxis == 'cho':
             self.absBox.addItems([u'Chômage brut', 
                                   u'Chômage imposable', 
                                   u'Chômage net'])
             self.absBox.setCurrentIndex(1)
-        elif xaxis == 'rsti':
+        elif xaxis == 'rst':
             self.absBox.addItems([u'Retraite brut', 
                                   u'Retraite imposable', 
                                   u'Retraite nette'])
@@ -392,7 +392,7 @@ def drawBareme(data, ax, xaxis, reforme = False, dataDefault = None, legend = Tr
 
     ax.hold(True)
 
-    xdata = dataDefault[xaxis[:3]]
+    xdata = dataDefault[xaxis]
     
     NMEN = len(xdata.vals)
     xlabel = xdata.desc
@@ -436,12 +436,12 @@ def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None):
         RB = RevTot(dataDefault, 'superbrut')
     elif xaxis in ['salbrut', 'chobrut', 'rstbrut']: 
         RB = RevTot(dataDefault, 'brut')
-    elif xaxis[:3] in ['sal', 'cho', 'rst']:
+    elif xaxis in ['sal', 'cho', 'rst']:
         RB = RevTot(dataDefault, 'imposable')
     elif xaxis in ['salnet', 'chonet', 'rstnet']:
         RB = RevTot(dataDefault, 'net')
 
-    xdata = dataDefault[xaxis[:3]]
+    xdata = dataDefault[xaxis]
     RD = dataDefault['revdisp'].vals
     
     div = RB*(RB != 0) + (RB == 0)
@@ -506,7 +506,7 @@ class OutTable(QDockWidget, Ui_Table):
         xaxis = CONF.get('simulation', 'xaxis')
         if dataDefault is None:
             dataDefault = data
-        headers = dataDefault[xaxis[:3]]
+        headers = dataDefault[xaxis]
         n = len(headers.vals)
         self.data = data
         self.outputModel = OutputModel(data, headers, n , self)
