@@ -22,20 +22,23 @@ This file is part of openFisca.
 """
 
 from __future__ import division
-from PyQt4.QtGui import (QDockWidget, QFileDialog, QColor, QVBoxLayout, 
-                         QDialog, QMessageBox, QTreeView, QIcon, QPixmap,
-                         QHBoxLayout, QPushButton)
-from PyQt4.QtCore import (QAbstractItemModel, QModelIndex, 
-                          Qt, QVariant, SIGNAL, QSize)
-from views.ui_graph import Ui_Graph
-from views.ui_table import Ui_Table
-import numpy as np
+from Config import CONF
+from PyQt4.QtCore import QAbstractItemModel, QModelIndex, Qt, QVariant, SIGNAL, \
+    QSize
+from PyQt4.QtGui import QDockWidget, QFileDialog, QColor, QVBoxLayout, QDialog, \
+    QMessageBox, QTreeView, QIcon, QPixmap, QHBoxLayout, QPushButton
+from datetime import datetime
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle, FancyArrow
 from matplotlib.ticker import FuncFormatter
-from Config import CONF
-import csv, os, codecs, cStringIO, locale
-from datetime import datetime
+from views.ui_graph import Ui_Graph
+from views.ui_table import Ui_Table
+import csv
+import os
+import codecs
+import cStringIO
+import locale
+import numpy as np
 locale.setlocale(locale.LC_ALL, '')
 
 
@@ -389,7 +392,7 @@ def drawBareme(data, ax, xaxis, reforme = False, dataDefault = None, legend = Tr
 
     ax.hold(True)
 
-    xdata = dataDefault[xaxis[:3]]
+    xdata = dataDefault[xaxis]
     
     NMEN = len(xdata.vals)
     xlabel = xdata.desc
@@ -428,21 +431,28 @@ def percentFormatter(x, pos=0):
 
 def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None):
     if dataDefault == None: dataDefault = data
+    
+    if xaxis in ['salsuperbrut']:
+        RB = RevTot(dataDefault, 'superbrut')
+    elif xaxis in ['salbrut', 'chobrut', 'rstbrut']: 
+        RB = RevTot(dataDefault, 'brut')
+    elif xaxis in ['sal', 'cho', 'rst']:
+        RB = RevTot(dataDefault, 'imposable')
+    elif xaxis in ['salnet', 'chonet', 'rstnet']:
+        RB = RevTot(dataDefault, 'net')
 
     xdata = dataDefault[xaxis]
     RD = dataDefault['revdisp'].vals
-
     
-    div = xdata.vals*(xdata.vals != 0) + (xdata.vals == 0)
+    div = RB*(RB != 0) + (RB == 0)
     taumoy = (1 - RD/div)*100
 
-    RB = xdata.vals
     taumar = 100*(1 - (RD[:-1]-RD[1:])/(RB[:-1]-RB[1:]))
 
 
     ax.hold(True)
     ax.set_xlim(np.amin(xdata.vals), np.amax(xdata.vals))
-    ax.set_ylabel(u"Taux moyen d'imposition (%%)\n([prélèvements - prestations]/%s" % xdata.desc)
+    ax.set_ylabel(r"$\left(1 - \frac{RevDisponible}{RevInitial} \right)\ et\ \left(1 - \frac{d (RevDisponible)}{d (RevInitial)}\right)$")
     ax.plot(xdata.vals, taumoy, label = u"Taux moyen d'imposition", linewidth = 2)
     ax.plot(xdata.vals[1:], taumar, label = u"Taux marginal d'imposition", linewidth = 2)
 
@@ -463,7 +473,27 @@ def createLegend(ax):
             p.insert(0, Line2D([0,1],[.5,.5],color = line._color))
             l.insert(0, line._label)
     ax.legend(p,l, loc= 2, prop = {'size':'medium'})
-    
+
+def RevTot(data, typrev):
+    alim = data['alr'].vals + data['alv'].vals
+    penbrut = data['chobrut'].vals + data['rstbrut'].vals + alim
+    penimp  = data['cho'].vals + data['rst'].vals + alim
+    pennet  = data['chonet'].vals + data['rstnet'].vals + alim
+    capbrut = data['rev_cap_bar'].vals + data['rev_cap_lib'].vals + data['fon'].vals
+    capnet = capbrut + data['cotsoc_bar'].vals + data['cotsoc_lib'].vals
+
+    if   typrev == 'superbrut': 
+        out = data['salsuperbrut'].vals + penbrut + capbrut
+    elif typrev == 'brut':      
+        out = data['salbrut'].vals + penbrut + capbrut
+    elif typrev == 'imposable':
+        out = data['sal'].vals + penimp + capnet
+    elif typrev == 'net':       
+        out = data['salnet'].vals + pennet + capnet
+    else:
+        raise Exception("typrev should be in ('superbrut', 'brut', 'imposable', 'net'")
+    return out
+
 class OutTable(QDockWidget, Ui_Table):
     def __init__(self, parent = None):
         super(OutTable, self).__init__(parent)
@@ -476,7 +506,7 @@ class OutTable(QDockWidget, Ui_Table):
         xaxis = CONF.get('simulation', 'xaxis')
         if dataDefault is None:
             dataDefault = data
-        headers = dataDefault[xaxis[:3]]
+        headers = dataDefault[xaxis]
         n = len(headers.vals)
         self.data = data
         self.outputModel = OutputModel(data, headers, n , self)
