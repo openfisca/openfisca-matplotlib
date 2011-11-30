@@ -252,18 +252,18 @@ class Graph(QDockWidget, Ui_Graph):
         self.absBox.setEnabled(True)
         self.hidelegend_btn.setEnabled(True)
         
-        if xaxis == 'sal':
+        if xaxis == 'sali':
             self.absBox.addItems([u'Salaire super brut', 
                                   u'Salaire brut', 
                                   u'Salaire imposable', 
                                   u'Salaire net'])
             self.absBox.setCurrentIndex(2)
-        elif xaxis == 'cho':
+        elif xaxis == 'choi':
             self.absBox.addItems([u'Chômage brut', 
                                   u'Chômage imposable', 
                                   u'Chômage net'])
             self.absBox.setCurrentIndex(1)
-        elif xaxis == 'rst':
+        elif xaxis == 'rsti':
             self.absBox.addItems([u'Retraite brut', 
                                   u'Retraite imposable', 
                                   u'Retraite nette'])
@@ -429,7 +429,7 @@ def percentFormatter(x, pos=0):
 def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None):
     if dataDefault == None: dataDefault = data
 
-    xdata = dataDefault[xaxis]
+    xdata = dataDefault[xaxis[:3]]
     RD = dataDefault['revdisp'].vals
 
     
