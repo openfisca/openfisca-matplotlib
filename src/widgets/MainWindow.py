@@ -166,7 +166,7 @@ class MainWindow(QMainWindow, ui_mainwindow.Ui_MainWindow):
         P_default = self._parametres.getParam(defaut = True)    
         P_courant = self._parametres.getParam(defaut = False)
         
-        input_table = InputTable(6)
+        input_table = InputTable(101)
         input_table.populate_from_scenario(self.scenario)
         population_default = Model(P_default)
         population_courant = Model(P_courant)
@@ -174,6 +174,7 @@ class MainWindow(QMainWindow, ui_mainwindow.Ui_MainWindow):
         population_courant.set_inputs(input_table)
 
         data_courant = gen_output_data(population_courant)
+
         if self.reforme:
             data_default = gen_output_data(population_default)
             data_courant.difference(data_default)
