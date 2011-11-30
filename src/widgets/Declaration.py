@@ -214,9 +214,9 @@ class Page03A(ui_page03A.Ui_Page03A, Page):
         codes = [['sali',1], 
                  ['choi',2], 
                  ['fra',3], 
-                 ['choCheckBox',4], 
+                 ['cho_ld',4], 
                  ['hsup',5],
-                 ['ppeCheckBox',7], 
+                 ['ppe_tp_sa',7], 
                  ['ppeHeure',8],
                  ['rsti', 10],
                  ['alr',11]]
@@ -227,7 +227,7 @@ class Page03A(ui_page03A.Ui_Page03A, Page):
         
         for code, row in codes:
             name = '_%d%s' % (noi, code)
-            if code in ('choCheckBox', 'ppeCheckBox'):
+            if code in ('cho_ld', 'ppe_tp_sa'):
                 widget = self.addCheckBox(name)
                 setattr(self, name, widget)
                 self.gridLayout.addWidget(widget, row, pos+1, 1, 1)
