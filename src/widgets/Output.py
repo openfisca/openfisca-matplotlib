@@ -389,7 +389,7 @@ def drawBareme(data, ax, xaxis, reforme = False, dataDefault = None, legend = Tr
 
     ax.hold(True)
 
-    xdata = dataDefault[xaxis]
+    xdata = dataDefault[xaxis[:3]]
     
     NMEN = len(xdata.vals)
     xlabel = xdata.desc
@@ -476,7 +476,7 @@ class OutTable(QDockWidget, Ui_Table):
         xaxis = CONF.get('simulation', 'xaxis')
         if dataDefault is None:
             dataDefault = data
-        headers = dataDefault[xaxis]
+        headers = dataDefault[xaxis[:3]]
         n = len(headers.vals)
         self.data = data
         self.outputModel = OutputModel(data, headers, n , self)

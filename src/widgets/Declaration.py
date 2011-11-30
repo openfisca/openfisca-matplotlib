@@ -211,14 +211,14 @@ class Page03A(ui_page03A.Ui_Page03A, Page):
         self._type = u'Revenus, salaires, pensions et rentes'
                 
     def addColumn(self, noi, quifoy):
-        codes = [['sal',1], 
-                 ['cho',2], 
+        codes = [['sali',1], 
+                 ['choi',2], 
                  ['fra',3], 
                  ['choCheckBox',4], 
                  ['hsup',5],
                  ['ppeCheckBox',7], 
                  ['ppeHeure',8],
-                 ['rst', 10],
+                 ['rsti', 10],
                  ['alr',11]]
         if quifoy == 'vous': pos = 2
         elif quifoy == 'conj': pos = 4
