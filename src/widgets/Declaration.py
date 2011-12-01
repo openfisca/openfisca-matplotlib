@@ -217,7 +217,7 @@ class Page03A(ui_page03A.Ui_Page03A, Page):
                  ['cho_ld',4], 
                  ['hsup',5],
                  ['ppe_tp_sa',7], 
-                 ['ppeHeure',8],
+                 ['ppe_du_sa',8],
                  ['rsti', 10],
                  ['alr',11]]
         if quifoy == 'vous': pos = 2
