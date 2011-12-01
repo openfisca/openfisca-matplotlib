@@ -165,8 +165,7 @@ class MainWindow(QMainWindow, ui_mainwindow.Ui_MainWindow):
         P_default = self._parametres.getParam(defaut = True)    
         P_courant = self._parametres.getParam(defaut = False)
         
-        NMEN = CONF.get('simulation', 'nmen')
-        input_table = InputTable(NMEN)
+        input_table = InputTable()
         input_table.populate_from_scenario(self.scenario)
 
         population_default = Model(P_default)
