@@ -1,17 +1,18 @@
-#Thu Dec 01 15:19:26 CET 2011
+#Thu Dec 29 13:39:34 CET 2011
 eclipse.preferences.version=1
 encoding//src/Config.py=utf-8
-encoding//src/Utils.py=utf-8
+encoding//src/Utils.py=UTF-8
 encoding//src/buildUi.py=utf-8
+encoding//src/calmar/calmar.py=utf-8
 encoding//src/core/datatable.py=utf-8
 encoding//src/core/systemsf.py=utf-8
 encoding//src/core/utils.py=utf-8
 encoding//src/france/cotsoc.py=utf-8
 encoding//src/france/data.py=utf-8
 encoding//src/france/irpp.py=utf-8
-encoding//src/france/irpp_old/charges_deductibles.py=utf-8
-encoding//src/france/irpp_old/credits_impots.py=utf-8
-encoding//src/france/irpp_old/reductions_impots.py=utf-8
+encoding//src/france/irpp_charges_deductibles.py=utf-8
+encoding//src/france/irpp_credits_impots.py=utf-8
+encoding//src/france/irpp_reductions_impots.py=utf-8
 encoding//src/france/lgtm.py=utf-8
 encoding//src/france/mini.py=utf-8
 encoding//src/france/model.py=utf-8

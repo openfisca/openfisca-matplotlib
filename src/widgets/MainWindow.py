@@ -27,6 +27,8 @@ from PyQt4.QtCore import (SIGNAL, SLOT, Qt, QSettings, QVariant, QSize, QPoint,
 from PyQt4.QtGui import (QMainWindow, QMessageBox, QKeySequence, QAction, QIcon, 
                          QApplication, QCursor, QPixmap, QSplashScreen, QColor,
                          QActionGroup)
+
+from datetime import datetime
 from Config import CONF, VERSION, SimConfigPage, ConfigDialog
 from views import ui_mainwindow
 from widgets.Parametres import ParamWidget
@@ -170,7 +172,6 @@ class MainWindow(QMainWindow, ui_mainwindow.Ui_MainWindow):
 
         population_default = Model(P_default)
         population_courant = Model(P_courant)
-
         population_default.set_inputs(input_table)
         population_courant.set_inputs(input_table)
 
