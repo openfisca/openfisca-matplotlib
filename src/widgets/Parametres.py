@@ -72,7 +72,9 @@ class ParamWidget(QDockWidget, Ui_Parametres):
         self.uiTree.setItemDelegate(delegate)
     
     def getParam(self, defaut = False):
-        return Tree2Object(self._rootNode, defaut)
+        obj = Tree2Object(self._rootNode, defaut)
+        obj.datesim = self._date
+        return obj
 
     def saveXml(self):
         fileName = QFileDialog.getSaveFileName(self,
