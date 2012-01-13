@@ -1,4 +1,4 @@
-#Thu Jan 12 17:27:23 CET 2012
+#Fri Jan 13 18:49:16 CET 2012
 eclipse.preferences.version=1
 encoding//src/Config.py=utf-8
 encoding//src/Utils.py=utf-8
@@ -7,6 +7,7 @@ encoding//src/calmar/calmar.py=utf-8
 encoding//src/core/datatable.py=utf-8
 encoding//src/core/systemsf.py=utf-8
 encoding//src/core/utils.py=utf-8
+encoding//src/data/codeAplReader.py=utf-8
 encoding//src/france/cotsoc.py=utf-8
 encoding//src/france/data.py=utf-8
 encoding//src/france/irpp.py=utf-8
