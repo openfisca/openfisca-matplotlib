@@ -505,6 +505,7 @@ class OutTable(QDockWidget):
         self.treeView.setAlternatingRowColors(True)
         self.treeView.setIndentation(10)
         selection_behavior = QAbstractItemView.SelectRows
+        # we should enable contguous selection, but the copy method does not yet handle this.
 #        selection_mode = QAbstractItemView.ContiguousSelection
         selection_mode = QAbstractItemView.SingleSelection       
         self.treeView.setSelectionBehavior(selection_behavior)

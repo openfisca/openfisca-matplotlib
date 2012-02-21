@@ -23,14 +23,12 @@ This file is part of openFisca.
 
 import platform
 from PyQt4.QtCore import (SIGNAL, SLOT, Qt, QSettings, QVariant, QSize, QPoint, 
-                          PYQT_VERSION_STR, QT_VERSION_STR)
-from PyQt4.QtGui import (QMainWindow, QMessageBox, QKeySequence, QAction, QIcon, 
+                          PYQT_VERSION_STR, QT_VERSION_STR, QLocale)
+from PyQt4.QtGui import (QMainWindow, QWidget, QGridLayout, QMessageBox, QKeySequence,
                          QApplication, QCursor, QPixmap, QSplashScreen, QColor,
-                         QActionGroup)
+                         QActionGroup, QStatusBar)
 
-from datetime import datetime
 from Config import CONF, VERSION, SimConfigPage, ConfigDialog
-from views import ui_mainwindow
 from widgets.Parametres import ParamWidget
 from widgets.Composition import ScenarioWidget
 from widgets.Output import Graph, OutTable
@@ -39,16 +37,32 @@ from Utils import Scenario
 from france.data import InputTable
 from france.model import Model
 from core.utils import gen_output_data
-from core.qthelpers import create_action, add_actions
+from core.qthelpers import create_action, add_actions, get_icon
 # import resources_rc
 
-class MainWindow(QMainWindow, ui_mainwindow.Ui_MainWindow):
+class MainWindow(QMainWindow):
     def __init__(self, parent = None):
         super(MainWindow, self).__init__(parent)
-        self.setupUi(self)
         self.dirty = False
         self.isLoaded = False
-        
+
+        self.setObjectName("MainWindow")
+        self.resize(800, 600)
+        self.setWindowTitle("OpenFisca")
+        app_icon = get_icon('OpenFisca22.png')
+        self.setWindowIcon(app_icon)
+        self.setLocale(QLocale(QLocale.French, QLocale.France))
+        self.setDockOptions(QMainWindow.AllowNestedDocks|QMainWindow.AllowTabbedDocks|QMainWindow.AnimatedDocks)
+
+        self.centralwidget = QWidget(self)
+        self.gridLayout = QGridLayout(self.centralwidget)
+        self.setCentralWidget(self.centralwidget)
+        self.centralwidget.hide()
+
+        self.statusbar = QStatusBar(self)
+        self.statusbar.setObjectName("statusbar")
+        self.setStatusBar(self.statusbar)
+
         # Showing splash screen
         pixmap = QPixmap(':/images/splash.png', 'png')
         self.splash = QSplashScreen(pixmap)
@@ -74,48 +88,65 @@ class MainWindow(QMainWindow, ui_mainwindow.Ui_MainWindow):
         # Creation des dockwidgets
         self.create_dockwidgets()
         self.populate_mainwidow()
-        self.centralwidget.hide()
 
-        # Initialisation des menus
+        #################################################################
+        ## Menu initialization
+        #################################################################
         # Menu Fichier
-        self.connect(self.actFileQuit, SIGNAL('triggered()'), SLOT('close()'))
-        self.connect(self.actFileRefresh, SIGNAL('triggered()'), self.refresh)
-        self.connect(self.actModeReforme, SIGNAL('triggered(bool)'), self.modeReforme)
-        self.connect(self.actPreferences, SIGNAL('triggered()'), self.edit_preferences)
-        self.connect(self.actExportCsv, SIGNAL('triggered()'), self._table.saveCsv)
-        self.connect(self.actExportPng, SIGNAL('triggered()'), self._graph.save_figure)
+        self.file_menu = self.menuBar().addMenu("Fichier")
+        action_export_png = create_action(self, 'Exporter le graphique', icon = 'document-save png.png', triggered = self._graph.save_figure)
+        action_export_csv = create_action(self, 'Exporter la table', icon = 'document-save csv.png', triggered = self._table.saveCsv)
+        action_pref = create_action(self, u'Préférence', QKeySequence.Preferences, icon = 'preferences-desktop.png', triggered = self.edit_preferences)
+        action_quit = create_action(self, 'Quitter', QKeySequence.Quit, icon = 'process-stop.png',  triggered = SLOT('close()'))
+        
+        file_actions = [action_export_png, action_export_csv,None, action_pref, None, action_quit]
+        add_actions(self.file_menu, file_actions)
 
         # Menu Edit
-        self.actCopy = create_action(self, 'Copier', QKeySequence.Copy, triggered = self.global_callback, data = 'copy')
+        self.edit_menu = self.menuBar().addMenu(u"Édition")
+        action_copy = create_action(self, 'Copier', QKeySequence.Copy, triggered = self.global_callback, data = 'copy')
         
-        edit_actions = [None, self.actCopy]
+        edit_actions = [None, action_copy]
 
-        add_actions(self.menu_dition, edit_actions)
+        add_actions(self.edit_menu, edit_actions)
 
         # Menu Simulation
-        modeGroup = QActionGroup(self)
-        modeGroup.addAction(self.actBareme)
-        modeGroup.addAction(self.actCasType)
+        self.simulation_menu = self.menuBar().addMenu(u"Simulation")
+        self.action_refresh = create_action(self, 'Calculer', shortcut = 'F9', icon = 'view-refresh.png', triggered = self.refresh)
+        action_bareme = create_action(self, u'Barème', icon = 'bareme22.png', toggled = self.modeBareme)
+        action_cas_type = create_action(self, u'Cas type', icon = 'castype22.png', toggled = self.modeCasType)
+        action_mode_reforme = create_action(self, u'Réforme', icon = 'comparison22.png', toggled = self.modeReforme, tip = u"Différence entre la situation simulée et la situation actuelle")
+        mode_group = QActionGroup(self)
+        mode_group.addAction(action_bareme)
+        mode_group.addAction(action_cas_type)
         self.mode = 'bareme'
-        self.actBareme.trigger()
-        self.connect(self.actBareme,  SIGNAL('triggered()'), self.modeBareme)
-        self.connect(self.actCasType, SIGNAL('triggered()'), self.modeCasType)
-        
-        self.connect(self._menage,     SIGNAL('changed()'), self.changed)
-        self.connect(self._parametres, SIGNAL('changed()'), self.changed)
+        action_bareme.trigger()
+
+        simulation_actions = [self.action_refresh, None, action_bareme, action_cas_type, None, action_mode_reforme]
+        add_actions(self.simulation_menu, simulation_actions)
         
         # Menu Help
-        helpAboutAction = create_action(self, u"&About OpenFisca", triggered = self.helpAbout)
-        helpHelpAction = create_action(self, "&Aide", QKeySequence.HelpContents, triggered = self.helpHelp)
         help_menu = self.menuBar().addMenu("&Aide")
-        help_actions = [helpAboutAction, helpHelpAction]
+        action_about = create_action(self, u"&About OpenFisca", triggered = self.helpAbout)
+        action_help = create_action(self, "&Aide", QKeySequence.HelpContents, triggered = self.helpHelp)
+        help_actions = [action_about, action_help]
         add_actions(help_menu, help_actions)
                 
-        # Menu Affichage
+        # Display Menu
         view_menu = self.createPopupMenu()
         view_menu.setTitle("&Affichage")
         self.menuBar().insertMenu(help_menu.menuAction(),
                                   view_menu)
+        
+        # Toolbar
+        self.main_toolbar = self.create_toolbar(u"Barre d'outil", 'main_toolbar')
+        toolbar_actions = [action_export_png, action_export_csv, None, self.action_refresh, 
+                              None, action_bareme, action_cas_type, None, action_mode_reforme]
+        add_actions(self.main_toolbar, toolbar_actions)
+
+
+        self.connect(self._menage,     SIGNAL('changed()'), self.changed)
+        self.connect(self._parametres, SIGNAL('changed()'), self.changed)
         
         # Window settings
         settings = QSettings()
@@ -129,7 +160,12 @@ class MainWindow(QMainWindow, ui_mainwindow.Ui_MainWindow):
         self.isLoaded = True
         self.splash.hide()
 
-    
+    def create_toolbar(self, title, object_name, iconsize=24):
+        toolbar = self.addToolBar(title)
+        toolbar.setObjectName(object_name)
+        toolbar.setIconSize( QSize(iconsize, iconsize) )
+        return toolbar
+
     def create_dockwidgets(self):
         # Création des dockwidgets
         self._parametres = ParamWidget('data/param.xml', self)
@@ -182,7 +218,7 @@ class MainWindow(QMainWindow, ui_mainwindow.Ui_MainWindow):
         # Si oui, on lance le calcul
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         self.statusbar.showMessage(u"Calcul en cours...")
-        self.actFileRefresh.setEnabled(False)
+        self.action_refresh.setEnabled(False)
         # set the table model to None before changing data
         self._table.clearModel()
         
@@ -268,4 +304,4 @@ class MainWindow(QMainWindow, ui_mainwindow.Ui_MainWindow):
 
     def changed(self):
         self.statusbar.showMessage(u"Appuyez sur F9 pour lancer la simulation")
-        self.actFileRefresh.setEnabled(True)
+        self.action_refresh.setEnabled(True)
