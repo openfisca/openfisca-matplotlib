@@ -39,6 +39,7 @@ from Utils import Scenario
 from france.data import InputTable
 from france.model import Model
 from core.utils import gen_output_data
+from core.qthelpers import create_action, add_actions
 # import resources_rc
 
 class MainWindow(QMainWindow, ui_mainwindow.Ui_MainWindow):
@@ -84,7 +85,14 @@ class MainWindow(QMainWindow, ui_mainwindow.Ui_MainWindow):
         self.connect(self.actExportCsv, SIGNAL('triggered()'), self._table.saveCsv)
         self.connect(self.actExportPng, SIGNAL('triggered()'), self._graph.save_figure)
 
-        # Menu Mode
+        # Menu Edit
+        self.actCopy = create_action(self, 'Copier', QKeySequence.Copy, triggered = self.global_callback, data = 'copy')
+        
+        edit_actions = [None, self.actCopy]
+
+        add_actions(self.menu_dition, edit_actions)
+
+        # Menu Simulation
         modeGroup = QActionGroup(self)
         modeGroup.addAction(self.actBareme)
         modeGroup.addAction(self.actCasType)
@@ -97,10 +105,11 @@ class MainWindow(QMainWindow, ui_mainwindow.Ui_MainWindow):
         self.connect(self._parametres, SIGNAL('changed()'), self.changed)
         
         # Menu Help
-        helpAboutAction = self.createAction(u"&About OpenFisca", self.helpAbout)
-        helpHelpAction = self.createAction("&Aide", self.helpHelp, QKeySequence.HelpContents)
+        helpAboutAction = create_action(self, u"&About OpenFisca", triggered = self.helpAbout)
+        helpHelpAction = create_action(self, "&Aide", QKeySequence.HelpContents, triggered = self.helpHelp)
         help_menu = self.menuBar().addMenu("&Aide")
-        self.addActions(help_menu, (helpAboutAction, helpHelpAction))
+        help_actions = [helpAboutAction, helpHelpAction]
+        add_actions(help_menu, help_actions)
                 
         # Menu Affichage
         view_menu = self.createPopupMenu()
@@ -137,6 +146,15 @@ class MainWindow(QMainWindow, ui_mainwindow.Ui_MainWindow):
         self.addDockWidget(Qt.LeftDockWidgetArea, self._aggregate_output)
         self.tabifyDockWidget(self._aggregate_output, self._table)
         self.tabifyDockWidget(self._table, self._graph)
+
+    def global_callback(self):
+        """Global callback"""
+        widget = QApplication.focusWidget()
+        action = self.sender()
+        callback = unicode(action.data().toString())
+        if hasattr(widget, callback):
+            getattr(widget, callback)()
+
 
     def modeReforme(self, b):
         self.reforme = b
@@ -226,28 +244,6 @@ class MainWindow(QMainWindow, ui_mainwindow.Ui_MainWindow):
                           d'information, aller à <a href = www.openfisca.fr> www.openfisca.fr </a>
                           ''')
 
-    def createAction(self, text, slot=None, shortcut=None, icon=None,
-                     tip=None, checkable=False, signal="triggered()"):
-        action = QAction(text, self)
-        if icon is not None:
-            action.setIcon(QIcon(":/{0}.png".format(icon)))
-        if shortcut is not None:
-            action.setShortcut(shortcut)
-        if tip is not None:
-            action.setToolTip(tip)
-            action.setStatusTip(tip)
-        if slot is not None:
-            self.connect(action, SIGNAL(signal), slot)
-        if checkable:
-            action.setCheckable(True)
-        return action
-    
-    def addActions(self, target, actions):
-        for action in actions:
-            if action is None:
-                target.addSeparator()
-            else:
-                target.addAction(action)
 
     def apply_settings(self):
         """Apply settings changed in 'Preferences' dialog box"""

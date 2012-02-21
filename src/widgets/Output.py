@@ -26,13 +26,13 @@ from Config import CONF
 from PyQt4.QtCore import QAbstractItemModel, QModelIndex, Qt, QVariant, SIGNAL, \
     QSize
 from PyQt4.QtGui import QDockWidget, QFileDialog, QColor, QVBoxLayout, QDialog, \
-    QMessageBox, QTreeView, QIcon, QPixmap, QHBoxLayout, QPushButton
+    QMessageBox, QTreeView, QIcon, QPixmap, QHBoxLayout, QPushButton, QWidget, QAbstractItemView
 from datetime import datetime
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle, FancyArrow
 from matplotlib.ticker import FuncFormatter
 from views.ui_graph import Ui_Graph
-from views.ui_table import Ui_Table
+from core.qthelpers import OfTreeView
 import csv
 import os
 import codecs
@@ -494,10 +494,23 @@ def RevTot(data, typrev):
         raise Exception("typrev should be in ('superbrut', 'brut', 'imposable', 'net'")
     return out
 
-class OutTable(QDockWidget, Ui_Table):
+class OutTable(QDockWidget):
     def __init__(self, parent = None):
         super(OutTable, self).__init__(parent)
-        self.setupUi(self)
+        self.setObjectName("Table")
+        self.setWindowTitle("Table")
+        self.dockWidgetContents = QWidget(self)
+        self.verticalLayout = QVBoxLayout(self.dockWidgetContents)
+        self.treeView = OfTreeView(self.dockWidgetContents)
+        self.treeView.setAlternatingRowColors(True)
+        self.treeView.setIndentation(10)
+        selection_behavior = QAbstractItemView.SelectRows
+#        selection_mode = QAbstractItemView.ContiguousSelection
+        selection_mode = QAbstractItemView.SingleSelection       
+        self.treeView.setSelectionBehavior(selection_behavior)
+        self.treeView.setSelectionMode(selection_mode)
+        self.verticalLayout.addWidget(self.treeView)
+        self.setWidget(self.dockWidgetContents)
 
     def clearModel(self):
         self.treeView.setModel(None)
