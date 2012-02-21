@@ -34,6 +34,7 @@ from views import ui_mainwindow
 from widgets.Parametres import ParamWidget
 from widgets.Composition import ScenarioWidget
 from widgets.Output import Graph, OutTable
+from widgets.AggregateOuput import AggregateOutputWidget
 from Utils import Scenario
 from france.data import InputTable
 from france.model import Model
@@ -126,12 +127,15 @@ class MainWindow(QMainWindow, ui_mainwindow.Ui_MainWindow):
         self._menage = ScenarioWidget(self.scenario, self)
         self._graph = Graph(self)
         self._table = OutTable(self)
+        self._aggregate_output = AggregateOutputWidget(self)
         
     def populate_mainwidow(self):
         self.addDockWidget(Qt.RightDockWidgetArea, self._parametres)
         self.addDockWidget(Qt.RightDockWidgetArea, self._menage)
         self.addDockWidget(Qt.LeftDockWidgetArea, self._graph)
         self.addDockWidget(Qt.LeftDockWidgetArea, self._table)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self._aggregate_output)
+        self.tabifyDockWidget(self._aggregate_output, self._table)
         self.tabifyDockWidget(self._table, self._graph)
 
     def modeReforme(self, b):
