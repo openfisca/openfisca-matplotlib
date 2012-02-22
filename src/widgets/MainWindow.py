@@ -43,6 +43,7 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__(parent)
         self.dirty = False
         self.isLoaded = False
+        self.aggregate_enabled = True
 
         self.setObjectName("MainWindow")
         self.resize(800, 600)
@@ -84,12 +85,17 @@ class MainWindow(QMainWindow):
         self.apply_settings()
         
         # Creation des dockwidgets
+        self.splash.showMessage("Creating widgets...", Qt.AlignBottom | Qt.AlignCenter | 
+                                Qt.AlignAbsolute, QColor(Qt.black))
+
         self.create_dockwidgets()
         self.populate_mainwidow()
 
         #################################################################
         ## Menu initialization
         #################################################################
+        self.splash.showMessage("Creating menubar...", Qt.AlignBottom | Qt.AlignCenter | 
+                                Qt.AlignAbsolute, QColor(Qt.black))
         # Menu Fichier
         self.file_menu = self.menuBar().addMenu("Fichier")
         action_export_png = create_action(self, 'Exporter le graphique', icon = 'document-save png.png', triggered = self._graph.save_figure)
@@ -149,6 +155,8 @@ class MainWindow(QMainWindow):
         self.connect(self._parametres, SIGNAL('changed()'), self.changed)
         
         # Window settings
+        self.splash.showMessage("Restoring settings...", Qt.AlignBottom | Qt.AlignCenter | 
+                                Qt.AlignAbsolute, QColor(Qt.black))
         settings = QSettings()
         size = settings.value('MainWindow/Size', QVariant(QSize(800,600))).toSize()
         self.resize(size)
@@ -157,6 +165,20 @@ class MainWindow(QMainWindow):
         self.restoreState(settings.value("MainWindow/State").toByteArray())
 
         self.refresh_bareme()
+
+        self.splash.showMessage("Loading external data...", Qt.AlignBottom | Qt.AlignCenter | 
+                                Qt.AlignAbsolute, QColor(Qt.black))
+        
+        if self.aggregate_enabled:
+            try:
+                fname = CONF.get('paths', 'external_data_file')
+                self.erfs = InputTable()
+                self.erfs.populate_from_external_data(fname)
+
+            except:
+                self.aggregate_enabled = False
+            
+        
         self.isLoaded = True
         self.splash.hide()
 
@@ -248,7 +270,6 @@ class MainWindow(QMainWindow):
     def refresh_aggregate(self):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
-        filename = CONF.get('paths', 'external_data_file')
         self.statusbar.showMessage(u"Calcul des aggregats en cours, ceci peut prendre quelques minutes...")
         self.action_refresh_aggregate.setEnabled(False)
         # set the table model to None before changing data
@@ -256,14 +277,16 @@ class MainWindow(QMainWindow):
         P_default = self._parametres.getParam(defaut = True)    
         P_courant = self._parametres.getParam(defaut = False)
         
-        input_table = InputTable()
-        input_table.populate_from_external_data(filename)
+        input_table = self.erfs
 
         population_courant = Model(P_courant, P_default)
         population_courant.set_inputs(input_table)
         
-        population_courant.calculate('nivvie')
+        population_courant.calculate('irpp')
 
+        data_courant = gen_output_data(population_courant, weights = True)
+        
+        self._aggregate_output.update_output(data_courant)
         self.statusbar.showMessage(u"")
         QApplication.restoreOverrideCursor()
     
@@ -327,3 +350,5 @@ class MainWindow(QMainWindow):
     def changed(self):
         self.statusbar.showMessage(u"Appuyez sur F9 pour lancer la simulation")
         self.action_refresh_bareme.setEnabled(True)
+        self.action_refresh_aggregate.setEnabled(True)
+        
