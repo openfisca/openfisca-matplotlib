@@ -31,6 +31,8 @@ from views.ui_infocomp import Ui_InfoComp
 from Declaration import Declaration
 from datetime import date
 import pickle
+from Config import CONF
+import os
 
 class S:
     name = 0
@@ -304,9 +306,10 @@ class ScenarioWidget(QDockWidget, Ui_Menage):
             QObject.connect(person[S.decbtn], SIGNAL('clicked()'), self.openDeclaration)
 
     def openScenario(self):
+        cas_type_dir = CONF.get('paths', 'cas_type_dir')
         fileName = QFileDialog.getOpenFileName(self,
                                                u"Ouvrir un cas type", 
-                                               "castypes/", 
+                                               cas_type_dir, 
                                                u"Cas type OpenFisca (*.ofct)")
         if not fileName == '':
             n = len(self.scenario.indiv)
@@ -327,9 +330,11 @@ class ScenarioWidget(QDockWidget, Ui_Menage):
 
         
     def saveScenario(self):
+        cas_type_dir = CONF.get('paths', 'cas_type_dir')
+        default_fileName = os.path.join(cas_type_dir, 'sans-titre')
         fileName = QFileDialog.getSaveFileName(self,
                                                u"Sauver un cas type", 
-                                               "castypes/sans-titre", 
+                                               default_fileName, 
                                                u"Cas type OpenFisca (*.ofct)")
         if not fileName == '':
             self.scenario.saveFile(fileName)

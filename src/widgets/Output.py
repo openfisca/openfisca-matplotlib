@@ -293,8 +293,8 @@ class Graph(QDockWidget, Ui_Graph):
         sorted_filetypes = filetypes.items()
         sorted_filetypes.sort()
         default_filetype = self.mplwidget.get_default_filetype()
-
-        start = os.path.expanduser('~/image.') + default_filetype
+        output_dir = CONF.get('paths', 'output_dir')
+        start = os.path.join(output_dir, 'image.') + default_filetype
         filters = []
         selectedFilter = None
         for name, exts in sorted_filetypes:
@@ -307,7 +307,10 @@ class Graph(QDockWidget, Ui_Graph):
 
         fname = QFileDialog.getSaveFileName(
             self, "Enregistrer l'image", start, filters, selectedFilter)
+        
+
         if fname:
+            CONF.set('paths', 'output_dir', os.path.dirname(str(fname)))
             try:
                 self.mplwidget.print_figure( unicode(fname) )
             except Exception, e:
@@ -534,13 +537,17 @@ class OutTable(QDockWidget):
             self.treeView.setColumnWidth(1,100)
 
     def saveCsv(self):
-        userPath = os.path.expanduser('~/sans-titre.csv')
-        fileName = QFileDialog.getSaveFileName(self,
-                                               u"Exporter la table", userPath, u"CSV (séparateur: point virgule) (*.csv)")
-        if fileName:
+        output_dir = CONF.get('paths', 'output_dir')
+        user_path = os.path.join(output_dir, 'sans-titre.csv')
+
+        fname = QFileDialog.getSaveFileName(self,
+                                               u"Exporter la table", user_path, u"CSV (séparateur: point virgule) (*.csv)")
+        
+        if fname:
+            CONF.set('paths', 'output_dir', os.path.dirname(str(fname)))
             try:
                 now = datetime.now()
-                csvfile = open(fileName, 'wb')
+                csvfile = open(fname, 'wb')
                 writer = UnicodeWriter(csvfile, dialect= csv.excel, delimiter=';')
                 writer.writerow([u'OpenFisca'])
                 writer.writerow([u'Calculé le %s à %s' % (now.strftime('%d-%m-%Y'), now.strftime('%H:%M'))])

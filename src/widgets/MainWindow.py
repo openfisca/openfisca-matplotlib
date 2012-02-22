@@ -28,17 +28,15 @@ from PyQt4.QtGui import (QMainWindow, QWidget, QGridLayout, QMessageBox, QKeySeq
                          QApplication, QCursor, QPixmap, QSplashScreen, QColor,
                          QActionGroup, QStatusBar)
 
-from Config import CONF, VERSION, SimConfigPage, ConfigDialog
+from Config import CONF, VERSION, ConfigDialog, SimConfigPage, PathConfigPage
 from widgets.Parametres import ParamWidget
 from widgets.Composition import ScenarioWidget
 from widgets.Output import Graph, OutTable
 from widgets.AggregateOuput import AggregateOutputWidget
-from Utils import Scenario
 from france.data import InputTable
 from france.model import Model
-from core.utils import gen_output_data
+from core.utils import gen_output_data, Scenario
 from core.qthelpers import create_action, add_actions, get_icon
-# import resources_rc
 
 class MainWindow(QMainWindow):
     def __init__(self, parent = None):
@@ -80,7 +78,7 @@ class MainWindow(QMainWindow):
         
         self.scenario = Scenario()
         # Preferences
-        self.general_prefs = [SimConfigPage]
+        self.general_prefs = [SimConfigPage, PathConfigPage]
         self.oldXAXIS = 'sal'
         self.reforme = False
         self.apply_settings()
@@ -112,7 +110,8 @@ class MainWindow(QMainWindow):
 
         # Menu Simulation
         self.simulation_menu = self.menuBar().addMenu(u"Simulation")
-        self.action_refresh = create_action(self, 'Calculer', shortcut = 'F9', icon = 'view-refresh.png', triggered = self.refresh)
+        self.action_refresh_bareme = create_action(self, u'Calculer barèmes', shortcut = 'F9', icon = 'view-refresh.png', triggered = self.refresh_bareme)
+        self.action_refresh_aggregate = create_action(self, u'Calculer aggrégats', shortcut = 'F10', icon = 'view-refresh.png', triggered = self.refresh_aggregate)
         action_bareme = create_action(self, u'Barème', icon = 'bareme22.png', toggled = self.modeBareme)
         action_cas_type = create_action(self, u'Cas type', icon = 'castype22.png', toggled = self.modeCasType)
         action_mode_reforme = create_action(self, u'Réforme', icon = 'comparison22.png', toggled = self.modeReforme, tip = u"Différence entre la situation simulée et la situation actuelle")
@@ -122,7 +121,7 @@ class MainWindow(QMainWindow):
         self.mode = 'bareme'
         action_bareme.trigger()
 
-        simulation_actions = [self.action_refresh, None, action_bareme, action_cas_type, None, action_mode_reforme]
+        simulation_actions = [self.action_refresh_bareme, self.action_refresh_aggregate , None, action_bareme, action_cas_type, None, action_mode_reforme]
         add_actions(self.simulation_menu, simulation_actions)
         
         # Menu Help
@@ -140,8 +139,9 @@ class MainWindow(QMainWindow):
         
         # Toolbar
         self.main_toolbar = self.create_toolbar(u"Barre d'outil", 'main_toolbar')
-        toolbar_actions = [action_export_png, action_export_csv, None, self.action_refresh, 
-                              None, action_bareme, action_cas_type, None, action_mode_reforme]
+        toolbar_actions = [action_export_png, action_export_csv, None, self.action_refresh_bareme, 
+                           self.action_refresh_aggregate, None, action_bareme, action_cas_type, 
+                           None, action_mode_reforme]
         add_actions(self.main_toolbar, toolbar_actions)
 
 
@@ -156,7 +156,7 @@ class MainWindow(QMainWindow):
         self.move(position)
         self.restoreState(settings.value("MainWindow/State").toByteArray())
 
-        self.refresh()
+        self.refresh_bareme()
         self.isLoaded = True
         self.splash.hide()
 
@@ -207,8 +207,8 @@ class MainWindow(QMainWindow):
         CONF.set('simulation', 'nmen', 1)
         self.changed()
 
-    def refresh(self):
-        # On vérifie que le ménage est valide
+    def refresh_bareme(self):
+        # Consistency check on scenario
         msg = self.scenario.check_consistency()
         if msg:
             QMessageBox.critical(self, u"Ménage non valide",
@@ -218,7 +218,7 @@ class MainWindow(QMainWindow):
         # Si oui, on lance le calcul
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         self.statusbar.showMessage(u"Calcul en cours...")
-        self.action_refresh.setEnabled(False)
+        self.action_refresh_bareme.setEnabled(False)
         # set the table model to None before changing data
         self._table.clearModel()
         
@@ -244,7 +244,29 @@ class MainWindow(QMainWindow):
 
         self.statusbar.showMessage(u"")
         QApplication.restoreOverrideCursor()
+    
+    def refresh_aggregate(self):
+        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+
+        filename = CONF.get('paths', 'external_data_file')
+        self.statusbar.showMessage(u"Calcul des aggregats en cours, ceci peut prendre quelques minutes...")
+        self.action_refresh_aggregate.setEnabled(False)
+        # set the table model to None before changing data
         
+        P_default = self._parametres.getParam(defaut = True)    
+        P_courant = self._parametres.getParam(defaut = False)
+        
+        input_table = InputTable()
+        input_table.populate_from_external_data(filename)
+
+        population_courant = Model(P_courant, P_default)
+        population_courant.set_inputs(input_table)
+        
+        population_courant.calculate('nivvie')
+
+        self.statusbar.showMessage(u"")
+        QApplication.restoreOverrideCursor()
+    
     def closeEvent(self, event):
         if self.okToContinue():
             settings = QSettings()
@@ -288,7 +310,7 @@ class MainWindow(QMainWindow):
             self.scenario.indiv[0][self.oldXAXIS + 'i']=0
         if self.isLoaded == True:
             self._parametres.initialize()
-            self.refresh()
+            self.refresh_bareme()
 
     def edit_preferences(self):
         """Edit OpenFisca preferences"""
@@ -304,4 +326,4 @@ class MainWindow(QMainWindow):
 
     def changed(self):
         self.statusbar.showMessage(u"Appuyez sur F9 pour lancer la simulation")
-        self.action_refresh.setEnabled(True)
+        self.action_refresh_bareme.setEnabled(True)
