@@ -24,6 +24,8 @@ from PyQt4.QtGui import (QWidget, QDockWidget, QLabel, QVBoxLayout, QHBoxLayout,
                          QSpacerItem, QSizePolicy)
 from PyQt4.QtCore import Qt, QAbstractTableModel, QVariant
 from core.qthelpers import OfTableView
+import numpy as np
+
 
 class AggregateOutputWidget(QDockWidget):
     def __init__(self, parent = None):
@@ -61,20 +63,38 @@ class AggregateOutputWidget(QDockWidget):
     def set_modeldata(self, datatable):
         self.aggregate_model = AggregateModel(datatable, self)
         self.aggregate_view.setModel(self.aggregate_model)
-        self.distribution_model = DistributionModel(datatable, self)
+
+    def set_dist_data(self, varlist, category):
+        dist_data = self.group_by(varlist, category)
+        self.distribution_model = DistributionModel(category, dist_data, self)
         self.distribution_view.setModel(self.distribution_model)
     
     def update_output(self, output_data):
         self.data = output_data
-        self.weights = self.data['wprm'].vals
+        self.weights = self.data['wprm'].values
         self.totaux = []
         for var in self.varlist:
             self.totaux.append((var, self.get_aggregate(var)))
         self.set_modeldata(self.totaux)
 
+        self.set_dist_data(['revdisp', 'nivvie'], 'typ_men')
+        
     def get_aggregate(self, var):
-        return float(sum(self.data[var].vals*self.weights))/10**6
+        return float(sum(self.data[var].values*self.weights))/10**6
     
+    def group_by(self, varlist, category):
+        keep = [category, 'wprm']
+        temp = []
+        for var in varlist:
+            self.data['__' + var] = self.data['wprm']*self.data[var]
+            temp.append('__'+var)
+            keep.append('__'+var)
+        grouped = self.data[keep].groupby(category).sum()
+        a = [grouped.index, grouped['wprm']]
+        a.extend([grouped[var].values/grouped['wprm'].values for var in temp ])
+        print a
+        return np.array(a).T
+        
 class AggregateModel(QAbstractTableModel):
     def __init__(self, datatable, parent=None):
         super(AggregateModel, self).__init__(parent)
@@ -108,15 +128,17 @@ class AggregateModel(QAbstractTableModel):
         return Qt.ItemIsEnabled | Qt.ItemIsSelectable
     
 class DistributionModel(QAbstractTableModel):
-    def __init__(self, datatable, parent=None):
+    def __init__(self, category, datatable, parent=None):
         super(DistributionModel, self).__init__(parent)
+        self.category = category
         self.datatable = datatable
-    
+        
+        
     def rowCount(self, parent):
-        return 4
+        return self.datatable.shape[0]
 
     def columnCount(self, parent):
-        return 4
+        return self.datatable.shape[1]
     
     def data(self, index, role = Qt.DisplayRole):
         if not index.isValid():
@@ -124,11 +146,20 @@ class DistributionModel(QAbstractTableModel):
         col = index.column()
         row = index.row()
         if role == Qt.DisplayRole:
-            return QVariant()
+            return QVariant(float(self.datatable[row][col]))
 
     def headerData(self, section, orientation, role):
         if role == Qt.DisplayRole:
-            return QVariant()
+            if orientation == Qt.Horizontal:
+                if section == 0:
+                    return QVariant(self.category)
+                elif section == 1:
+                    return QVariant(u'Nombre de\n ménage')
+                elif section == 2:
+                    return QVariant(u'Revenu\n disponible')
+                elif section == 3:
+                    return QVariant(u'Niveau de\n vie')
+        return QVariant()
     
     def flags(self, index):
         return Qt.ItemIsEnabled | Qt.ItemIsSelectable
