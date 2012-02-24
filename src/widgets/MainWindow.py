@@ -34,7 +34,8 @@ from widgets.Composition import ScenarioWidget
 from widgets.Output import Graph, OutTable
 from widgets.AggregateOuput import AggregateOutputWidget
 from france.data import InputTable
-from france.model import Model
+from france.model import ModelFrance
+from core.datatable import DataTable, SystemSf
 from core.utils import gen_output_data, Scenario
 from core.qthelpers import create_action, add_actions, get_icon
 
@@ -151,8 +152,8 @@ class MainWindow(QMainWindow):
         add_actions(self.main_toolbar, toolbar_actions)
 
 
-        self.connect(self._menage,     SIGNAL('changed()'), self.changed)
-        self.connect(self._parametres, SIGNAL('changed()'), self.changed)
+        self.connect(self._menage,     SIGNAL('changed()'), self.changed_bareme)
+        self.connect(self._parametres, SIGNAL('changed()'), self.changed_param)
         
         # Window settings
         self.splash.showMessage("Restoring settings...", Qt.AlignBottom | Qt.AlignCenter | 
@@ -164,20 +165,17 @@ class MainWindow(QMainWindow):
         self.move(position)
         self.restoreState(settings.value("MainWindow/State").toByteArray())
 
-        self.refresh_bareme()
-
         self.splash.showMessage("Loading external data...", Qt.AlignBottom | Qt.AlignCenter | 
                                 Qt.AlignAbsolute, QColor(Qt.black))
         
         if self.aggregate_enabled:
             try:
                 fname = CONF.get('paths', 'external_data_file')
-                self.erfs = InputTable()
-                self.erfs.populate_from_external_data(fname)
-
+                self.erfs = DataTable(InputTable, external_data = fname)
             except:
                 self.aggregate_enabled = False
             
+        self.refresh_bareme()
         
         self.isLoaded = True
         self.splash.hide()
@@ -216,18 +214,18 @@ class MainWindow(QMainWindow):
 
     def modeReforme(self, b):
         self.reforme = b
-        self.changed()
+        self.changed_bareme()
 
     def modeBareme(self):
         self.mode = 'bareme'
         NMEN = CONF.get('simulation', 'nmen')
         if NMEN == 1: CONF.set('simulation', 'nmen', 101)
-        self.changed()
+        self.changed_bareme()
 
     def modeCasType(self):
         self.mode = 'castype'
         CONF.set('simulation', 'nmen', 1)
-        self.changed()
+        self.changed_bareme()
 
     def refresh_bareme(self):
         # Consistency check on scenario
@@ -247,15 +245,14 @@ class MainWindow(QMainWindow):
         P_default = self._parametres.getParam(defaut = True)    
         P_courant = self._parametres.getParam(defaut = False)
         
-        input_table = InputTable()
-        input_table.populate_from_scenario(self.scenario)
-        population_courant = Model(P_courant, P_default)
+        input_table = DataTable(InputTable, scenario = self.scenario)
+
+        population_courant = SystemSf(ModelFrance, P_courant, P_default)
         population_courant.set_inputs(input_table)
         data_courant = gen_output_data(population_courant)
 
         if self.reforme:
-            population_courant.reset()
-            population_default = Model(P_default, P_default)
+            population_default = SystemSf(ModelFrance, P_default, P_default)
             population_default.set_inputs(input_table)
             data_default = gen_output_data(population_default)
             data_courant.difference(data_default)
@@ -279,7 +276,7 @@ class MainWindow(QMainWindow):
         
         input_table = self.erfs
 
-        population_courant = Model(P_courant, P_default)
+        population_courant = SystemSf(ModelFrance, P_courant, P_default)
         population_courant.set_inputs(input_table)
         
         population_courant.calculate('irpp')
@@ -347,8 +344,12 @@ class MainWindow(QMainWindow):
         dlg.check_all_settings()
         dlg.exec_()
 
-    def changed(self):
-        self.statusbar.showMessage(u"Appuyez sur F9 pour lancer la simulation")
+    def changed_bareme(self):
+        self.statusbar.showMessage(u"Appuyez sur F9/F10 pour lancer la simulation")
         self.action_refresh_bareme.setEnabled(True)
+    
+    def changed_param(self):
+        self.statusbar.showMessage(u"Appuyez sur F9/F10 pour lancer la simulation")
         self.action_refresh_aggregate.setEnabled(True)
+        self.action_refresh_bareme.setEnabled(True)
         
