@@ -213,7 +213,9 @@ class MainWindow(QMainWindow):
     def enable_aggregate(self, val = True):
         import warnings
         if val:
-            try:
+            if True:
+#            try:
+                self.reset_aggregate()
                 fname = CONF.get('paths', 'external_data_file')
                 self.erfs = DataTable(InputTable, external_data = fname)
                 self._aggregate_output.setEnabled(True)
@@ -222,14 +224,19 @@ class MainWindow(QMainWindow):
                 self._aggregate_output.setEnabled(True)
                 self._dataframe_widget.set_dataframe(self.erfs.table)
                 return
-            except Exception, e:
-                print e
-                warnings.warn("Unable to read data, switching to barème only mode")
+#            except Exception, e:
+#                print e
+#                warnings.warn("Unable to read data, switching to barème only mode")
+#
+#        self.aggregate_enabled = False
+#        self._aggregate_output.setEnabled(False)
+#        self.action_refresh_aggregate.setEnabled(False)
 
-        self.aggregate_enabled = False
-        self._aggregate_output.setEnabled(False)
-        self.action_refresh_aggregate.setEnabled(False)
 
+    def reset_aggregate(self):
+        self.erfs = None
+        self._dataframe_widget.clear()
+        self._aggregate_output.reset()
     
     def modeReforme(self, b):
         self.reforme = b

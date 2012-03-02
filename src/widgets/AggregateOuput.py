@@ -25,6 +25,7 @@ from PyQt4.QtGui import (QWidget, QDockWidget, QLabel, QVBoxLayout, QHBoxLayout,
 from PyQt4.QtCore import Qt, QAbstractTableModel, QVariant
 from core.qthelpers import OfTableView, OfSs, DataFrameViewWidget
 import numpy as np
+from pandas import DataFrame
 
 class DataFrameDock(QDockWidget):
     def __init__(self, parent = None):
@@ -39,6 +40,10 @@ class DataFrameDock(QDockWidget):
     def set_dataframe(self, dataframe):
         self.view.set_DataFrame(dataframe)
     
+    def clear(self):
+        model = self.view.model()
+        if model:
+            model.clear()
     
 class AggregateOutputWidget(QDockWidget):
     def __init__(self, parent = None):
@@ -73,16 +78,16 @@ class AggregateOutputWidget(QDockWidget):
         # Initialize attributes
         self.parent = parent
         self.varlist = ['irpp', 'ppe', 'af', 'cf', 'ars', 'aeeh', 'asf', 'mv', 'aah', 'caah', 'rsa', 'aefa', 'api', 'logt']
-        self.data = None # Pandas DataFrame
+        self.data = DataFrame() # Pandas DataFrame
         
     def set_modeldata(self, datatable):
-        self.aggregate_model = AggregateModel(datatable, self)
-        self.aggregate_view.setModel(self.aggregate_model)
+        aggregate_model = AggregateModel(datatable, self)
+        self.aggregate_view.setModel(aggregate_model)
 
     def set_dist_data(self, varlist, category):
         dist_data = self.group_by(varlist, category)
-        self.distribution_model = DistributionModel(category, dist_data, self)
-        self.distribution_view.setModel(self.distribution_model)
+        distribution_model = DistributionModel(category, dist_data, self)
+        self.distribution_view.setModel(distribution_model)
     
     def update_output(self, output_data):
         self.data = output_data
@@ -111,6 +116,13 @@ class AggregateOutputWidget(QDockWidget):
         a = [grouped.index, grouped['wprm']]
         a.extend([grouped[var].values/grouped['wprm'].values for var in temp ])
         return np.array(a).T
+
+    def reset(self):
+        if self.aggregate_view.model():
+            self.aggregate_view.model().clear()
+        if self.distribution_view.model():
+            self.distribution_view.model().clear()
+        self.data = None
         
 class AggregateModel(QAbstractTableModel):
     def __init__(self, datatable, parent=None):
@@ -121,7 +133,7 @@ class AggregateModel(QAbstractTableModel):
         return len(self.datatable)
 
     def columnCount(self, parent):
-        return 3
+        return len(self.datatable[0])
     
     def data(self, index, role = Qt.DisplayRole):
         if not index.isValid():
@@ -144,6 +156,11 @@ class AggregateModel(QAbstractTableModel):
     
     def flags(self, index):
         return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+
+    def clear(self):
+        self.datatable = (())
+        self.reset()
+
     
 class DistributionModel(QAbstractTableModel):
     def __init__(self, category, datatable, parent=None):
@@ -182,4 +199,7 @@ class DistributionModel(QAbstractTableModel):
     def flags(self, index):
         return Qt.ItemIsEnabled | Qt.ItemIsSelectable
 
+    def clear(self):
+        self.datatable = (())
+        self.reset()
     
