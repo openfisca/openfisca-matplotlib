@@ -32,7 +32,7 @@ from Config import CONF, VERSION, ConfigDialog, SimConfigPage, PathConfigPage
 from widgets.Parametres import ParamWidget
 from widgets.Composition import ScenarioWidget
 from widgets.Output import Graph, OutTable
-from widgets.AggregateOuput import AggregateOutputWidget
+from widgets.AggregateOuput import AggregateOutputWidget, DataFrameDock
 from france.data import InputTable
 from france.model import ModelFrance
 from core.datatable import DataTable, SystemSf
@@ -189,6 +189,7 @@ class MainWindow(QMainWindow):
         self._graph = Graph(self)
         self._table = OutTable(self)
         self._aggregate_output = AggregateOutputWidget(self)
+        self._dataframe_widget = DataFrameDock(self)
         
     def populate_mainwidow(self):
         self.addDockWidget(Qt.RightDockWidgetArea, self._parametres)
@@ -196,6 +197,8 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.LeftDockWidgetArea, self._graph)
         self.addDockWidget(Qt.LeftDockWidgetArea, self._table)
         self.addDockWidget(Qt.LeftDockWidgetArea, self._aggregate_output)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self._dataframe_widget)
+        self.tabifyDockWidget(self._dataframe_widget, self._aggregate_output)
         self.tabifyDockWidget(self._aggregate_output, self._table)
         self.tabifyDockWidget(self._table, self._graph)
 
@@ -216,8 +219,11 @@ class MainWindow(QMainWindow):
                 self._aggregate_output.setEnabled(True)
                 self.aggregate_enabled = True
                 self.action_refresh_aggregate.setEnabled(True)
+                self._aggregate_output.setEnabled(True)
+                self._dataframe_widget.set_dataframe(self.erfs.table)
                 return
-            except:
+            except Exception, e:
+                print e
                 warnings.warn("Unable to read data, switching to barème only mode")
 
         self.aggregate_enabled = False
@@ -292,8 +298,9 @@ class MainWindow(QMainWindow):
         population_courant = SystemSf(ModelFrance, P_courant, P_default)
         population_courant.set_inputs(input_table)
         
-        population_courant.calculate('irpp')
+        population_courant.calculate()
 
+        self._dataframe_widget.set_dataframe(population_courant.table)
         data_courant = gen_aggregate_output(population_courant)
         
         self._aggregate_output.update_output(data_courant)

@@ -23,10 +23,23 @@ This file is part of openFisca.
 from PyQt4.QtGui import (QWidget, QDockWidget, QLabel, QVBoxLayout, QHBoxLayout, QComboBox,
                          QSpacerItem, QSizePolicy)
 from PyQt4.QtCore import Qt, QAbstractTableModel, QVariant
-from core.qthelpers import OfTableView, OfSs
+from core.qthelpers import OfTableView, OfSs, DataFrameViewWidget
 import numpy as np
 
-
+class DataFrameDock(QDockWidget):
+    def __init__(self, parent = None):
+        super(DataFrameDock, self).__init__(parent)
+        self.view = DataFrameViewWidget(self)
+        self.setWindowTitle("Data")
+        dockWidgetContents = QWidget()
+        verticalLayout = QVBoxLayout(dockWidgetContents)
+        verticalLayout.addWidget(self.view)
+        self.setWidget(dockWidgetContents)
+        
+    def set_dataframe(self, dataframe):
+        self.view.set_DataFrame(dataframe)
+    
+    
 class AggregateOutputWidget(QDockWidget):
     def __init__(self, parent = None):
         super(AggregateOutputWidget, self).__init__(parent)
@@ -76,13 +89,16 @@ class AggregateOutputWidget(QDockWidget):
         self.weights = self.data['wprm'].values
         self.totaux = []
         for var in self.varlist:
-            self.totaux.append((var, self.get_aggregate(var)))
+            montant, benef = self.get_aggregate(var)
+            self.totaux.append((var, montant, benef))
         self.set_modeldata(self.totaux)
 
         self.set_dist_data(['revdisp', 'nivvie'], 'typ_men')
         
     def get_aggregate(self, var):
-        return int(round(sum(self.data[var].values*self.weights)/10**6))
+        montants = self.data[var].values
+        beneficiaires = self.data[var].values != 0
+        return int(round(sum(montants*self.weights)/10**6)), int(round(sum(beneficiaires*self.weights)/10**3))
     
     def group_by(self, varlist, category):
         keep = [category, 'wprm']
@@ -105,7 +121,7 @@ class AggregateModel(QAbstractTableModel):
         return len(self.datatable)
 
     def columnCount(self, parent):
-        return 2
+        return 3
     
     def data(self, index, role = Qt.DisplayRole):
         if not index.isValid():
@@ -115,7 +131,7 @@ class AggregateModel(QAbstractTableModel):
         if role == Qt.DisplayRole:
             return QVariant(self.datatable[row][col])
         if role == Qt.TextAlignmentRole:
-            if col == 1: return Qt.AlignRight
+            if col >= 1: return Qt.AlignRight
         return QVariant()
         
     def headerData(self, section, orientation, role):
@@ -123,6 +139,7 @@ class AggregateModel(QAbstractTableModel):
             if orientation == Qt.Horizontal:
                 if section ==0: return u'Mesure'
                 elif section == 1: return u"Dépense\n(millions d'€)"
+                elif section == 2: return u"Bénéficiaires\n(milliers de ménages)"
         return QVariant()
     
     def flags(self, index):
