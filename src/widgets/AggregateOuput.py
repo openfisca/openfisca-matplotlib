@@ -23,14 +23,14 @@ This file is part of openFisca.
 from PyQt4.QtGui import (QWidget, QDockWidget, QLabel, QVBoxLayout, QHBoxLayout, QComboBox,
                          QSpacerItem, QSizePolicy)
 from PyQt4.QtCore import Qt, QAbstractTableModel, QVariant
-from core.qthelpers import OfTableView
+from core.qthelpers import OfTableView, OfSs
 import numpy as np
 
 
 class AggregateOutputWidget(QDockWidget):
     def __init__(self, parent = None):
         super(AggregateOutputWidget, self).__init__(parent)
-        
+        self.setStyleSheet(OfSs.dock_style)
         # Create geometry
         self.setObjectName("Aggregate_Output")
         self.setWindowTitle("Aggregate_Output")
@@ -57,8 +57,10 @@ class AggregateOutputWidget(QDockWidget):
         verticalLayout.addWidget(self.distribution_view)
         self.setWidget(self.dockWidgetContents)
 
+        # Initialize attributes
         self.parent = parent
-        self.varlist = ['irpp', 'af', 'cf', 'ars', 'logt']
+        self.varlist = ['irpp', 'ppe', 'af', 'cf', 'ars', 'aeeh', 'asf', 'mv', 'aah', 'caah', 'rsa', 'aefa', 'api', 'logt']
+        self.data = None # Pandas DataFrame
         
     def set_modeldata(self, datatable):
         self.aggregate_model = AggregateModel(datatable, self)
@@ -80,7 +82,7 @@ class AggregateOutputWidget(QDockWidget):
         self.set_dist_data(['revdisp', 'nivvie'], 'typ_men')
         
     def get_aggregate(self, var):
-        return float(sum(self.data[var].values*self.weights))/10**6
+        return int(round(sum(self.data[var].values*self.weights)/10**6))
     
     def group_by(self, varlist, category):
         keep = [category, 'wprm']
@@ -92,7 +94,6 @@ class AggregateOutputWidget(QDockWidget):
         grouped = self.data[keep].groupby(category).sum()
         a = [grouped.index, grouped['wprm']]
         a.extend([grouped[var].values/grouped['wprm'].values for var in temp ])
-        print a
         return np.array(a).T
         
 class AggregateModel(QAbstractTableModel):
