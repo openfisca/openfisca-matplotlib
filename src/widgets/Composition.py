@@ -22,7 +22,7 @@ This file is part of openFisca.
 """
 
 from PyQt4.QtGui import (QDockWidget, QDialog, QLabel, QDateEdit, QComboBox,  
-                         QPushButton, QApplication, QFileDialog, QMessageBox)
+                         QPushButton, QApplication, QFileDialog, QMessageBox, QDialogButtonBox)
 from PyQt4.QtCore import QObject, SIGNAL, SLOT, QDate, Qt
 from views.ui_composition import Ui_Menage
 from views.ui_logement import Ui_Logement
@@ -348,15 +348,17 @@ class Logement(QDialog, Ui_Logement):
         self.spinLoyer.setValue(scenario.menage[0]['loyer'])
         self.comboSo.setCurrentIndex(scenario.menage[0]['so']-1)
                         
-        code_file = open('data/code_apl', 'rb')
+        code_file = open('data/code_apl', 'r')
         code_dict = pickle.load(code_file)
         code_file.close()
 
         def update_ville(code):        
             try:
                 commune = code_dict[str(code)]
+                self.bbox.button(QDialogButtonBox.Ok).setEnabled(True)
             except:
                 commune = ("Ce code postal n'est pas reconnu", '2')
+                self.bbox.button(QDialogButtonBox.Ok).setEnabled(False)
                 
             self.commune.setText(commune[0])
             self.spinZone.setValue(int(commune[1]))

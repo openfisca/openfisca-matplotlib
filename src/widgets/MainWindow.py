@@ -38,6 +38,7 @@ from france.model import ModelFrance
 from core.datatable import DataTable, SystemSf
 from core.utils import gen_output_data, gen_aggregate_output, Scenario
 from core.qthelpers import create_action, add_actions, get_icon
+import gc
 
 class MainWindow(QMainWindow):
     def __init__(self, parent = None):
@@ -213,9 +214,11 @@ class MainWindow(QMainWindow):
     def enable_aggregate(self, val = True):
         import warnings
         if val:
-            if True:
-#            try:
+            try:
+                # liberate some memory before loading new data
                 self.reset_aggregate()
+                gc.collect()
+                
                 fname = CONF.get('paths', 'external_data_file')
                 self.erfs = DataTable(InputTable, external_data = fname)
                 self._aggregate_output.setEnabled(True)
@@ -224,19 +227,19 @@ class MainWindow(QMainWindow):
                 self._aggregate_output.setEnabled(True)
                 self._dataframe_widget.set_dataframe(self.erfs.table)
                 return
-#            except Exception, e:
-#                print e
-#                warnings.warn("Unable to read data, switching to barème only mode")
-#
-#        self.aggregate_enabled = False
-#        self._aggregate_output.setEnabled(False)
-#        self.action_refresh_aggregate.setEnabled(False)
+            except Exception, e:
+                print e
+                warnings.warn("Unable to read data, switching to barème only mode")
+
+        self.aggregate_enabled = False
+        self._aggregate_output.setEnabled(False)
+        self.action_refresh_aggregate.setEnabled(False)
 
 
     def reset_aggregate(self):
         self.erfs = None
         self._dataframe_widget.clear()
-        self._aggregate_output.reset()
+        self._aggregate_output.clear()
     
     def modeReforme(self, b):
         self.reforme = b
@@ -295,7 +298,9 @@ class MainWindow(QMainWindow):
 
         self.statusbar.showMessage(u"Calcul des aggregats en cours, ceci peut prendre quelques minutes...")
         self.action_refresh_aggregate.setEnabled(False)
-        # set the table model to None before changing data
+        self._aggregate_output.clear()
+        self._dataframe_widget.clear()
+
         
         P_default = self._parametres.getParam(defaut = True)    
         P_courant = self._parametres.getParam(defaut = False)

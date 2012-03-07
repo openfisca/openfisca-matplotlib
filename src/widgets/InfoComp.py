@@ -47,7 +47,6 @@ class InfoComp(QDialog):
         self.verticalLayout = QVBoxLayout(self)
         self.gridLayout = QGridLayout()
         self.gridLayout.setHorizontalSpacing(10)
-        print OfSs.bold_center
         self.setStyleSheet(OfSs.bold_center)
 
         self.label_0 = QLabel(u'n°', self)
