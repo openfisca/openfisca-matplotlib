@@ -32,12 +32,13 @@ from Config import CONF, VERSION, ConfigDialog, SimConfigPage, PathConfigPage
 from widgets.Parametres import ParamWidget
 from widgets.Composition import ScenarioWidget
 from widgets.Output import Graph, OutTable
-from widgets.AggregateOuput import AggregateOutputWidget
+from widgets.AggregateOuput import AggregateOutputWidget, DataFrameDock
 from france.data import InputTable
 from france.model import ModelFrance
 from core.datatable import DataTable, SystemSf
-from core.utils import gen_output_data, Scenario
+from core.utils import gen_output_data, gen_aggregate_output, Scenario
 from core.qthelpers import create_action, add_actions, get_icon
+import gc
 
 class MainWindow(QMainWindow):
     def __init__(self, parent = None):
@@ -168,12 +169,8 @@ class MainWindow(QMainWindow):
         self.splash.showMessage("Loading external data...", Qt.AlignBottom | Qt.AlignCenter | 
                                 Qt.AlignAbsolute, QColor(Qt.black))
         
-        if self.aggregate_enabled:
-            try:
-                fname = CONF.get('paths', 'external_data_file')
-                self.erfs = DataTable(InputTable, external_data = fname)
-            except:
-                self.aggregate_enabled = False
+
+        self.enable_aggregate(True)
             
         self.refresh_bareme()
         
@@ -193,6 +190,7 @@ class MainWindow(QMainWindow):
         self._graph = Graph(self)
         self._table = OutTable(self)
         self._aggregate_output = AggregateOutputWidget(self)
+        self._dataframe_widget = DataFrameDock(self)
         
     def populate_mainwidow(self):
         self.addDockWidget(Qt.RightDockWidgetArea, self._parametres)
@@ -200,6 +198,8 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.LeftDockWidgetArea, self._graph)
         self.addDockWidget(Qt.LeftDockWidgetArea, self._table)
         self.addDockWidget(Qt.LeftDockWidgetArea, self._aggregate_output)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self._dataframe_widget)
+        self.tabifyDockWidget(self._dataframe_widget, self._aggregate_output)
         self.tabifyDockWidget(self._aggregate_output, self._table)
         self.tabifyDockWidget(self._table, self._graph)
 
@@ -211,7 +211,36 @@ class MainWindow(QMainWindow):
         if hasattr(widget, callback):
             getattr(widget, callback)()
 
+    def enable_aggregate(self, val = True):
+        import warnings
+        if val:
+            try:
+                # liberate some memory before loading new data
+                self.reset_aggregate()
+                gc.collect()
+                
+                fname = CONF.get('paths', 'external_data_file')
+                self.erfs = DataTable(InputTable, external_data = fname)
+                self._aggregate_output.setEnabled(True)
+                self.aggregate_enabled = True
+                self.action_refresh_aggregate.setEnabled(True)
+                self._aggregate_output.setEnabled(True)
+                self._dataframe_widget.set_dataframe(self.erfs.table)
+                return
+            except Exception, e:
+                print e
+                warnings.warn("Unable to read data, switching to barème only mode")
 
+        self.aggregate_enabled = False
+        self._aggregate_output.setEnabled(False)
+        self.action_refresh_aggregate.setEnabled(False)
+
+
+    def reset_aggregate(self):
+        self.erfs = None
+        self._dataframe_widget.clear()
+        self._aggregate_output.clear()
+    
     def modeReforme(self, b):
         self.reforme = b
         self.changed_bareme()
@@ -269,7 +298,9 @@ class MainWindow(QMainWindow):
 
         self.statusbar.showMessage(u"Calcul des aggregats en cours, ceci peut prendre quelques minutes...")
         self.action_refresh_aggregate.setEnabled(False)
-        # set the table model to None before changing data
+        self._aggregate_output.clear()
+        self._dataframe_widget.clear()
+
         
         P_default = self._parametres.getParam(defaut = True)    
         P_courant = self._parametres.getParam(defaut = False)
@@ -279,9 +310,10 @@ class MainWindow(QMainWindow):
         population_courant = SystemSf(ModelFrance, P_courant, P_default)
         population_courant.set_inputs(input_table)
         
-        population_courant.calculate('irpp')
+        population_courant.calculate()
 
-        data_courant = gen_output_data(population_courant, weights = True)
+        self._dataframe_widget.set_dataframe(population_courant.table)
+        data_courant = gen_aggregate_output(population_courant)
         
         self._aggregate_output.update_output(data_courant)
         self.statusbar.showMessage(u"")
@@ -350,6 +382,7 @@ class MainWindow(QMainWindow):
     
     def changed_param(self):
         self.statusbar.showMessage(u"Appuyez sur F9/F10 pour lancer la simulation")
-        self.action_refresh_aggregate.setEnabled(True)
+        if self.aggregate_enabled:
+            self.action_refresh_aggregate.setEnabled(True)
         self.action_refresh_bareme.setEnabled(True)
         

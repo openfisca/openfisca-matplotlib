@@ -21,13 +21,12 @@ This file is part of openFisca.
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from PyQt4.QtGui import (QDockWidget, QDialog, QLabel, QDateEdit, QComboBox, QCheckBox, 
-                         QPushButton, QApplication, QFileDialog, QMessageBox,
-                         QSpacerItem, QHBoxLayout, QSizePolicy)
+from PyQt4.QtGui import (QDockWidget, QDialog, QLabel, QDateEdit, QComboBox,  
+                         QPushButton, QApplication, QFileDialog, QMessageBox, QDialogButtonBox)
 from PyQt4.QtCore import QObject, SIGNAL, SLOT, QDate, Qt
 from views.ui_composition import Ui_Menage
 from views.ui_logement import Ui_Logement
-from views.ui_infocomp import Ui_InfoComp
+from widgets.InfoComp import InfoComp
 from Declaration import Declaration
 from datetime import date
 import pickle
@@ -349,15 +348,17 @@ class Logement(QDialog, Ui_Logement):
         self.spinLoyer.setValue(scenario.menage[0]['loyer'])
         self.comboSo.setCurrentIndex(scenario.menage[0]['so']-1)
                         
-        code_file = open('data/code_apl', 'rb')
+        code_file = open('data/code_apl', 'r')
         code_dict = pickle.load(code_file)
         code_file.close()
 
         def update_ville(code):        
             try:
                 commune = code_dict[str(code)]
+                self.bbox.button(QDialogButtonBox.Ok).setEnabled(True)
             except:
                 commune = ("Ce code postal n'est pas reconnu", '2')
+                self.bbox.button(QDialogButtonBox.Ok).setEnabled(False)
                 
             self.commune.setText(commune[0])
             self.spinZone.setValue(int(commune[1]))
@@ -386,52 +387,3 @@ class Logement(QDialog, Ui_Logement):
         QDialog.accept(self)
 
 
-class InfoComp(QDialog, Ui_InfoComp):
-    def __init__(self, scenario, parent = None):
-        super(InfoComp, self).__init__(parent)
-        self.setupUi(self)
-        self.parent = parent
-        self.scenario = scenario
-        self.inv_list = []
-        self.alt_list = []
-        self.act_list = []
-        for noi, vals in self.scenario.indiv.iteritems():
-            self.gridLayout.addWidget(QLabel('%d' % (noi + 1), self), noi + 1, 0)
-            
-            # Acitivité
-            cb_act = QComboBox(self)
-            cb_act.addItems([u'Actif occupé', u'Chômeur', u'Étudiant, élève', u'Retraité', u'Autre inactif'])
-            cb_act.setCurrentIndex(vals['activite'])
-            self.act_list.append(cb_act)
-            self.gridLayout.addWidget(cb_act, noi + 1, 1)
-
-            # Invalide
-            cb_inv = QCheckBox(self)
-            cb_inv.setChecked(vals['inv'])
-            layout1 = QHBoxLayout()
-            layout1.addItem(QSpacerItem(0,0, QSizePolicy.Expanding, QSizePolicy.Minimum))
-            layout1.addWidget(cb_inv)
-            layout1.addItem(QSpacerItem(0,0, QSizePolicy.Expanding, QSizePolicy.Minimum))            
-            self.inv_list.append(cb_inv)
-            self.gridLayout.addLayout(layout1, noi + 1, 2)
-
-            # Garde alternée
-            cb_alt = QCheckBox(self)
-            if vals['quifoy'][:3] != 'pac':
-                vals['alt'] = 0
-                cb_alt.setEnabled(False)
-            cb_alt.setChecked(vals['alt'])
-            layout2 = QHBoxLayout()
-            layout2.addItem(QSpacerItem(0,0, QSizePolicy.Expanding, QSizePolicy.Minimum))
-            layout2.addWidget(cb_alt)
-            layout2.addItem(QSpacerItem(0,0, QSizePolicy.Expanding, QSizePolicy.Minimum))
-            self.alt_list.append(cb_alt)
-            self.gridLayout.addLayout(layout2, noi + 1, 3)
-
-    def accept(self):
-        for noi, vals in self.scenario.indiv.iteritems():
-            vals['inv'] = self.inv_list[noi].checkState() >= 1
-            vals['alt'] = self.alt_list[noi].checkState() >= 1
-            vals['activite'] = self.act_list[noi].currentIndex()
-        QDialog.accept(self)
-            
