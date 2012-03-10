@@ -29,7 +29,7 @@ from parametres.paramModel import PrestationModel
 from parametres.Delegate import CustomDelegate, ValueColumnDelegate
 from Config import CONF
 from datetime import datetime
-
+import os
 
 class ParamWidget(QDockWidget, Ui_Parametres):
     def __init__(self, fileName, parent = None):
@@ -72,11 +72,15 @@ class ParamWidget(QDockWidget, Ui_Parametres):
         self.uiTree.setItemDelegate(delegate)
     
     def getParam(self, defaut = False):
-        return Tree2Object(self._rootNode, defaut)
+        obj = Tree2Object(self._rootNode, defaut)
+        obj.datesim = self._date
+        return obj
 
     def saveXml(self):
+        reformes_dir = CONF.get('paths', 'reformes_dir')
+        default_fileName = os.path.join(reformes_dir, 'sans-titre')
         fileName = QFileDialog.getSaveFileName(self,
-                                               u"Enregistrer une réforme", "reformes/sans-titre", u"Paramètres OpenFisca (*.ofp)")
+                                               u"Enregistrer une réforme", default_fileName, u"Paramètres OpenFisca (*.ofp)")
         if fileName:
             try:
                 self._rootNode.asXml(fileName)
@@ -87,8 +91,9 @@ class ParamWidget(QDockWidget, Ui_Parametres):
 
 
     def loadXml(self):
+        reformes_dir = CONF.get('paths', 'reformes_dir')
         fileName = QFileDialog.getOpenFileName(self,
-                                               u"Ouvrir une réforme", "reformes/", u"Paramètres OpenFisca (*.ofp)")
+                                               u"Ouvrir une réforme", reformes_dir, u"Paramètres OpenFisca (*.ofp)")
         if not fileName == '':
             try: 
                 loader = XmlReader(str(fileName))

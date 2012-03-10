@@ -26,13 +26,13 @@ from Config import CONF
 from PyQt4.QtCore import QAbstractItemModel, QModelIndex, Qt, QVariant, SIGNAL, \
     QSize
 from PyQt4.QtGui import QDockWidget, QFileDialog, QColor, QVBoxLayout, QDialog, \
-    QMessageBox, QTreeView, QIcon, QPixmap, QHBoxLayout, QPushButton
+    QMessageBox, QTreeView, QIcon, QPixmap, QHBoxLayout, QPushButton, QWidget, QAbstractItemView
 from datetime import datetime
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle, FancyArrow
 from matplotlib.ticker import FuncFormatter
 from views.ui_graph import Ui_Graph
-from views.ui_table import Ui_Table
+from core.qthelpers import OfTreeView
 import csv
 import os
 import codecs
@@ -293,8 +293,8 @@ class Graph(QDockWidget, Ui_Graph):
         sorted_filetypes = filetypes.items()
         sorted_filetypes.sort()
         default_filetype = self.mplwidget.get_default_filetype()
-
-        start = os.path.expanduser('~/image.') + default_filetype
+        output_dir = CONF.get('paths', 'output_dir')
+        start = os.path.join(output_dir, 'image.') + default_filetype
         filters = []
         selectedFilter = None
         for name, exts in sorted_filetypes:
@@ -307,7 +307,10 @@ class Graph(QDockWidget, Ui_Graph):
 
         fname = QFileDialog.getSaveFileName(
             self, "Enregistrer l'image", start, filters, selectedFilter)
+        
+
         if fname:
+            CONF.set('paths', 'output_dir', os.path.dirname(str(fname)))
             try:
                 self.mplwidget.print_figure( unicode(fname) )
             except Exception, e:
@@ -495,10 +498,24 @@ def RevTot(data, typrev):
         raise Exception("typrev should be in ('superbrut', 'brut', 'imposable', 'net'")
     return out
 
-class OutTable(QDockWidget, Ui_Table):
+class OutTable(QDockWidget):
     def __init__(self, parent = None):
         super(OutTable, self).__init__(parent)
-        self.setupUi(self)
+        self.setObjectName("Table")
+        self.setWindowTitle("Table")
+        self.dockWidgetContents = QWidget(self)
+        self.verticalLayout = QVBoxLayout(self.dockWidgetContents)
+        self.treeView = OfTreeView(self.dockWidgetContents)
+        self.treeView.setAlternatingRowColors(True)
+        self.treeView.setIndentation(10)
+        selection_behavior = QAbstractItemView.SelectRows
+        # we should enable contguous selection, but the copy method does not yet handle this.
+#        selection_mode = QAbstractItemView.ContiguousSelection
+        selection_mode = QAbstractItemView.SingleSelection       
+        self.treeView.setSelectionBehavior(selection_behavior)
+        self.treeView.setSelectionMode(selection_mode)
+        self.verticalLayout.addWidget(self.treeView)
+        self.setWidget(self.dockWidgetContents)
 
     def clearModel(self):
         self.treeView.setModel(None)
@@ -521,13 +538,17 @@ class OutTable(QDockWidget, Ui_Table):
             self.treeView.setColumnWidth(1,100)
 
     def saveCsv(self):
-        userPath = os.path.expanduser('~/sans-titre.csv')
-        fileName = QFileDialog.getSaveFileName(self,
-                                               u"Exporter la table", userPath, u"CSV (séparateur: point virgule) (*.csv)")
-        if fileName:
+        output_dir = CONF.get('paths', 'output_dir')
+        user_path = os.path.join(output_dir, 'sans-titre.csv')
+
+        fname = QFileDialog.getSaveFileName(self,
+                                               u"Exporter la table", user_path, u"CSV (séparateur: point virgule) (*.csv)")
+        
+        if fname:
+            CONF.set('paths', 'output_dir', os.path.dirname(str(fname)))
             try:
                 now = datetime.now()
-                csvfile = open(fileName, 'wb')
+                csvfile = open(fname, 'wb')
                 writer = UnicodeWriter(csvfile, dialect= csv.excel, delimiter=';')
                 writer.writerow([u'OpenFisca'])
                 writer.writerow([u'Calculé le %s à %s' % (now.strftime('%d-%m-%Y'), now.strftime('%H:%M'))])
