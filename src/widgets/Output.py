@@ -22,20 +22,23 @@ This file is part of openFisca.
 """
 
 from __future__ import division
-from PyQt4.QtGui import (QDockWidget, QFileDialog, QColor, QVBoxLayout, 
-                         QDialog, QMessageBox, QTreeView, QIcon, QPixmap,
-                         QHBoxLayout, QPushButton)
-from PyQt4.QtCore import (QAbstractItemModel, QModelIndex, 
-                          Qt, QVariant, SIGNAL, QSize)
-from views.ui_graph import Ui_Graph
-from views.ui_table import Ui_Table
-import numpy as np
+from Config import CONF
+from PyQt4.QtCore import QAbstractItemModel, QModelIndex, Qt, QVariant, SIGNAL, \
+    QSize
+from PyQt4.QtGui import QDockWidget, QFileDialog, QColor, QVBoxLayout, QDialog, \
+    QMessageBox, QTreeView, QIcon, QPixmap, QHBoxLayout, QPushButton
+from datetime import datetime
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle, FancyArrow
 from matplotlib.ticker import FuncFormatter
-from Config import CONF
-import csv, os, codecs, cStringIO, locale
-from datetime import datetime
+from views.ui_graph import Ui_Graph
+from views.ui_table import Ui_Table
+import csv
+import os
+import codecs
+import cStringIO
+import locale
+import numpy as np
 locale.setlocale(locale.LC_ALL, '')
 
 
@@ -449,7 +452,7 @@ def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None):
 
     ax.hold(True)
     ax.set_xlim(np.amin(xdata.vals), np.amax(xdata.vals))
-    #$"
+    ax.set_ylabel(r"$\left(1 - \frac{RevDisponible}{RevInitial} \right)\ et\ \left(1 - \frac{d (RevDisponible)}{d (RevInitial)}\right)$")
     ax.set_ylabel(r"$\left(1 - \frac{RevDisponible}{RevInitial} \right)\ et\ \left(1 - \frac{d (RevDisponible)}{d (RevInitial)}\right)$")
     ax.plot(xdata.vals, taumoy, label = u"Taux moyen d'imposition", linewidth = 2)
     ax.plot(xdata.vals[1:], taumar, label = u"Taux marginal d'imposition", linewidth = 2)
@@ -477,7 +480,7 @@ def RevTot(data, typrev):
     penbrut = data['chobrut'].vals + data['rstbrut'].vals + alim
     penimp  = data['cho'].vals + data['rst'].vals + alim
     pennet  = data['chonet'].vals + data['rstnet'].vals + alim
-    capbrut = data['revcap_bar'].vals + data['revcap_lib'].vals + data['fon'].vals
+    capbrut = data['rev_cap_bar'].vals + data['rev_cap_lib'].vals + data['fon'].vals
     capnet = capbrut + data['cotsoc_bar'].vals + data['cotsoc_lib'].vals
 
     if   typrev == 'superbrut': 

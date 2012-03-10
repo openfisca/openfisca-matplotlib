@@ -31,7 +31,6 @@ from views.ui_infocomp import Ui_InfoComp
 from Declaration import Declaration
 from datetime import date
 import pickle
-from tableWriter import QUIFAM
 
 class S:
     name = 0

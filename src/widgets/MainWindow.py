@@ -29,13 +29,13 @@ from PyQt4.QtGui import (QMainWindow, QMessageBox, QKeySequence, QAction, QIcon,
                          QActionGroup)
 from Config import CONF, VERSION, SimConfigPage, ConfigDialog
 from views import ui_mainwindow
-from prestation.systeme_socio_fiscal import Systeme
-from tableWriter import Population
-from prestation.cotsoc import cotsoccal
 from widgets.Parametres import ParamWidget
 from widgets.Composition import ScenarioWidget
 from widgets.Output import Graph, OutTable
 from Utils import Scenario
+from france.data import InputTable
+from france.model import Model
+from core.utils import gen_output_data
 # import resources_rc
 
 class MainWindow(QMainWindow, ui_mainwindow.Ui_MainWindow):
@@ -61,7 +61,6 @@ class MainWindow(QMainWindow, ui_mainwindow.Ui_MainWindow):
             # be useful some day...
         
         self.scenario = Scenario()
-        
         # Preferences
         self.general_prefs = [SimConfigPage]
         self.oldXAXIS = 'sal'
@@ -114,9 +113,6 @@ class MainWindow(QMainWindow, ui_mainwindow.Ui_MainWindow):
         self.move(position)
         self.restoreState(settings.value("MainWindow/State").toByteArray())
 
-        self.population_courant = Population()
-        self.population_default = Population()
-
         self.refresh()
         self.isLoaded = True
         self.splash.hide()
@@ -166,16 +162,22 @@ class MainWindow(QMainWindow, ui_mainwindow.Ui_MainWindow):
         # set the table model to None before changing data
         self._table.clearModel()
         
-        self.P_default = self._parametres.getParam(defaut = True)    
+        P_default = self._parametres.getParam(defaut = True)    
+        P_courant = self._parametres.getParam(defaut = False)
+        
+        input_table = InputTable()
+        input_table.populate_from_scenario(self.scenario)
 
-        P = self._parametres.getParam(defaut = False)
-        self.population_courant.initialize(self.scenario)
+        population_default = Model(P_default)
+        population_courant = Model(P_courant)
 
-        data_courant = self.calculs(P        , self.population_courant)
+        population_default.set_inputs(input_table)
+        population_courant.set_inputs(input_table)
+
+        data_courant = gen_output_data(population_courant)
 
         if self.reforme:
-            self.population_default.initialize(self.scenario)
-            data_default = self.calculs(self.P_default, self.population_default)
+            data_default = gen_output_data(population_default)
             data_courant.difference(data_default)
         else:
             data_default = data_courant
@@ -184,13 +186,7 @@ class MainWindow(QMainWindow, ui_mainwindow.Ui_MainWindow):
 
         self.statusbar.showMessage(u"")
         QApplication.restoreOverrideCursor()
-    
-    def calculs(self,P, population):
-        cotsoccal(population, P, self.P_default)
-
-        systeme = Systeme(population, P)
-        return systeme.M.out
-    
+        
     def closeEvent(self, event):
         if self.okToContinue():
             settings = QSettings()
@@ -253,7 +249,7 @@ class MainWindow(QMainWindow, ui_mainwindow.Ui_MainWindow):
         """Apply settings changed in 'Preferences' dialog box"""
         self.XAXIS = CONF.get('simulation', 'xaxis')
         if not self.XAXIS == self.oldXAXIS:
-            self.scenario.indiv[0][self.oldXAXIS]=0
+            self.scenario.indiv[0][self.oldXAXIS + 'i']=0
         if self.isLoaded == True:
             self._parametres.initialize()
             self.refresh()
