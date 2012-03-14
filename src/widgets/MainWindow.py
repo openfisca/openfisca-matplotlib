@@ -45,7 +45,7 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__(parent)
         self.dirty = False
         self.isLoaded = False
-        self.aggregate_enabled = True
+        self.aggregate_enabled = False
 
         self.setObjectName("MainWindow")
         self.resize(800, 600)
@@ -363,6 +363,11 @@ class MainWindow(QMainWindow):
         if self.isLoaded == True:
             self._parametres.initialize()
             self.refresh_bareme()
+        if self.aggregate_enabled:
+            self.erfs.calage()
+            self.action_refresh_aggregate.setEnabled(True)
+
+
 
     def edit_preferences(self):
         """Edit OpenFisca preferences"""
