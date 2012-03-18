@@ -224,7 +224,6 @@ class MainWindow(QMainWindow):
                 self._aggregate_output.setEnabled(True)
                 self.aggregate_enabled = True
                 self.action_refresh_aggregate.setEnabled(True)
-                self._aggregate_output.setEnabled(True)
                 self._dataframe_widget.set_dataframe(self.erfs.table)
                 return
             except Exception, e:
