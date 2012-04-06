@@ -260,9 +260,16 @@ class MainWindow(QMainWindow):
                 self.reset_calibration() # TODO
                 gc.collect()
                 
-                self._calibration.set_inputs(self.erfs)
+                
+                P_default = self._parametres.getParam(defaut = True)    
+                P_courant = self._parametres.getParam(defaut = False)
+                system = SystemSf(ModelFrance, P_courant, P_default)
+                system.set_inputs(self.erfs)
+                self._calibration.set_system(system)
+
+                self._calibration.set_inputs(self.erfs)                
                 self._calibration.init_param()
-                self._calibration.margins.set_margins_from_external_file()
+                self._calibration.set_margins_from_external_file()
                 self._calibration.setEnabled(True)
                 self.calibration_enabled = True
                 return

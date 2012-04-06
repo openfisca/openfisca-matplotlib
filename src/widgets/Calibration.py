@@ -66,24 +66,32 @@ class CalibrationWidget(QDockWidget):
         method_choices = [(u'Linéaire', 'linear'),(u'Raking ratio', 'raking ratio'), (u'Logit', 'logit')]
         method_combo = MyComboBox(u'Choix de la méthode', method_choices, parent=self)                 
         self.connect(method_combo.box, SIGNAL('currentIndexChanged(int)'), self.setParam)
-        self.param_widgets = {'up': up_spinbox.spin, 'invlo': invlo_spinbox.spin, 'method': method_combo.box}
+        
+        self.param_widgets = {'up': up_spinbox.spin, 'invlo': invlo_spinbox.spin, 'method': method_combo.box}        
                 
         calib_lyt = QHBoxLayout()
         calib_lyt.addWidget(up_spinbox)
         calib_lyt.addWidget(invlo_spinbox)
         calib_lyt.addWidget(method_combo)
-        
         verticalLayout.addLayout(calib_lyt)
 
         # Total population widget
         
-        pop_spinbox = MyDoubleSpinBox(u'Population Totale (en nombre de ménages)','','',min_=15e6, max_=30e6, step=5e6, parent = self.dockWidgetContents)
-        self.connect(pop_spinbox.spin, SIGNAL('valueChanged(double)'), self.setParam)
-        verticalLayout.addWidget(pop_spinbox)
+#       pop_checkbox = QCheckbox # TODO
+        self.totalpop = None
+
+        self.pop_spinbox = MyDoubleSpinBox(u"Population cible totale :", u"ménages", option = None ,min_=15e6, max_=30e6, step=5e6, parent = self.dockWidgetContents)
+        
+        self.connect(self.pop_spinbox.spin, SIGNAL('valueChanged(double)'), self.set_totalpop)
+        self.totalpop_lyt = QHBoxLayout()
+        self.totalpop_lyt.addWidget(self.pop_spinbox)
+      
+        verticalLayout.addLayout(self.totalpop_lyt)
 
         # margins 
 
         self.margins = Margins()
+        self.init_totalpop()
                 
         self.margins_model = MarginsModel(self.margins, self.dockWidgetContents)
         self.margins_view = QTableView(self.dockWidgetContents)
@@ -114,13 +122,25 @@ class CalibrationWidget(QDockWidget):
         self.mplwidget = MatplotlibWidget(self.dockWidgetContents)
         verticalLayout.addWidget(self.mplwidget)
         
-        self.setWidget(self.dockWidgetContents)        
+        self.setWidget(self.dockWidgetContents)            
+
+    def set_totalpop(self):
+        self.totalpop = self.pop_spinbox.spin.value()
+
+    def init_totalpop(self):
+        self.totalpop = self.margins._totalpop 
+        if self.totalpop is not None:
+            self.pop_spinbox.spin.setValue(self.totalpop)
 
     def calibrated(self):
         self.emit(SIGNAL('calibrated()')) 
         
     def param_or_margins_changed(self):
         self.emit(SIGNAL('param_or_margins_changed()'))
+        
+    def set_margins_from_external_file(self):
+        self.margins.set_margins_from_external_file()
+        self.init_totalpop()
         
     def add_margin(self, from_preset = False, from_postset = False):
         self.margins_model.add_margin(from_preset, from_postset)
@@ -137,9 +157,8 @@ class CalibrationWidget(QDockWidget):
     def rmv_margin(self):
         self.margins_model.rmv_margin()
         self.param_or_margins_changed()
-                
+                                
     def init_param(self):    
-        
         method = CONF.get('calibration', 'method')
         up     = CONF.get('calibration', 'up')
         invlo  = CONF.get('calibration', 'invlo')
@@ -147,8 +166,7 @@ class CalibrationWidget(QDockWidget):
         self.param['up']     = float(up)
         self.param['invlo']  = float(invlo) 
         print self.param
-        # TODO init totalpop
-        # TODO fix this
+        # TODO PROBLEM HERE ASK CLEMENT
         for parameter, widget in self.param_widgets.iteritems():
             if isinstance(widget, QComboBox):
                 for index in range(widget.count()):
@@ -160,8 +178,9 @@ class CalibrationWidget(QDockWidget):
                 
             if isinstance(widget, QDoubleSpinBox):
                 print self.param
-                print parameter, self.param[str(parameter)]
+                print parameter, self.param[parameter]
                 widget.setValue(float(self.param[parameter]))
+        print self.param
 
     def setParam(self):
         for parameter, widget in self.param_widgets.iteritems():
@@ -176,7 +195,11 @@ class CalibrationWidget(QDockWidget):
         inputs.gen_index(['men', 'fam', 'foy']) # TODO REMOVE ?
         self.margins._inputs = inputs
         self.inputs = inputs
-        
+        ini_totalpop = sum(inputs.get_value("wprm_init", inputs.index['men']))
+        totalpop_label = u"Population initiale totale :" + str(ini_totalpop) + u" ménages"
+        self.ini_totalpop_label = QLabel(totalpop_label, parent = self.dockWidgetContents) 
+        self.totalpop_lyt.addWidget(self.ini_totalpop_label)
+                    
     def set_system(self, system):
         self.system = system # TODO homogenize notations: model is called population in MainWindow
         self.margins.set_system(system)
@@ -213,20 +236,22 @@ class CalibrationWidget(QDockWidget):
 #                    margins_dict[varname][modality] = sum(w*(value == modality)) 
             
         self.margins._postset_vars = margins_dict    
-        print 'postset_vars'
-        print self.margins._postset_vars
         
-
     def calibrate(self):
         self.margins_dict = self.margins_model._margins.get_calib_vars()
-        print self.margins_dict.keys()
+
         print self.param
         param = self.param.copy()
         param['lo'] = 1/param['invlo']
         del param['invlo']
         param['use_proportions'] = True
         param['pondini']  = 'wprm_init'
+        if self.totalpop is not None:
+            self.margins_dict['totalpop'] = self.totalpop
+        print self.margins_dict.keys()    
         self.margins_model._margins._marges_new = self.system.update_weights(self.margins_dict,param=param, return_margins = True)
+        if self.totalpop is not None: 
+            del self.margins_dict['totalpop']
         self.margins_model.update_margins()            
 
 #        weight_ratio = self.inputs.get_value('wprm')/self.inputs.get_value('wprm_init')
@@ -243,6 +268,12 @@ class CalibrationWidget(QDockWidget):
         ax.set_xlabel(u"Poids relatifs")
         ax.set_ylabel(u"Densité")
         self.mplwidget.draw()
+        
+    def save_config(self):
+        NotImplemented
+        
+    def load_config(self):
+        NotImplemented    
 
 class MarginsModel(QAbstractTableModel):
     def __init__(self, margins, parent = None):
@@ -378,6 +409,7 @@ class Margins(object):
         self._marges_new   = {}
         self._preset_vars  = {}
         self._postset_vars = {}
+        self._totalpop = None
 
     def set_inputs(self, inputs):
         self._inputs = inputs
@@ -395,7 +427,7 @@ class Margins(object):
         fname_men = os.path.join(data_dir, fname)
         f_tot = open(fname_men)
         totals = read_csv(f_tot,index_col = (0,1))
-#        if True:
+
         try:
             marges = {}
             for var, mod in totals.index:
@@ -405,7 +437,8 @@ class Margins(object):
                 marges[var][mod] =  totals.get_value((var,mod),year)
                 if var == 'totalpop': 
                     totalpop = marges.pop('totalpop')[0]
-                    # TODO
+                    marges['totalpop'] = totalpop
+                    self._totalpop = totalpop
                 else:
                     self._preset_vars[var] = marges[var]
                     self.addVar(var, self._inputs, marges[var])
@@ -530,7 +563,6 @@ class Margins(object):
         self._attr[varname_mod] = [float(target), float(new_target), float(total) , float(total_init)]
         
         self.updateVarDict(varname, target, modality)
-        print varname, target, modality
         return True
 
     def rmvVar(self, varname):
