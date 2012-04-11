@@ -1,3 +1,6 @@
 *.pyc
 
 src/build
+
+.pydevproject
+.project
