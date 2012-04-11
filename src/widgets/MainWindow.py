@@ -157,6 +157,7 @@ class MainWindow(QMainWindow):
 
         self.connect(self._menage,     SIGNAL('changed()'), self.changed_bareme)
         self.connect(self._parametres, SIGNAL('changed()'), self.changed_param)
+        self.connect(self._aggregate_output, SIGNAL('calculated()'), self.calculated)
         self.connect(self._calibration, SIGNAL('param_or_margins_changed()'), self.param_or_margins_changed)
         self.connect(self._calibration, SIGNAL('calibrated()'), self.calibrated)
         
@@ -269,7 +270,7 @@ class MainWindow(QMainWindow):
 
                 self._calibration.set_inputs(self.erfs)                
                 self._calibration.init_param()
-                self._calibration.set_margins_from_external_file()
+                self._calibration.set_margins_from_file()
                 self._calibration.setEnabled(True)
                 self.calibration_enabled = True
                 return
@@ -464,4 +465,9 @@ class MainWindow(QMainWindow):
             self.action_refresh_calibration.setEnabled(False)    
             self.action_refresh_aggregate.setEnabled(True)
 
-        
+    def calculated(self):
+        self.statusbar.showMessage(u"Aggrégats calculés")
+        if self.calibration_enabled:
+            self._calibration.aggregate_calculated()
+            self.action_refresh_calibration.setEnabled(True)    
+            self.action_refresh_aggregate.setEnabled(False)    
