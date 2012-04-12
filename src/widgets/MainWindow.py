@@ -277,6 +277,7 @@ class MainWindow(QMainWindow):
             except Exception, e:
                 print e
                 warnings.warn("Unable to read data, switching to barème only mode")
+                self.general_prefs.remove(CalConfigPage)
 
         self.calibration_enabled = False
         self._calibration.setEnabled(False)
