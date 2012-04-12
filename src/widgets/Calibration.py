@@ -341,19 +341,16 @@ class MarginsModel(QAbstractTableModel):
         variables_list = list()
         if from_preset:
 #            variables_list = sorted(list(set(self._margins._preset_vars.keys()) - set(self._margins._vars_dict)))
-            variables_list = self._margins._preset_vars_list 
+            variables_list = self._margins.preset_vars_list 
             datatable = self._margins._inputs   
         elif from_postset:
-            variables_list = self._margins._postset_vars_list
+            variables_list = self._margins.postset_vars_list
 #            sorted(list( set(self._margins._postset_vars.keys()) - set(self._margins._vars_dict)))           
             datatable = self._margins._system
         else:
             if self._margins._inputs:
                 datatable = self._margins._inputs
-                variables_list = self.margins._free_vars_list
-                # sorted(list( set(self._margins._inputs.col_names) - set(self._margins._vars_dict) ))
-        
-        # TODO disable button if variable_list is empty
+                variables_list = self._margins.free_vars_list
         
         varname, ok = QInputDialog.getItem(self.parent(), "Ajouter une variable", "Nom de la variable", 
                                            variables_list)
@@ -445,10 +442,10 @@ class Margins(object):
             data_dir = CONF.get('paths', 'data_dir')
             filename = os.path.join(data_dir, fname)
         
-        f_tot = open(filename)
-        totals = read_csv(f_tot,index_col = (0,1))
-
         try:
+            f_tot = open(filename)
+            totals = read_csv(f_tot,index_col = (0,1))
+
             marges = {}
             for var, mod in totals.index:
                 if not marges.has_key(var):
@@ -466,7 +463,8 @@ class Margins(object):
                 print e
                 warnings.warn("Unable to read preset margins for %s, pressetted margins left empty" % (year))
             
-        f_tot.close()
+        finally:
+            f_tot.close()
 
     def get_calib_vars(self):
         return self._vars_dict    

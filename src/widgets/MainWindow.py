@@ -28,7 +28,7 @@ from PyQt4.QtGui import (QMainWindow, QWidget, QGridLayout, QMessageBox, QKeySeq
                          QApplication, QCursor, QPixmap, QSplashScreen, QColor,
                          QActionGroup, QStatusBar)
 
-from Config import CONF, VERSION, ConfigDialog, SimConfigPage, PathConfigPage, CalConfigPage
+from Config import CONF, VERSION, ConfigDialog, SimConfigPage, PathConfigPage, CalConfigPage, AggConfigPage
 from widgets.Parametres import ParamWidget
 from widgets.Composition import ScenarioWidget
 from widgets.Output import Graph, OutTable
@@ -83,7 +83,7 @@ class MainWindow(QMainWindow):
         
         self.scenario = Scenario()
         # Preferences
-        self.general_prefs = [SimConfigPage, PathConfigPage, CalConfigPage]
+        self.general_prefs = [SimConfigPage, PathConfigPage, AggConfigPage, CalConfigPage]
         self.oldXAXIS = 'sal'
         self.reforme = False
         self.apply_settings()
@@ -104,7 +104,7 @@ class MainWindow(QMainWindow):
         self.file_menu = self.menuBar().addMenu("Fichier")
         action_export_png = create_action(self, 'Exporter le graphique', icon = 'document-save png.png', triggered = self._graph.save_figure)
         action_export_csv = create_action(self, 'Exporter la table', icon = 'document-save csv.png', triggered = self._table.saveCsv)
-        action_pref = create_action(self, u'Préférence', QKeySequence.Preferences, icon = 'preferences-desktop.png', triggered = self.edit_preferences)
+        action_pref = create_action(self, u'Préférences', QKeySequence.Preferences, icon = 'preferences-desktop.png', triggered = self.edit_preferences)
         action_quit = create_action(self, 'Quitter', QKeySequence.Quit, icon = 'process-stop.png',  triggered = SLOT('close()'))
         
         file_actions = [action_export_png, action_export_csv,None, action_pref, None, action_quit]
@@ -229,7 +229,7 @@ class MainWindow(QMainWindow):
                 self.reset_aggregate()
                 gc.collect()
                 
-                fname = CONF.get('paths', 'external_data_file')
+                fname = CONF.get('aggregates', 'external_data_file')
                 self.erfs = DataTable(InputTable, external_data = fname)
                 self._aggregate_output.setEnabled(True)
                 self.aggregate_enabled = True
@@ -239,6 +239,7 @@ class MainWindow(QMainWindow):
             except Exception, e:
                 print e
                 warnings.warn("Unable to read data, switching to barème only mode")
+                self.general_prefs.remove(AggConfigPage)
 
         self.aggregate_enabled = False
         self._aggregate_output.setEnabled(False)
@@ -255,8 +256,7 @@ class MainWindow(QMainWindow):
 #        if not self.aggregate_enabled:
 #            warnings.warn("Unable to read data, calibration not available")
         if val:
-            if True:
-            #try:
+            try:
                 # liberate some memory before loading new data
                 self.reset_calibration() # TODO
                 gc.collect()
@@ -274,9 +274,10 @@ class MainWindow(QMainWindow):
                 self._calibration.setEnabled(True)
                 self.calibration_enabled = True
                 return
-#            except Exception, e:
-#                print e
-#                warnings.warn("Unable to read data, switching to barème only mode")
+            except Exception, e:
+                print e
+                warnings.warn("Unable to read data, switching to barème only mode")
+                self.general_prefs.remove(CalConfigPage)
 
         self.calibration_enabled = False
         self._calibration.setEnabled(False)
@@ -341,7 +342,7 @@ class MainWindow(QMainWindow):
     def refresh_aggregate(self):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
-        self.statusbar.showMessage(u"Calcul des aggregats en cours, ceci peut prendre quelques minutes...")
+        self.statusbar.showMessage(u"Calcul des aggrégats en cours, ceci peut prendre quelques minutes...")
         self.action_refresh_aggregate.setEnabled(False)
         self._aggregate_output.clear()
         self._dataframe_widget.clear()
