@@ -120,7 +120,7 @@ class MainWindow(QMainWindow):
         # Menu Simulation
         self.simulation_menu = self.menuBar().addMenu(u"Simulation")
         self.action_refresh_bareme      = create_action(self, u'Calculer barèmes', shortcut = 'F8', icon = 'view-refresh.png', triggered = self.refresh_bareme)
-        self.action_refresh_calibration = create_action(self, u'Calibration', shortcut = 'F9', icon = 'view-refresh.png', triggered = self.refresh_calibration)
+        self.action_refresh_calibration = create_action(self, u'Calibrer', shortcut = 'F9', icon = 'view-refresh.png', triggered = self.refresh_calibration)
         self.action_refresh_aggregate   = create_action(self, u'Calculer aggrégats', shortcut = 'F10', icon = 'view-refresh.png', triggered = self.refresh_aggregate)
         action_bareme = create_action(self, u'Barème', icon = 'bareme22.png', toggled = self.modeBareme)
         action_cas_type = create_action(self, u'Cas type', icon = 'castype22.png', toggled = self.modeCasType)
@@ -270,7 +270,7 @@ class MainWindow(QMainWindow):
 
                 self._calibration.set_inputs(self.erfs)                
                 self._calibration.init_param()
-                self._calibration.set_margins_from_file()
+                self._calibration.set_inputs_margins_from_file()
                 self._calibration.setEnabled(True)
                 self.calibration_enabled = True
                 return
@@ -363,20 +363,23 @@ class MainWindow(QMainWindow):
         self._aggregate_output.update_output(data_courant)
         # update calibration system 
         self._calibration.set_system(population_courant)
-        self._calibration.update_postset_margins()
+        self._calibration.set_postset_margins_from_file()
         
         self.statusbar.showMessage(u"")
         QApplication.restoreOverrideCursor()
         
     def refresh_calibration(self):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-        self.statusbar.showMessage(u"Calibration en cours, ceci peut prendre quelques minutes...")
-        self.action_refresh_calibration.setEnabled(False)
-
-        self._calibration.calibrate()
-        self.statusbar.showMessage(u"")
-        QApplication.restoreOverrideCursor()
         
+        try:
+            self.statusbar.showMessage(u"Calage en cours, ceci peut prendre quelques minutes...")
+            self._calibration.calibrate()
+            self.action_refresh_calibration.setEnabled(False)
+        except:
+            self.statusbar.showMessage(u"Erreur de calage")
+            self.action_refresh_calibration.setEnabled(False)
+        finally:
+            QApplication.restoreOverrideCursor()
     
     def closeEvent(self, event):
         if self.okToContinue():
