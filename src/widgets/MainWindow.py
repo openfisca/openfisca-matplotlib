@@ -240,10 +240,10 @@ class MainWindow(QMainWindow):
                 print e
                 warnings.warn("Unable to read data, switching to barème only mode")
                 self.general_prefs.remove(AggConfigPage)
-
-        self.aggregate_enabled = False
-        self._aggregate_output.setEnabled(False)
-        self.action_refresh_aggregate.setEnabled(False)
+        else:
+            self.aggregate_enabled = False
+            self._aggregate_output.setEnabled(False)
+            self.action_refresh_aggregate.setEnabled(False)
 
     def reset_aggregate(self):
         self.erfs = None
@@ -253,12 +253,12 @@ class MainWindow(QMainWindow):
 
     def enable_calibration(self, val = True):    
         import warnings
-#        if not self.aggregate_enabled:
-#            warnings.warn("Unable to read data, calibration not available")
+        if not self.aggregate_enabled:
+            warnings.warn("Without aggregates enabled, calibration is not available")
         if val:
             try:
                 # liberate some memory before loading new data
-                self.reset_calibration() # TODO
+#                self.reset_calibration() # TODO
                 gc.collect()
                 
                 
@@ -271,6 +271,7 @@ class MainWindow(QMainWindow):
                 self._calibration.set_inputs(self.erfs)                
                 self._calibration.init_param()
                 self._calibration.set_inputs_margins_from_file()
+                
                 self._calibration.setEnabled(True)
                 self.calibration_enabled = True
                 return
@@ -278,10 +279,10 @@ class MainWindow(QMainWindow):
                 print e
                 warnings.warn("Unable to read data, switching to barème only mode")
                 self.general_prefs.remove(CalConfigPage)
-
-        self.calibration_enabled = False
-        self._calibration.setEnabled(False)
-        self.action_refresh_calibration.setEnabled(False)
+        else:
+            self.calibration_enabled = False
+            self._calibration.setEnabled(False)
+            self.action_refresh_calibration.setEnabled(False)
 
     def reset_calibration(self):
         pass
@@ -295,6 +296,7 @@ class MainWindow(QMainWindow):
         self.mode = 'bareme'
         NMEN = CONF.get('simulation', 'nmen')
         if NMEN == 1: CONF.set('simulation', 'nmen', 101)
+        print "date", CONF.get('simulation', 'datesim')
         self.changed_bareme()
 
     def modeCasType(self):
@@ -428,7 +430,6 @@ class MainWindow(QMainWindow):
         if self.calibration_enabled:
             self.action_refresh_calibration.setEnabled(True)
         if self.aggregate_enabled:
-            # self.erfs.calage()
             self.action_refresh_aggregate.setEnabled(True)
 
 
