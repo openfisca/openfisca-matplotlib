@@ -28,7 +28,7 @@ import matplotlib
 import os
 
 myDataFiles = matplotlib.get_py2exe_datafiles()
-myDataFiles.append(("data",["data/param.xml", "data/code_apl", "data/totaux.xml"]))
+myDataFiles.append(("data",["data/param.xml", "data/code_apl", "data/totaux.xml", "data/zone_apl_imputation_data"]))
 for f in os.listdir('castypes'):
     myDataFiles.append(('castypes', ['castypes/' + f]))
 for f in os.listdir('reformes'):
@@ -36,7 +36,7 @@ for f in os.listdir('reformes'):
 setup(windows=[{
                 "script" : "openFisca.pyw"
                 }], 
-      options={"py2exe" : {"includes" : ["sip", "encodings.*", "tables.*", "numpy.*"],
-                           "dist_dir": "C:/users/utilisateur/documents/dropbox/python_project/mSim/dist",
+      options={"py2exe" : {"includes" : ["sip", "encodings.*", "numpy.*"],
+                           "dist_dir": "C:/users/utilisateur/documents/dist",
                            "bundle_files":1}}, 
       data_files=myDataFiles)
