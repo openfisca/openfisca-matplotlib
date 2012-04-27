@@ -40,6 +40,8 @@ from core.datatable import DataTable, SystemSf
 from core.utils import gen_output_data, gen_aggregate_output, Scenario
 from core.qthelpers import create_action, add_actions, get_icon
 import gc
+import warnings
+
 
 class MainWindow(QMainWindow):
     def __init__(self, parent = None):
@@ -222,7 +224,6 @@ class MainWindow(QMainWindow):
             getattr(widget, callback)()
 
     def enable_aggregate(self, val = True):
-        import warnings
         if val:
             try:
                 # liberate some memory before loading new data
@@ -237,8 +238,7 @@ class MainWindow(QMainWindow):
                 self._dataframe_widget.set_dataframe(self.erfs.table)
                 return
             except Exception, e:
-                print e
-                warnings.warn("Unable to read data, switching to barème only mode")
+                warnings.warn("Unable to read data, switching to barème only mode\n%s" % e)
 
         self.aggregate_enabled = False
         self._aggregate_output.setEnabled(False)
@@ -251,7 +251,6 @@ class MainWindow(QMainWindow):
         self._calibration.reset_postset_margins()
 
     def enable_calibration(self, val = True):    
-        import warnings
         if not self.aggregate_enabled:
             warnings.warn("Unable to read data, calibration not available")
             
@@ -275,8 +274,7 @@ class MainWindow(QMainWindow):
                 self.calibration_enabled = True
                 return
             except Exception, e:
-                print e
-                warnings.warn("Unable to read data, switching to barème only mode")
+                warnings.warn("Unable to read data, switching to barème only mode \n%s" % e)
 
         self.calibration_enabled = False
         self._calibration.setEnabled(False)
