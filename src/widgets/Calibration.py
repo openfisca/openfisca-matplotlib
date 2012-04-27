@@ -438,7 +438,7 @@ class Margins(object):
     def set_margins_from_file(self, filename = None, year = None):
                 
         if year is None:
-            year     = CONF.get('calibration','date')[:4]
+            year     = str(CONF.get('calibration','date').year)
 
         if filename is None:
             fname    = CONF.get('calibration','filename')
