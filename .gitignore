@@ -2,6 +2,7 @@
 
 .pydevproject
 .project
+.settings
 
 src/build
 src/main.cfg
