@@ -258,7 +258,7 @@ class MainWindow(QMainWindow):
         if val:
             try:
                 # liberate some memory before loading new data
-                self.reset_calibration() # TODO
+#                self.reset_calibration() # TODO
                 gc.collect()
                 
                 
