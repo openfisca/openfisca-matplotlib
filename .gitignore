@@ -6,4 +6,4 @@ src/build
 .project
 
 .settings/*
-main.config
+main.cfg
