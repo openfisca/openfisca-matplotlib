@@ -239,6 +239,7 @@ class MainWindow(QMainWindow):
                 return
             except Exception, e:
                 warnings.warn("Unable to read data, switching to barème only mode\n%s" % e)
+                self.general_prefs.remove(AggConfigPage)
 
         self.aggregate_enabled = False
         self._aggregate_output.setEnabled(False)
