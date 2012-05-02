@@ -36,12 +36,7 @@ from widgets.matplotlibwidget import MatplotlibWidget
 
 from Config import CONF
 from core.qthelpers import OfSs
-
-
-from core.datatable import SystemSf
-from core.columns import BoolPresta
-from france.data import BoolCol, AgesCol, EnumCol
-
+from core.columns import BoolCol, AgesCol, EnumCol
 
 class CalibrationWidget(QDockWidget):
     def __init__(self, parent = None):
@@ -57,14 +52,11 @@ class CalibrationWidget(QDockWidget):
                 
         # calibration widget
 
-        up_spinbox = MyDoubleSpinBox('Ratio maximal','','',min_=1,max_=100, step=1, parent = self)
-        invlo_spinbox = MyDoubleSpinBox('Inverse du ratio minimal','','',min_=1,max_=100, step=1, parent = self) 
-        
-        self.connect(up_spinbox.spin, SIGNAL('valueChanged(double)'), self.set_param)
-        self.connect(invlo_spinbox.spin, SIGNAL('valueChanged(double)'), self.set_param)
-        
+        up_spinbox = MyDoubleSpinBox(self, 'Ratio maximal','','',min_=1, max_=100, step=1, value = CONF.get('calibration', 'up'), changed = self.set_param)
+        invlo_spinbox = MyDoubleSpinBox(self, 'Inverse du ratio minimal','','',min_=1, max_=100, step=1, value = CONF.get('calibration', 'invlo'), changed = self.set_param) 
+                
         method_choices = [(u'Linéaire', 'linear'),(u'Raking ratio', 'raking ratio'), (u'Logit', 'logit')]
-        method_combo = MyComboBox(u'Choix de la méthode', method_choices, parent=self)                 
+        method_combo = MyComboBox(self, u'Choix de la méthode', method_choices)
         self.connect(method_combo.box, SIGNAL('currentIndexChanged(int)'), self.set_param)
         
         self.param_widgets = {'up': up_spinbox.spin, 'invlo': invlo_spinbox.spin, 'method': method_combo.box}        
@@ -80,9 +72,8 @@ class CalibrationWidget(QDockWidget):
 #       pop_checkbox = QCheckbox # TODO
         self.totalpop = None
 
-        self.pop_spinbox = MyDoubleSpinBox(u"Population cible totale :", u"ménages", option = None ,min_=15e6, max_=30e6, step=5e6, parent = self.dockWidgetContents)
+        self.pop_spinbox = MyDoubleSpinBox(self.dockWidgetContents, u"Population cible totale :", u"ménages", option = None ,min_=15e6, max_=30e6, step=5e6, changed = self.set_totalpop)
         
-        self.connect(self.pop_spinbox.spin, SIGNAL('valueChanged(double)'), self.set_totalpop)
         self.totalpop_lyt = QHBoxLayout()
         self.totalpop_lyt.addWidget(self.pop_spinbox)
       
@@ -182,30 +173,19 @@ class CalibrationWidget(QDockWidget):
         self.param_or_margins_changed()
                                 
     def init_param(self):
-        print 'enter init_param'
-        method = CONF.get('calibration', 'method')
-        up     = CONF.get('calibration', 'up')
-        invlo  = CONF.get('calibration', 'invlo')
-        self.param['method'] = str(method)
-        self.param['up']     = float(up)
-        self.param['invlo']  = float(invlo) 
-        print self.param
-        # TODO PROBLEM HERE ASK CLEMENT
-        for parameter, widget in self.param_widgets.iteritems():
+        # TODO: PROBLEM HERE ASK CLEMENT
+
+        for parameter in self.param_widgets:
+
+            widget = self.param_widgets[parameter]
+
             if isinstance(widget, QComboBox):
                 for index in range(widget.count()):
                     if unicode(widget.itemData(index).toString()
-                               ) == unicode(self.param[parameter]):
+                               ) == unicode(CONF.get('calibration', 'method')):
                         break
-                print parameter, widget.itemData(index).toString()    
                 widget.setCurrentIndex(index)
                 
-            if isinstance(widget, QDoubleSpinBox):
-                print self.param
-                print parameter, self.param[parameter]
-                widget.setValue(float(self.param[parameter]))
-        print self.param
-
     def set_param(self):
         for parameter, widget in self.param_widgets.iteritems():
             if isinstance(widget, QComboBox):
@@ -249,7 +229,7 @@ class CalibrationWidget(QDockWidget):
                             
                             
     def calibrate(self):
-        self.margins_dict = self.margins_model._margins.get_calib_vars()
+        margins_dict = self.margins_model._margins.get_calib_vars()
 
         print self.param
         param = self.param.copy()
@@ -258,23 +238,25 @@ class CalibrationWidget(QDockWidget):
         param['use_proportions'] = True
         param['pondini']  = 'wprm_init'
         if self.totalpop is not None:
-            self.margins_dict['totalpop'] = self.totalpop
-        print self.margins_dict.keys()
+            margins_dict['totalpop'] = self.totalpop
+        print margins_dict.keys()
         try:
-            self.margins_model._margins._marges_new = self.system.update_weights(self.margins_dict,param=param, return_margins = True)
-        except:
+            self.margins_model._margins._marges_new = self.system.update_weights(margins_dict,param=param, return_margins = True)
+        except Exception, e:
             QMessageBox.critical(self, u"Calage",
-                                 u"Erreur de calage: vérifier les paramètres", 
+                                 u"Erreur de calage: vérifier les paramètres : %s" % e, 
                                  QMessageBox.Ok, QMessageBox.NoButton)
             raise Exception("Calibration error")
             return
         finally:
-            if 'totalpop' in self.margins_dict:
-                del self.margins_dict['totalpop']
+            if 'totalpop' in margins_dict:
+                del margins_dict['totalpop']
             self.margins_model.update_margins()            
 
         self.plotWeightsRatios()
         self.calibrated()
+
+
             
     def plotWeightsRatios(self):
         ax = self.mplwidget.axes
@@ -649,8 +631,8 @@ class Margins(object):
 ### Some useful widgets
             
 class MyDoubleSpinBox(QWidget):
-    def __init__(self, prefix = None, suffix = None, option = None, min_ = None, max_ = None,
-                 step = None, tip = None, parent = None):
+    def __init__(self, parent, prefix = None, suffix = None, option = None, min_ = None, max_ = None,
+                 step = None, tip = None, value = None, changed =None):
         super(MyDoubleSpinBox, self).__init__(parent)
     
         if prefix:
@@ -674,13 +656,19 @@ class MyDoubleSpinBox(QWidget):
         for subwidget in (plabel, spinbox, slabel):
             if subwidget is not None:
                 layout.addWidget(subwidget)
+        if value is not None:
+            spinbox.setValue(value)
+        
+        if changed is not None:
+            self.connect(spinbox, SIGNAL('valueChanged(double)'), changed)
+
         layout.addStretch(1)
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
         self.spin = spinbox
 
 class MyComboBox(QWidget):
-    def __init__(self, text, choices = None, option = None, tip = None, parent = None):
+    def __init__(self, parent, text, choices = None, option = None, tip = None):
         super(MyComboBox, self).__init__(parent)
         """choices: couples (name, key)"""
         label = QLabel(text)

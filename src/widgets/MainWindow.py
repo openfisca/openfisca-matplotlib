@@ -225,7 +225,8 @@ class MainWindow(QMainWindow):
 
     def enable_aggregate(self, val = True):
         if val:
-            try:
+            if True:
+#            try:
                 # liberate some memory before loading new data
                 self.reset_aggregate()
                 gc.collect()
@@ -237,9 +238,9 @@ class MainWindow(QMainWindow):
                 self.action_refresh_aggregate.setEnabled(True)
                 self._dataframe_widget.set_dataframe(self.erfs.table)
                 return
-            except Exception, e:
-                warnings.warn("Unable to read data, switching to barème only mode\n%s" % e)
-                self.general_prefs.remove(AggConfigPage)
+#            except Exception, e:
+#                warnings.warn("Unable to read data, switching to barème only mode\n%s" % e)
+#                self.general_prefs.remove(AggConfigPage)
 
         self.aggregate_enabled = False
         self._aggregate_output.setEnabled(False)
@@ -255,7 +256,8 @@ class MainWindow(QMainWindow):
         if not self.aggregate_enabled:
             warnings.warn("Without aggregates enabled, calibration is not available")
         if val:
-            try:
+            if True:
+#            try:
                 # liberate some memory before loading new data
 #                self.reset_calibration() # TODO
                 gc.collect()
@@ -274,9 +276,9 @@ class MainWindow(QMainWindow):
                 self._calibration.setEnabled(True)
                 self.calibration_enabled = True
                 return
-            except Exception, e:
-                warnings.warn("Unable to read data, switching to barème only mode \n%s" % e)
-                self.general_prefs.remove(CalConfigPage)
+#            except Exception, e:
+#                warnings.warn("Unable to read data, switching to barème only mode \n%s" % e)
+#                self.general_prefs.remove(CalConfigPage)
 
         self.calibration_enabled = False
         self._calibration.setEnabled(False)
@@ -285,7 +287,6 @@ class MainWindow(QMainWindow):
     def reset_calibration(self):
         pass
         
-    
     def modeReforme(self, b):
         self.reforme = b
         self.changed_bareme()
