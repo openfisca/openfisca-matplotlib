@@ -1,4 +1,4 @@
-#Tue Mar 27 14:17:29 CEST 2012
+#Thu Apr 12 16:27:18 CEST 2012
 eclipse.preferences.version=1
 encoding//src/Config.py=utf-8
 encoding//src/buildUi.py=utf-8
@@ -11,7 +11,6 @@ encoding//src/core/qthelpers.py=utf-8
 encoding//src/core/utils.py=utf-8
 encoding//src/data/codeAplReader.py=utf-8
 encoding//src/france/calage.py=utf-8
-encoding//src/france/common.py=utf-8
 encoding//src/france/cotsoc.py=utf-8
 encoding//src/france/data.py=utf-8
 encoding//src/france/irpp.py=utf-8

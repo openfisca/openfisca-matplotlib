@@ -31,7 +31,7 @@ from pandas import read_csv
 
 from PyQt4.QtCore import SIGNAL, Qt, QAbstractTableModel, QModelIndex, QVariant
 from PyQt4.QtGui import (QWidget, QLabel, QDockWidget, QHBoxLayout, QVBoxLayout, 
-                         QPushButton, QComboBox, QDoubleSpinBox, QTableView, QInputDialog)
+                         QPushButton, QComboBox, QDoubleSpinBox, QTableView, QInputDialog, QMessageBox)
 from widgets.matplotlibwidget import MatplotlibWidget
 
 from Config import CONF
@@ -99,24 +99,28 @@ class CalibrationWidget(QDockWidget):
         self.dockWidgetContents.margins_dict = self.margins_model._margins.get_calib_vars()        
         
         #   buttons to add and rmv margins
-        self.add_margin_btn  = QPushButton(u'Ajouter une variable (marge renseignée)', self.dockWidgetContents)
-        self.add_margin_btn2 = QPushButton('Ajouter une variable (marge libre)', self.dockWidgetContents)
-        self.add_margin_btn3 = QPushButton(u'Ajouter une variable calculée', self.dockWidgetContents)
+        self.add_preset_margin_btn  = QPushButton(u'Ajouter une variable \n (marge renseignée)', self.dockWidgetContents)
+        self.add_free_margin_btn = QPushButton('Ajouter une variable \n (marge libre)', self.dockWidgetContents)
+        self.add_postset_margin_btn = QPushButton(u'Ajouter une variable calculée \n (marge renseignée)', self.dockWidgetContents)
         rmv_margin_btn  = QPushButton('Retirer une variable', self.dockWidgetContents)
-        margin_btn_lyt  = QHBoxLayout()
-        margin_btn_lyt.addWidget(self.add_margin_btn)
-        margin_btn_lyt.addWidget(self.add_margin_btn2)    
-        margin_btn_lyt.addWidget(self.add_margin_btn3)
-        self.add_margin_btn3.setDisabled(True)
+        margin_btn_lyt  = QVBoxLayout()
+        margin_btn_lyt.addWidget(self.add_preset_margin_btn)
+        margin_btn_lyt.addWidget(self.add_free_margin_btn)    
+        margin_btn_lyt.addWidget(self.add_postset_margin_btn)
+        self.add_postset_margin_btn.setDisabled(True)
         margin_btn_lyt.addWidget(rmv_margin_btn)
-        self.connect(self.add_margin_btn, SIGNAL('clicked()'), self.add_preset_margin)
-        self.connect(self.add_margin_btn2, SIGNAL('clicked()'), self.add_margin)
-        self.connect(self.add_margin_btn3, SIGNAL('clicked()'), self.add_postset_margin)
+        self.connect(self.add_preset_margin_btn, SIGNAL('clicked()'), self.add_preset_margin)
+        self.connect(self.add_free_margin_btn, SIGNAL('clicked()'), self.add_margin)
+        self.connect(self.add_postset_margin_btn, SIGNAL('clicked()'), self.add_postset_margin)
         self.connect(rmv_margin_btn, SIGNAL('clicked()'), self.rmv_margin)
 
         # Widgets in layout
-        verticalLayout.addWidget(self.margins_view)
-        verticalLayout.addLayout(margin_btn_lyt)
+        
+        margins_lyt = QHBoxLayout()
+        margins_lyt.addWidget(self.margins_view)
+        margins_lyt.addLayout(margin_btn_lyt)
+
+        verticalLayout.addLayout(margins_lyt)
 
         # weights ratio plot        
         self.mplwidget = MatplotlibWidget(self.dockWidgetContents)
@@ -133,7 +137,8 @@ class CalibrationWidget(QDockWidget):
             self.pop_spinbox.spin.setValue(self.totalpop)
 
     def aggregate_calculated(self):
-        self.add_margin_btn3.setEnabled(True)
+        self.set_postset_margins_from_file()
+        self.add_postset_margin_btn.setEnabled(True)
         
     def calibrated(self):
         self.emit(SIGNAL('calibrated()')) 
@@ -144,16 +149,21 @@ class CalibrationWidget(QDockWidget):
         
     def update_add_btns(self):    
         if self.margins.preset_vars_list:
-            self.add_margin_btn.setEnabled(True)
+            self.add_preset_margin_btn.setEnabled(True)
         if self.margins.free_vars_list:
-            self.add_margin_btn2.setEnabled(True) 
+            self.add_free_margin_btn.setEnabled(True) 
         if self.margins.postset_vars_list:
-            self.add_margin_btn3.setEnabled(True)
+            self.add_postset_margin_btn.setEnabled(True)
         
-    def set_margins_from_file(self, filename = None, year = None):
-        self.margins.set_margins_from_file(filename, year)
+    def set_inputs_margins_from_file(self, filename = None, year = None):
+        self.margins.set_inputs_margins_from_file(filename, year)
         self.init_totalpop()
-        self.add_margin_btn.setDisabled(True)
+        self.add_preset_margin_btn.setDisabled(True)
+        
+    def set_postset_margins_from_file(self, filename = None, year = None):
+        self.margins.set_postset_margins_from_file(filename, year)
+        self.margins_model.update_margins()
+        self.add_postset_margin_btn.setDisabled(True)    
         
     def add_margin(self, from_preset = False, from_postset = False):
         self.margins_model.add_margin(from_preset, from_postset)
@@ -203,6 +213,7 @@ class CalibrationWidget(QDockWidget):
                 self.param[parameter] = unicode(data.toString())
             if isinstance(widget, QDoubleSpinBox):
                 self.param[parameter] = widget.value()
+        self.param_or_margins_changed()        
         return True
 
     def set_inputs(self, inputs):
@@ -221,25 +232,22 @@ class CalibrationWidget(QDockWidget):
     def reset_postset_margins(self):
         self.margins._postset_vars = {}
         
-    def update_postset_margins(self):
-        datatable = self.system
-        inputs    = self.inputs
-        margins = {}
-        w = inputs.get_value("wprm", inputs.index['men']) # TODO wprm_init ?
-        for varname in datatable.description.col_names:
-            varcol = datatable.description.get_col(varname)
-            value = datatable.get_value(varname, inputs.index['men'])            
-            
-            if isinstance(varcol , BoolPresta):
-                margins[varname] = {}
-                margins[varname][True]  = sum(w*(value == True))
-                margins[varname][False] = sum(w*(value == False))
-                
-            else:
-                margins[varname] = sum(w*(value))
+#    def update_postset_margins(self):
+#        datatable = self.system
+#        inputs    = self.inputs
+#        w = inputs.get_value("wprm", inputs.index['men']) # TODO wprm_init ?
+#        for varname in datatable.description.col_names:
+#            varcol = datatable.description.get_col(varname)
+#            value = datatable.get_value(varname, inputs.index['men'])            
+#            
+#            if isinstance(varcol , BoolPresta):
+#                self.margins._postset_vars[varname] = {}
+#                self.margins._postset_vars[varname][True]  = sum(w*(value == True))
+#                self.margins._postset_vars[varname][False] = sum(w*(value == False))
+#            else:
+#                self.margins._postset_vars[varname] = sum(w*(value))
                             
-        self.margins._postset_vars = margins    
-        
+                            
     def calibrate(self):
         self.margins_dict = self.margins_model._margins.get_calib_vars()
 
@@ -252,14 +260,19 @@ class CalibrationWidget(QDockWidget):
         if self.totalpop is not None:
             self.margins_dict['totalpop'] = self.totalpop
         print self.margins_dict.keys()
-        self.margins_model._margins._marges_new = self.system.update_weights(self.margins_dict,param=param, return_margins = True)
-        if 'totalpop' in self.margins_dict:
-            del self.margins_dict['totalpop']
-        self.margins_model.update_margins()            
+        try:
+            self.margins_model._margins._marges_new = self.system.update_weights(self.margins_dict,param=param, return_margins = True)
+        except:
+            QMessageBox.critical(self, u"Calage",
+                                 u"Erreur de calage: vérifier les paramètres", 
+                                 QMessageBox.Ok, QMessageBox.NoButton)
+            raise Exception("Calibration error")
+            return
+        finally:
+            if 'totalpop' in self.margins_dict:
+                del self.margins_dict['totalpop']
+            self.margins_model.update_margins()            
 
-#        weight_ratio = self.inputs.get_value('wprm')/self.inputs.get_value('wprm_init')
-#        print 'low ratios: ',  np.sort(weight_ratio)[1:5]
-#        print 'large ratios : ' ,  np.sort(weight_ratio)[-5:]
         self.plotWeightsRatios()
         self.calibrated()
             
@@ -340,20 +353,15 @@ class MarginsModel(QAbstractTableModel):
         
         variables_list = list()
         if from_preset:
-#            variables_list = sorted(list(set(self._margins._preset_vars.keys()) - set(self._margins._vars_dict)))
-            variables_list = self._margins._preset_vars_list 
+            variables_list = self._margins.preset_vars_list 
             datatable = self._margins._inputs   
         elif from_postset:
-            variables_list = self._margins._postset_vars_list
-#            sorted(list( set(self._margins._postset_vars.keys()) - set(self._margins._vars_dict)))           
+            variables_list = self._margins.postset_vars_list
             datatable = self._margins._system
         else:
             if self._margins._inputs:
                 datatable = self._margins._inputs
-                variables_list = self.margins._free_vars_list
-                # sorted(list( set(self._margins._inputs.col_names) - set(self._margins._vars_dict) ))
-        
-        # TODO disable button if variable_list is empty
+                variables_list = self._margins.free_vars_list
         
         varname, ok = QInputDialog.getItem(self.parent(), "Ajouter une variable", "Nom de la variable", 
                                            variables_list)
@@ -435,26 +443,26 @@ class Margins(object):
     def set_system(self, system):
         self._system = system    
 
-    def set_margins_from_file(self, filename = None, year = None):
-                
+    def set_inputs_margins_from_file(self, filename = None, year = None):              
         if year is None:
             year     = str(CONF.get('calibration','date').year)
 
         if filename is None:
-            fname    = CONF.get('calibration','filename')
+            fname    = CONF.get('calibration','inputs_filename')
             data_dir = CONF.get('paths', 'data_dir')
             filename = os.path.join(data_dir, fname)
         
-        f_tot = open(filename)
-        totals = read_csv(f_tot,index_col = (0,1))
-
         try:
+            f_tot = open(filename)
+            totals = read_csv(f_tot,index_col = (0,1))
+
             marges = {}
             for var, mod in totals.index:
                 if not marges.has_key(var):
                     marges[var] = {}
 
                 marges[var][mod] =  totals.get_value((var,mod),year)
+                
                 if var == 'totalpop': 
                     totalpop = marges.pop('totalpop')[0]
                     marges['totalpop'] = totalpop
@@ -462,11 +470,38 @@ class Margins(object):
                 else:
                     self._preset_vars[var] = marges[var]
                     self.addVar(var, self._inputs, marges[var])
+        
         except Exception, e:
                 print e
-                warnings.warn("Unable to read preset margins for %s, pressetted margins left empty" % (year))
+                warnings.warn("Unable to read preset margins for %s, preset margins left empty" % (year))
             
-        f_tot.close()
+        finally:
+            f_tot.close()
+
+    def set_postset_margins_from_file(self, filename, year):
+        if year is None:
+            year     = CONF.get('calibration','date')[:4]
+
+        if filename is None:
+            fname    = CONF.get('calibration','pfam_filename')
+            data_dir = CONF.get('paths', 'data_dir')
+            filename = os.path.join(data_dir, fname)
+        
+        try:
+            f_tot = open(filename)
+            totals = read_csv(f_tot,index_col = 0)
+            marges = {}
+            for var in totals.index:
+                if var in self._system.description.col_names:
+                    marges[var] = 1e6*totals.get_value(var,year)
+                    self._postset_vars[var] = marges[var]
+                    self.addVar(var, self._system, marges[var])
+        except Exception, e:
+                print e
+                warnings.warn("Unable to read preset margins for %s, postset margins left empty" % (year))
+            
+        finally:
+            f_tot.close()
 
     def get_calib_vars(self):
         return self._vars_dict    

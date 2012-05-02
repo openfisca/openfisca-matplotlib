@@ -28,7 +28,7 @@ from PyQt4.QtGui import (QMainWindow, QWidget, QGridLayout, QMessageBox, QKeySeq
                          QApplication, QCursor, QPixmap, QSplashScreen, QColor,
                          QActionGroup, QStatusBar)
 
-from Config import CONF, VERSION, ConfigDialog, SimConfigPage, PathConfigPage, CalConfigPage
+from Config import CONF, VERSION, ConfigDialog, SimConfigPage, PathConfigPage, CalConfigPage, AggConfigPage
 from widgets.Parametres import ParamWidget
 from widgets.Composition import ScenarioWidget
 from widgets.Output import Graph, OutTable
@@ -85,7 +85,7 @@ class MainWindow(QMainWindow):
         
         self.scenario = Scenario()
         # Preferences
-        self.general_prefs = [SimConfigPage, PathConfigPage, CalConfigPage]
+        self.general_prefs = [SimConfigPage, PathConfigPage, AggConfigPage, CalConfigPage]
         self.oldXAXIS = 'sal'
         self.reforme = False
         self.apply_settings()
@@ -106,7 +106,7 @@ class MainWindow(QMainWindow):
         self.file_menu = self.menuBar().addMenu("Fichier")
         action_export_png = create_action(self, 'Exporter le graphique', icon = 'document-save png.png', triggered = self._graph.save_figure)
         action_export_csv = create_action(self, 'Exporter la table', icon = 'document-save csv.png', triggered = self._table.saveCsv)
-        action_pref = create_action(self, u'Préférence', QKeySequence.Preferences, icon = 'preferences-desktop.png', triggered = self.edit_preferences)
+        action_pref = create_action(self, u'Préférences', QKeySequence.Preferences, icon = 'preferences-desktop.png', triggered = self.edit_preferences)
         action_quit = create_action(self, 'Quitter', QKeySequence.Quit, icon = 'process-stop.png',  triggered = SLOT('close()'))
         
         file_actions = [action_export_png, action_export_csv,None, action_pref, None, action_quit]
@@ -122,7 +122,7 @@ class MainWindow(QMainWindow):
         # Menu Simulation
         self.simulation_menu = self.menuBar().addMenu(u"Simulation")
         self.action_refresh_bareme      = create_action(self, u'Calculer barèmes', shortcut = 'F8', icon = 'view-refresh.png', triggered = self.refresh_bareme)
-        self.action_refresh_calibration = create_action(self, u'Calibration', shortcut = 'F9', icon = 'view-refresh.png', triggered = self.refresh_calibration)
+        self.action_refresh_calibration = create_action(self, u'Calibrer', shortcut = 'F9', icon = 'view-refresh.png', triggered = self.refresh_calibration)
         self.action_refresh_aggregate   = create_action(self, u'Calculer aggrégats', shortcut = 'F10', icon = 'view-refresh.png', triggered = self.refresh_aggregate)
         action_bareme = create_action(self, u'Barème', icon = 'bareme22.png', toggled = self.modeBareme)
         action_cas_type = create_action(self, u'Cas type', icon = 'castype22.png', toggled = self.modeCasType)
@@ -230,7 +230,7 @@ class MainWindow(QMainWindow):
                 self.reset_aggregate()
                 gc.collect()
                 
-                fname = CONF.get('paths', 'external_data_file')
+                fname = CONF.get('aggregates', 'external_data_file')
                 self.erfs = DataTable(InputTable, external_data = fname)
                 self._aggregate_output.setEnabled(True)
                 self.aggregate_enabled = True
@@ -253,8 +253,7 @@ class MainWindow(QMainWindow):
 
     def enable_calibration(self, val = True):    
         if not self.aggregate_enabled:
-            warnings.warn("Unable to read data, calibration not available")
-            
+            warnings.warn("Without aggregates enabled, calibration is not available")
         if val:
             try:
                 # liberate some memory before loading new data
@@ -270,7 +269,8 @@ class MainWindow(QMainWindow):
 
                 self._calibration.set_inputs(self.erfs)                
                 self._calibration.init_param()
-                self._calibration.set_margins_from_file()
+                self._calibration.set_inputs_margins_from_file()
+                
                 self._calibration.setEnabled(True)
                 self.calibration_enabled = True
                 return
@@ -294,6 +294,7 @@ class MainWindow(QMainWindow):
         self.mode = 'bareme'
         NMEN = CONF.get('simulation', 'nmen')
         if NMEN == 1: CONF.set('simulation', 'nmen', 101)
+        print "date", CONF.get('simulation', 'datesim')
         self.changed_bareme()
 
     def modeCasType(self):
@@ -341,7 +342,7 @@ class MainWindow(QMainWindow):
     def refresh_aggregate(self):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
-        self.statusbar.showMessage(u"Calcul des aggregats en cours, ceci peut prendre quelques minutes...")
+        self.statusbar.showMessage(u"Calcul des aggrégats en cours, ceci peut prendre quelques minutes...")
         self.action_refresh_aggregate.setEnabled(False)
         self._aggregate_output.clear()
         self._dataframe_widget.clear()
@@ -362,20 +363,23 @@ class MainWindow(QMainWindow):
         self._aggregate_output.update_output(data_courant)
         # update calibration system 
         self._calibration.set_system(population_courant)
-        self._calibration.update_postset_margins()
+        self._calibration.set_postset_margins_from_file()
         
         self.statusbar.showMessage(u"")
         QApplication.restoreOverrideCursor()
         
     def refresh_calibration(self):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-        self.statusbar.showMessage(u"Calibration en cours, ceci peut prendre quelques minutes...")
-        self.action_refresh_calibration.setEnabled(False)
-
-        self._calibration.calibrate()
-        self.statusbar.showMessage(u"")
-        QApplication.restoreOverrideCursor()
         
+        try:
+            self.statusbar.showMessage(u"Calage en cours, ceci peut prendre quelques minutes...")
+            self._calibration.calibrate()
+            self.action_refresh_calibration.setEnabled(False)
+        except:
+            self.statusbar.showMessage(u"Erreur de calage")
+            self.action_refresh_calibration.setEnabled(False)
+        finally:
+            QApplication.restoreOverrideCursor()
     
     def closeEvent(self, event):
         if self.okToContinue():
@@ -424,7 +428,6 @@ class MainWindow(QMainWindow):
         if self.calibration_enabled:
             self.action_refresh_calibration.setEnabled(True)
         if self.aggregate_enabled:
-            # self.erfs.calage()
             self.action_refresh_aggregate.setEnabled(True)
 
 
