@@ -52,7 +52,7 @@ class ParamWidget(QDockWidget, Ui_Parametres):
         self.emit(SIGNAL('changed()'))
     
     def initialize(self):
-        self._date = datetime.strptime(CONF.get('simulation', 'datesim'),"%Y-%m-%d").date()
+        self._date = CONF.get('simulation', 'datesim')
         self._reader = XmlReader(self._file, self._date)
         self._rootNode = self._reader.tree
         self._rootNode.rmv_empty_code()
