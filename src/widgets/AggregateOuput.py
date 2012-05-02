@@ -22,7 +22,7 @@ This file is part of openFisca.
 """
 from PyQt4.QtGui import (QWidget, QDockWidget, QLabel, QVBoxLayout, QHBoxLayout, QComboBox,
                          QSpacerItem, QSizePolicy)
-from PyQt4.QtCore import Qt, QAbstractTableModel, QVariant
+from PyQt4.QtCore import SIGNAL, Qt, QAbstractTableModel, QVariant
 from core.qthelpers import OfSs, DataFrameViewWidget
 import numpy as np
 from pandas import DataFrame
@@ -99,6 +99,12 @@ class AggregateOutputWidget(QDockWidget):
 
         dist_frame = self.group_by(['revdisp', 'nivvie'], 'typ_men')
         self.distribution_view.set_dataframe(dist_frame)
+        
+        self.calculated()
+        
+    def calculated(self):
+        self.emit(SIGNAL('calculated()'))
+        
         
     def get_aggregate(self, var):
         '''
