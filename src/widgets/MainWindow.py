@@ -237,13 +237,12 @@ class MainWindow(QMainWindow):
                 self._dataframe_widget.set_dataframe(self.erfs.table)
                 return
             except Exception, e:
-                print e
-                warnings.warn("Unable to read data, switching to barème only mode")
+                warnings.warn("Unable to read data, switching to barème only mode\n%s" % e)
                 self.general_prefs.remove(AggConfigPage)
-        else:
-            self.aggregate_enabled = False
-            self._aggregate_output.setEnabled(False)
-            self.action_refresh_aggregate.setEnabled(False)
+
+        self.aggregate_enabled = False
+        self._aggregate_output.setEnabled(False)
+        self.action_refresh_aggregate.setEnabled(False)
 
     def reset_aggregate(self):
         self.erfs = None
