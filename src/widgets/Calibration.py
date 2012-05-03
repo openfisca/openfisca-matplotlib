@@ -243,10 +243,7 @@ class CalibrationWidget(QDockWidget):
         try:
             self.margins_model._margins._marges_new = self.system.update_weights(margins_dict,param=param, return_margins = True)
         except Exception, e:
-            QMessageBox.critical(self, u"Calage",
-                                 u"Erreur de calage: vérifier les paramètres : %s" % e, 
-                                 QMessageBox.Ok, QMessageBox.NoButton)
-            raise Exception("Calibration error")
+            raise Exception(u"Vérifier les paramètres:\n%s"% e)
             return
         finally:
             if 'totalpop' in margins_dict:
@@ -462,7 +459,7 @@ class Margins(object):
 
     def set_postset_margins_from_file(self, filename, year):
         if year is None:
-            year     = CONF.get('calibration','date')[:4]
+            year     = str(CONF.get('calibration','date').year)
 
         if filename is None:
             fname    = CONF.get('calibration','pfam_filename')
