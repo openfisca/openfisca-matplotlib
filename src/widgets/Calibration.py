@@ -31,7 +31,7 @@ from pandas import read_csv
 
 from PyQt4.QtCore import SIGNAL, Qt, QAbstractTableModel, QModelIndex, QVariant
 from PyQt4.QtGui import (QWidget, QLabel, QDockWidget, QHBoxLayout, QVBoxLayout, 
-                         QPushButton, QComboBox, QDoubleSpinBox, QTableView, QInputDialog, QMessageBox)
+                         QPushButton, QComboBox, QDoubleSpinBox, QTableView, QInputDialog)
 from widgets.matplotlibwidget import MatplotlibWidget
 
 from Config import CONF
