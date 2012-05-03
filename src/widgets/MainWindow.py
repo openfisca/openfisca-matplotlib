@@ -28,24 +28,28 @@ from PyQt4.QtGui import (QMainWindow, QWidget, QGridLayout, QMessageBox, QKeySeq
                          QApplication, QCursor, QPixmap, QSplashScreen, QColor,
                          QActionGroup, QStatusBar)
 
-from Config import CONF, VERSION, ConfigDialog, SimConfigPage, PathConfigPage
+from Config import CONF, VERSION, ConfigDialog, SimConfigPage, PathConfigPage, CalConfigPage, AggConfigPage
 from widgets.Parametres import ParamWidget
 from widgets.Composition import ScenarioWidget
 from widgets.Output import Graph, OutTable
 from widgets.AggregateOuput import AggregateOutputWidget, DataFrameDock
+from widgets.Calibration import CalibrationWidget
 from france.data import InputTable
 from france.model import ModelFrance
 from core.datatable import DataTable, SystemSf
 from core.utils import gen_output_data, gen_aggregate_output, Scenario
 from core.qthelpers import create_action, add_actions, get_icon
 import gc
+import warnings
+
 
 class MainWindow(QMainWindow):
     def __init__(self, parent = None):
         super(MainWindow, self).__init__(parent)
         self.dirty = False
         self.isLoaded = False
-        self.aggregate_enabled = True
+        self.calibration_enabled = False
+        self.aggregate_enabled = False
 
         self.setObjectName("MainWindow")
         self.resize(800, 600)
@@ -81,7 +85,7 @@ class MainWindow(QMainWindow):
         
         self.scenario = Scenario()
         # Preferences
-        self.general_prefs = [SimConfigPage, PathConfigPage]
+        self.general_prefs = [SimConfigPage, PathConfigPage, AggConfigPage, CalConfigPage]
         self.oldXAXIS = 'sal'
         self.reforme = False
         self.apply_settings()
@@ -102,7 +106,7 @@ class MainWindow(QMainWindow):
         self.file_menu = self.menuBar().addMenu("Fichier")
         action_export_png = create_action(self, 'Exporter le graphique', icon = 'document-save png.png', triggered = self._graph.save_figure)
         action_export_csv = create_action(self, 'Exporter la table', icon = 'document-save csv.png', triggered = self._table.saveCsv)
-        action_pref = create_action(self, u'Préférence', QKeySequence.Preferences, icon = 'preferences-desktop.png', triggered = self.edit_preferences)
+        action_pref = create_action(self, u'Préférences', QKeySequence.Preferences, icon = 'preferences-desktop.png', triggered = self.edit_preferences)
         action_quit = create_action(self, 'Quitter', QKeySequence.Quit, icon = 'process-stop.png',  triggered = SLOT('close()'))
         
         file_actions = [action_export_png, action_export_csv,None, action_pref, None, action_quit]
@@ -113,13 +117,13 @@ class MainWindow(QMainWindow):
         action_copy = create_action(self, 'Copier', QKeySequence.Copy, triggered = self.global_callback, data = 'copy')
         
         edit_actions = [None, action_copy]
-
         add_actions(self.edit_menu, edit_actions)
 
         # Menu Simulation
         self.simulation_menu = self.menuBar().addMenu(u"Simulation")
-        self.action_refresh_bareme = create_action(self, u'Calculer barèmes', shortcut = 'F9', icon = 'view-refresh.png', triggered = self.refresh_bareme)
-        self.action_refresh_aggregate = create_action(self, u'Calculer aggrégats', shortcut = 'F10', icon = 'view-refresh.png', triggered = self.refresh_aggregate)
+        self.action_refresh_bareme      = create_action(self, u'Calculer barèmes', shortcut = 'F8', icon = 'view-refresh.png', triggered = self.refresh_bareme)
+        self.action_refresh_calibration = create_action(self, u'Calibrer', shortcut = 'F9', icon = 'view-refresh.png', triggered = self.refresh_calibration)
+        self.action_refresh_aggregate   = create_action(self, u'Calculer aggrégats', shortcut = 'F10', icon = 'view-refresh.png', triggered = self.refresh_aggregate)
         action_bareme = create_action(self, u'Barème', icon = 'bareme22.png', toggled = self.modeBareme)
         action_cas_type = create_action(self, u'Cas type', icon = 'castype22.png', toggled = self.modeCasType)
         action_mode_reforme = create_action(self, u'Réforme', icon = 'comparison22.png', toggled = self.modeReforme, tip = u"Différence entre la situation simulée et la situation actuelle")
@@ -129,7 +133,7 @@ class MainWindow(QMainWindow):
         self.mode = 'bareme'
         action_bareme.trigger()
 
-        simulation_actions = [self.action_refresh_bareme, self.action_refresh_aggregate , None, action_bareme, action_cas_type, None, action_mode_reforme]
+        simulation_actions = [self.action_refresh_bareme, self.action_refresh_calibration, self.action_refresh_aggregate , None, action_bareme, action_cas_type, None, action_mode_reforme]
         add_actions(self.simulation_menu, simulation_actions)
         
         # Menu Help
@@ -147,14 +151,17 @@ class MainWindow(QMainWindow):
         
         # Toolbar
         self.main_toolbar = self.create_toolbar(u"Barre d'outil", 'main_toolbar')
-        toolbar_actions = [action_export_png, action_export_csv, None, self.action_refresh_bareme, 
-                           self.action_refresh_aggregate, None, action_bareme, action_cas_type, 
-                           None, action_mode_reforme]
+        toolbar_actions = [action_export_png, action_export_csv, None, self.action_refresh_bareme,
+                           self.action_refresh_calibration, self.action_refresh_aggregate, None,
+                            action_bareme, action_cas_type, None, action_mode_reforme]
         add_actions(self.main_toolbar, toolbar_actions)
 
 
         self.connect(self._menage,     SIGNAL('changed()'), self.changed_bareme)
         self.connect(self._parametres, SIGNAL('changed()'), self.changed_param)
+        self.connect(self._aggregate_output, SIGNAL('calculated()'), self.calculated)
+        self.connect(self._calibration, SIGNAL('param_or_margins_changed()'), self.param_or_margins_changed)
+        self.connect(self._calibration, SIGNAL('calibrated()'), self.calibrated)
         
         # Window settings
         self.splash.showMessage("Restoring settings...", Qt.AlignBottom | Qt.AlignCenter | 
@@ -171,7 +178,8 @@ class MainWindow(QMainWindow):
         
 
         self.enable_aggregate(True)
-            
+        self.enable_calibration(True)
+        
         self.refresh_bareme()
         
         self.isLoaded = True
@@ -190,6 +198,7 @@ class MainWindow(QMainWindow):
         self._graph = Graph(self)
         self._table = OutTable(self)
         self._aggregate_output = AggregateOutputWidget(self)
+        self._calibration = CalibrationWidget(self)
         self._dataframe_widget = DataFrameDock(self)
         
     def populate_mainwidow(self):
@@ -198,10 +207,13 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.LeftDockWidgetArea, self._graph)
         self.addDockWidget(Qt.LeftDockWidgetArea, self._table)
         self.addDockWidget(Qt.LeftDockWidgetArea, self._aggregate_output)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self._calibration)
         self.addDockWidget(Qt.LeftDockWidgetArea, self._dataframe_widget)
         self.tabifyDockWidget(self._dataframe_widget, self._aggregate_output)
-        self.tabifyDockWidget(self._aggregate_output, self._table)
+        self.tabifyDockWidget(self._aggregate_output, self._calibration)
+        self.tabifyDockWidget(self._calibration, self._table)
         self.tabifyDockWidget(self._table, self._graph)
+        
 
     def global_callback(self):
         """Global callback"""
@@ -212,34 +224,67 @@ class MainWindow(QMainWindow):
             getattr(widget, callback)()
 
     def enable_aggregate(self, val = True):
-        import warnings
         if val:
             try:
                 # liberate some memory before loading new data
                 self.reset_aggregate()
                 gc.collect()
                 
-                fname = CONF.get('paths', 'external_data_file')
+                fname = CONF.get('aggregates', 'external_data_file')
                 self.erfs = DataTable(InputTable, external_data = fname)
                 self._aggregate_output.setEnabled(True)
                 self.aggregate_enabled = True
                 self.action_refresh_aggregate.setEnabled(True)
-                self._aggregate_output.setEnabled(True)
                 self._dataframe_widget.set_dataframe(self.erfs.table)
                 return
             except Exception, e:
-                print e
-                warnings.warn("Unable to read data, switching to barème only mode")
+                warnings.warn("Unable to read data, switching to barème only mode\n%s" % e)
+                self.general_prefs.remove(AggConfigPage)
 
         self.aggregate_enabled = False
         self._aggregate_output.setEnabled(False)
         self.action_refresh_aggregate.setEnabled(False)
 
-
     def reset_aggregate(self):
         self.erfs = None
         self._dataframe_widget.clear()
         self._aggregate_output.clear()
+        self._calibration.reset_postset_margins()
+
+    def enable_calibration(self, val = True):    
+        if not self.aggregate_enabled:
+            warnings.warn("Without aggregates enabled, calibration is not available")
+        if val:
+            try:
+                # liberate some memory before loading new data
+#                self.reset_calibration() # TODO
+                gc.collect()
+                
+                
+                P_default = self._parametres.getParam(defaut = True)    
+                P_courant = self._parametres.getParam(defaut = False)
+                system = SystemSf(ModelFrance, P_courant, P_default)
+                system.set_inputs(self.erfs)
+                self._calibration.set_system(system)
+
+                self._calibration.set_inputs(self.erfs)                
+                self._calibration.init_param()
+                self._calibration.set_inputs_margins_from_file()
+                
+                self._calibration.setEnabled(True)
+                self.calibration_enabled = True
+                return
+            except Exception, e:
+                warnings.warn("Unable to read data, switching to barème only mode \n%s" % e)
+                self.general_prefs.remove(CalConfigPage)
+
+        self.calibration_enabled = False
+        self._calibration.setEnabled(False)
+        self.action_refresh_calibration.setEnabled(False)
+
+    def reset_calibration(self):
+        pass
+        
     
     def modeReforme(self, b):
         self.reforme = b
@@ -249,6 +294,7 @@ class MainWindow(QMainWindow):
         self.mode = 'bareme'
         NMEN = CONF.get('simulation', 'nmen')
         if NMEN == 1: CONF.set('simulation', 'nmen', 101)
+        print "date", CONF.get('simulation', 'datesim')
         self.changed_bareme()
 
     def modeCasType(self):
@@ -296,12 +342,11 @@ class MainWindow(QMainWindow):
     def refresh_aggregate(self):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
-        self.statusbar.showMessage(u"Calcul des aggregats en cours, ceci peut prendre quelques minutes...")
+        self.statusbar.showMessage(u"Calcul des aggrégats en cours, ceci peut prendre quelques minutes...")
         self.action_refresh_aggregate.setEnabled(False)
         self._aggregate_output.clear()
         self._dataframe_widget.clear()
 
-        
         P_default = self._parametres.getParam(defaut = True)    
         P_courant = self._parametres.getParam(defaut = False)
         
@@ -316,8 +361,25 @@ class MainWindow(QMainWindow):
         data_courant = gen_aggregate_output(population_courant)
         
         self._aggregate_output.update_output(data_courant)
+        # update calibration system 
+        self._calibration.set_system(population_courant)
+        self._calibration.set_postset_margins_from_file()
+        
         self.statusbar.showMessage(u"")
         QApplication.restoreOverrideCursor()
+        
+    def refresh_calibration(self):
+        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+        
+        try:
+            self.statusbar.showMessage(u"Calage en cours, ceci peut prendre quelques minutes...")
+            self._calibration.calibrate()
+            self.action_refresh_calibration.setEnabled(False)
+        except:
+            self.statusbar.showMessage(u"Erreur de calage")
+            self.action_refresh_calibration.setEnabled(False)
+        finally:
+            QApplication.restoreOverrideCursor()
     
     def closeEvent(self, event):
         if self.okToContinue():
@@ -363,6 +425,12 @@ class MainWindow(QMainWindow):
         if self.isLoaded == True:
             self._parametres.initialize()
             self.refresh_bareme()
+        if self.calibration_enabled:
+            self.action_refresh_calibration.setEnabled(True)
+        if self.aggregate_enabled:
+            self.action_refresh_aggregate.setEnabled(True)
+
+
 
     def edit_preferences(self):
         """Edit OpenFisca preferences"""
@@ -377,12 +445,32 @@ class MainWindow(QMainWindow):
         dlg.exec_()
 
     def changed_bareme(self):
-        self.statusbar.showMessage(u"Appuyez sur F9/F10 pour lancer la simulation")
+        self.statusbar.showMessage(u"Appuyez sur F8/F9/F10 pour lancer la simulation")
         self.action_refresh_bareme.setEnabled(True)
     
     def changed_param(self):
-        self.statusbar.showMessage(u"Appuyez sur F9/F10 pour lancer la simulation")
+        self.statusbar.showMessage(u"Appuyez sur F8/F9/F10 pour lancer la simulation")
         if self.aggregate_enabled:
             self.action_refresh_aggregate.setEnabled(True)
+            if self.calibration_enabled:
+                self.action_refresh_calibration.setEnabled(True)
+                
         self.action_refresh_bareme.setEnabled(True)
-        
+
+    def param_or_margins_changed(self):
+        self.statusbar.showMessage(u"Appuyez sur F9 pour lancer une nouvelle calibration")
+        if self.calibration_enabled:
+            self.action_refresh_calibration.setEnabled(True)
+            
+    def calibrated(self):
+        self.statusbar.showMessage(u"Appuyez sur F10 pour lancer une nouvelle simulation")
+        if self.calibration_enabled:
+            self.action_refresh_calibration.setEnabled(False)    
+            self.action_refresh_aggregate.setEnabled(True)
+
+    def calculated(self):
+        self.statusbar.showMessage(u"Aggrégats calculés")
+        if self.calibration_enabled:
+            self._calibration.aggregate_calculated()
+            self.action_refresh_calibration.setEnabled(True)    
+            self.action_refresh_aggregate.setEnabled(False)    
