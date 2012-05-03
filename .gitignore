@@ -2,16 +2,7 @@
 
 .pydevproject
 .project
-.settings/*
+.settings
 
 src/build
-<<<<<<< HEAD
-
-.pydevproject
-.project
-
-.settings/*
-main.cfg
-=======
 src/main.cfg
->>>>>>> origin/new_core

@@ -252,12 +252,10 @@ class MainWindow(QMainWindow):
         self._calibration.reset_postset_margins()
 
     def enable_calibration(self, val = True):    
-        if not self.aggregate_enabled:
-            warnings.warn("Without aggregates enabled, calibration is not available")
-        if val:
+        if val and self.aggregate_enabled:
             try:
                 # liberate some memory before loading new data
-#                self.reset_calibration() # TODO
+                self.reset_calibration() 
                 gc.collect()
                 
                 
@@ -274,6 +272,7 @@ class MainWindow(QMainWindow):
                 self._calibration.setEnabled(True)
                 self.calibration_enabled = True
                 return
+
             except Exception, e:
                 warnings.warn("Unable to read data, switching to barème only mode \n%s" % e)
                 self.general_prefs.remove(CalConfigPage)
@@ -283,9 +282,11 @@ class MainWindow(QMainWindow):
         self.action_refresh_calibration.setEnabled(False)
 
     def reset_calibration(self):
+        '''
+        TODO: Write here what it should do
+        '''
         pass
         
-    
     def modeReforme(self, b):
         self.reforme = b
         self.changed_bareme()
@@ -361,6 +362,7 @@ class MainWindow(QMainWindow):
         data_courant = gen_aggregate_output(population_courant)
         
         self._aggregate_output.update_output(data_courant)
+
         # update calibration system 
         self._calibration.set_system(population_courant)
         self._calibration.set_postset_margins_from_file()
@@ -370,13 +372,15 @@ class MainWindow(QMainWindow):
         
     def refresh_calibration(self):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-        
         try:
             self.statusbar.showMessage(u"Calage en cours, ceci peut prendre quelques minutes...")
             self._calibration.calibrate()
             self.action_refresh_calibration.setEnabled(False)
-        except:
-            self.statusbar.showMessage(u"Erreur de calage")
+        except Exception, e:
+            QApplication.restoreOverrideCursor()
+            QMessageBox.critical(self, u"Calage",
+                                 u"Erreur de calage:\n%s" % e, 
+                                 QMessageBox.Ok, QMessageBox.NoButton)
             self.action_refresh_calibration.setEnabled(False)
         finally:
             QApplication.restoreOverrideCursor()
