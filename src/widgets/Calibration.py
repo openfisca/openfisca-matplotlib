@@ -24,7 +24,6 @@ This file is part of openFisca.
 from __future__ import division
 
 import os
-import warnings
 import numpy as np
 
 from pandas import read_csv
@@ -41,7 +40,8 @@ from core.columns import BoolCol, AgesCol, EnumCol
 class CalibrationWidget(QDockWidget):
     def __init__(self, parent = None):
         super(CalibrationWidget, self).__init__(parent)
-        self.setStyleSheet(OfSs.dock_style)
+#        self.setStyleSheet(OfSs.dock_style)
+        
         # Create geometry
         self.setWindowTitle("Calibration")
         self.setObjectName("Calibration")
@@ -71,6 +71,7 @@ class CalibrationWidget(QDockWidget):
         
 #       pop_checkbox = QCheckbox # TODO
         self.totalpop = None
+        self.aggregate_calculated = False
 
         self.pop_spinbox = MyDoubleSpinBox(self.dockWidgetContents, u"Population cible totale :", u"ménages", option = None ,min_=15e6, max_=30e6, step=5e6, changed = self.set_totalpop)
         
@@ -94,30 +95,39 @@ class CalibrationWidget(QDockWidget):
         self.add_free_margin_btn = QPushButton('Ajouter une variable \n (marge libre)', self.dockWidgetContents)
         self.add_postset_margin_btn = QPushButton(u'Ajouter une variable calculée \n (marge renseignée)', self.dockWidgetContents)
         rmv_margin_btn  = QPushButton('Retirer une variable', self.dockWidgetContents)
+        
         margin_btn_lyt  = QVBoxLayout()
+        
         margin_btn_lyt.addWidget(self.add_preset_margin_btn)
         margin_btn_lyt.addWidget(self.add_free_margin_btn)    
         margin_btn_lyt.addWidget(self.add_postset_margin_btn)
-        self.add_postset_margin_btn.setDisabled(True)
         margin_btn_lyt.addWidget(rmv_margin_btn)
-        self.connect(self.add_preset_margin_btn, SIGNAL('clicked()'), self.add_preset_margin)
-        self.connect(self.add_free_margin_btn, SIGNAL('clicked()'), self.add_margin)
-        self.connect(self.add_postset_margin_btn, SIGNAL('clicked()'), self.add_postset_margin)
-        self.connect(rmv_margin_btn, SIGNAL('clicked()'), self.rmv_margin)
 
-        # Widgets in layout
-        
+        # Widgets in layout        
         margins_lyt = QHBoxLayout()
         margins_lyt.addWidget(self.margins_view)
         margins_lyt.addLayout(margin_btn_lyt)
 
         verticalLayout.addLayout(margins_lyt)
 
+        self.add_postset_margin_btn.setDisabled(True)
+
         # weights ratio plot        
         self.mplwidget = MatplotlibWidget(self.dockWidgetContents)
         verticalLayout.addWidget(self.mplwidget)
         
         self.setWidget(self.dockWidgetContents)            
+
+        # Connect signals
+        self.connect(self.add_preset_margin_btn, SIGNAL('clicked()'), self.add_preset_margin)
+        self.connect(self.add_free_margin_btn, SIGNAL('clicked()'), self.add_margin)
+        self.connect(self.add_postset_margin_btn, SIGNAL('clicked()'), self.add_postset_margin)
+        self.connect(rmv_margin_btn, SIGNAL('clicked()'), self.rmv_margin)
+
+        self.connect(self.parent(), SIGNAL('aggregate_calculated()'), self.update_aggregates)
+
+
+
 
     def set_totalpop(self):
         self.totalpop = self.pop_spinbox.spin.value()
@@ -127,9 +137,10 @@ class CalibrationWidget(QDockWidget):
         if self.totalpop is not None:
             self.pop_spinbox.spin.setValue(self.totalpop)
 
-    def aggregate_calculated(self):
+    def update_aggregates(self):
         self.set_postset_margins_from_file()
         self.add_postset_margin_btn.setEnabled(True)
+        self.aggregate_calculated = True
         
     def calibrated(self):
         self.emit(SIGNAL('calibrated()')) 
@@ -226,25 +237,23 @@ class CalibrationWidget(QDockWidget):
 #                self.margins._postset_vars[varname][False] = sum(w*(value == False))
 #            else:
 #                self.margins._postset_vars[varname] = sum(w*(value))
-                            
-                            
+    
+    def get_param(self):
+        p = {}
+        p['lo'] = 1/self.param['invlo']
+        p['use_proportions'] = True
+        p['pondini']  = 'wprm_init'
+        return p
+              
     def calibrate(self):
         margins_dict = self.margins_model._margins.get_calib_vars()
-
-        print self.param
-        param = self.param.copy()
-        param['lo'] = 1/param['invlo']
-        del param['invlo']
-        param['use_proportions'] = True
-        param['pondini']  = 'wprm_init'
+        param = self.get_param()
         if self.totalpop is not None:
             margins_dict['totalpop'] = self.totalpop
-        print margins_dict.keys()
         try:
             self.margins_model._margins._marges_new = self.system.update_weights(margins_dict,param=param, return_margins = True)
         except Exception, e:
             raise Exception(u"Vérifier les paramètres:\n%s"% e)
-            return
         finally:
             if 'totalpop' in margins_dict:
                 del margins_dict['totalpop']
@@ -392,6 +401,9 @@ class MarginsModel(QAbstractTableModel):
         return True
 
 class Margins(object):
+    '''
+    TODO: complete
+    '''
     def __init__(self):
         super(Margins, self).__init__()
         self._vars_dict = {} # list of strings with varnames
@@ -451,8 +463,7 @@ class Margins(object):
                     self.addVar(var, self._inputs, marges[var])
         
         except Exception, e:
-                print e
-                warnings.warn("Unable to read preset margins for %s, preset margins left empty" % (year))
+                print Warning("Unable to read preset margins for %s, preset margins left empty because\s" % (year, e))
             
         finally:
             f_tot.close()
@@ -476,8 +487,7 @@ class Margins(object):
                     self._postset_vars[var] = marges[var]
                     self.addVar(var, self._system, marges[var])
         except Exception, e:
-                print e
-                warnings.warn("Unable to read preset margins for %s, postset margins left empty" % (year))
+                print Warning("Unable to read preset margins for %s, postset margins left empty because:%s" % (year, e))
             
         finally:
             f_tot.close()
@@ -680,4 +690,4 @@ class MyComboBox(QWidget):
         layout.addStretch(1)
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
-        self.box = combobox        
+        self.box = combobox
