@@ -21,11 +21,17 @@ This file is part of openFisca.
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
 from PyQt4.QtGui import (QWidget, QDockWidget, QLabel, QVBoxLayout, QHBoxLayout, QComboBox,
-                         QSpacerItem, QSizePolicy)
-from PyQt4.QtCore import SIGNAL, Qt, QAbstractTableModel, QVariant
+                         QSpacerItem, QSizePolicy, QApplication, QCursor)
+from PyQt4.QtCore import SIGNAL, Qt, QString
 from core.qthelpers import OfSs, DataFrameViewWidget
 import numpy as np
 from pandas import DataFrame
+from Calibration import MyComboBox
+from core.columns import BoolCol, AgesCol, EnumCol
+try:
+    _fromUtf8 = QString.fromUtf8
+except AttributeError:
+    _fromUtf8 = lambda s: s
 
 class DataFrameDock(QDockWidget):
     def __init__(self, parent = None):
@@ -55,13 +61,21 @@ class AggregateOutputWidget(QDockWidget):
         agg_label = QLabel(u"Résultat aggregé de la simulation", self.dockWidgetContents)
         self.aggregate_view = DataFrameViewWidget(self.dockWidgetContents)
 
-        dist_label = QLabel(u"Distribution de l'impact par", self.dockWidgetContents)
-        self.distribution_combo = QComboBox(self.dockWidgetContents)
-        self.distribution_combo.addItems([u'déciles', u'types de famille'])
+        self.distribution_by_var = 'typ_men'
+#        self.distribution_by_var_dict = {}
+#        distribution_choices = [(u'déciles', 'decile'),
+#                                (u'types de famille', 'typ_men'),
+#                                (u'so', 'so'),
+#                                (u'typmen15', 'typmen15'),
+#                                (u'tu99', 'tu99')]
+        self.distribution_choices = []
+        self.distribution_combo = MyComboBox(self.dockWidgetContents, u"Distribution de l'impact par", self.distribution_choices)
+        self.distribution_combo.box.setDisabled(True)
+        
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         horizontalLayout = QHBoxLayout()
-        horizontalLayout.addWidget(dist_label)
+        #horizontalLayout.addWidget(dist_label)
         horizontalLayout.addWidget(self.distribution_combo)
         horizontalLayout.addItem(spacerItem)
 
@@ -79,9 +93,67 @@ class AggregateOutputWidget(QDockWidget):
         self.varlist = ['irpp', 'ppe', 'af', 'cf', 'ars', 'aeeh', 'asf', 'aspa', 'aah', 'caah', 'rsa', 'aefa', 'api', 'logt']
         self.data = DataFrame() # Pandas DataFrame
             
-    def update_output(self, output_data):
+        self.connect(self.distribution_combo.box, SIGNAL('currentIndexChanged(int)'), self.dist_by_changed)
+
+    def dist_by_changed(self):    
+        print 'changing by var'
+        widget = self.distribution_combo.box
+        if isinstance(widget, QComboBox):
+            data = widget.itemData(widget.currentIndex())
+            print data
+            by_var = unicode(data.toString())
+            self.distribution_by_var = by_var                
+            self.update_output(self.data)
+    
+    def set_data(self, output_data):
         self.data = output_data
         self.wght = self.data['wprm']
+ 
+    def set_distribution_by_var_dict(self, description):
+        '''
+        Use a SystemeSF.description to build the dict ({var: label}) 
+        for all the by variable appearing in the distribution view
+        '''
+        for var in description.col_names:
+            var2label = {}
+            varcol  = description.get_col(var)
+            if isinstance(varcol, EnumCol) or isinstance(varcol, BoolCol) or isinstance(varcol, BoolCol):
+                if varcol.label:
+                    var2label[varcol.label] = var
+                var2label[var] = var
+        self.distribution_by_var_dict = var2label
+                
+    def set_distribution_choices(self, description):
+        '''
+        Set the variables appearing in the ComboBox 
+        '''
+        for var in description.col_names:
+            var2label = {}
+            varcol  = description.get_col(var)
+            if isinstance(varcol, EnumCol) or isinstance(varcol, BoolCol) or isinstance(varcol, BoolCol):
+                if varcol.label:
+                    var2label[varcol.label] = var
+                var2label[var] = var
+        
+        self.set_distribution_by_var_dict(description)
+        choices = []
+        for var, label in self.distribution_by_var_dict.iteritems():
+            choices.append((label,var))
+        self.distribution_choices = choices
+                
+    def update_output(self, output_data):
+        print 'update'
+        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+        if self.distribution_by_var is not None:
+            by_var = self.distribution_by_var
+        else:
+            by_var = 'typ_men'
+        if output_data is None:
+            return
+        
+        self.set_data(output_data)
+        self.distribution_combo.box.setEnabled(True)
+        print by_var
         V = []
         M = []
         B = []
@@ -97,13 +169,16 @@ class AggregateOutputWidget(QDockWidget):
         aggr_frame = DataFrame.from_items(items)
         self.aggregate_view.set_dataframe(aggr_frame)
 
-        dist_frame = self.group_by(['revdisp', 'nivvie'], 'typ_men')
+
+        dist_frame = self.group_by(['revdisp', 'nivvie'], by_var)
         self.distribution_view.set_dataframe(dist_frame)
-        
+        self.distribution_view.reset()
         self.calculated()
+        QApplication.restoreOverrideCursor()
         
     def calculated(self):
         self.emit(SIGNAL('calculated()'))
+        
         
         
     def get_aggregate(self, var):
