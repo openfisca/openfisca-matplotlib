@@ -224,7 +224,7 @@ class CalibrationWidget(QDockWidget):
         
     def set_inputs_margins_from_file(self, filename = None, year = None):
         if year is None:
-            year     = str(CONF.get('calibration','date').year)
+            year     = str(CONF.get('simulation','datesim').year)
         if filename is None:
             fname    = CONF.get('calibration','inputs_filename')
             data_dir = CONF.get('paths', 'data_dir')
@@ -237,7 +237,7 @@ class CalibrationWidget(QDockWidget):
         
     def set_output_margins_from_file(self, filename = None, year = None):
         if year is None:
-            year     = str(CONF.get('calibration','date').year)
+            year     = str(CONF.get('simulation','datesim').year)
         if filename is None:
             fname    = CONF.get('calibration','pfam_filename')
             data_dir = CONF.get('paths', 'data_dir')
@@ -374,7 +374,7 @@ class CalibrationWidget(QDockWidget):
         # TODO: add  param
         # param_dict = self.get_param()
         
-        year     = str(CONF.get('calibration','date').year)
+        year     = str(CONF.get('simulation','datesim').year)
         margins_dict = self.margins.get_calib_vars()
         if not margins_dict:
             QMessageBox.critical(
@@ -414,7 +414,7 @@ class CalibrationWidget(QDockWidget):
         
     def load_config(self):
         
-        year     = str(CONF.get('calibration','date').year)
+        year     = str(CONF.get('simulation','datesim').year)
         calib_dir = CONF.get('paths','calib_dir')
         fileName = QFileDialog.getOpenFileName(self,
                                                u"Ouvrir un calage", calib_dir, u"Calages OpenFisca (*.csv)")
@@ -632,7 +632,7 @@ class MarginsTable(object):
         
     def set_inputs_margins_from_file(self, filename = None, year = None):              
         if year is None:
-            year     = str(CONF.get('calibration','date').year)
+            year     = str(CONF.get('simulation','datesim').year)
         if filename is None:
             fname    = CONF.get('calibration','inputs_filename')
             data_dir = CONF.get('paths', 'data_dir')
