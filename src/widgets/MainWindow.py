@@ -88,7 +88,7 @@ class MainWindow(QMainWindow):
         self.reforme = False
         self.apply_settings()
         
-        # Creation des dockwidgets
+        # Dockwidgets creation
         self.splash.showMessage("Creating widgets...", Qt.AlignBottom | Qt.AlignCenter | 
                                 Qt.AlignAbsolute, QColor(Qt.black))
 
@@ -177,7 +177,7 @@ class MainWindow(QMainWindow):
                                 Qt.AlignAbsolute, QColor(Qt.black))
         
         self.enable_aggregate(True)
-        self.enable_calibration(False)
+        self.enable_calibration(True)
         
         self.refresh_bareme()
         
@@ -267,11 +267,12 @@ class MainWindow(QMainWindow):
         self.survey = None
         self._dataframe_widget.clear()
         self._aggregate_output.clear()
-        self._calibration.reset_postset_margins()
+# TODO: adpat this        self._calibration.reset_output_margins()
 
     def enable_calibration(self, val = True):    
         if val and self.aggregate_enabled:
-            try:
+            if True:
+#            try:
                 # liberate some memory before loading new data
                 self.reset_calibration() 
                 gc.collect()
@@ -285,8 +286,8 @@ class MainWindow(QMainWindow):
                 self._calibration.show()
                 return
 
-            except Exception, e:
-                print Warning("Unable to read data, switching to barème only mode \n%s" % e)
+#            except Exception, e:
+#                print Warning("Unable to read data, switching to barème only mode \n%s" % e)
 
         self.calibration_enabled = False
         self._calibration.setEnabled(False)
@@ -298,6 +299,7 @@ class MainWindow(QMainWindow):
         TODO: Write here what it should do
         '''
         pass
+        
         
     def modeReforme(self, b):
         self.reforme = b
@@ -380,11 +382,6 @@ class MainWindow(QMainWindow):
         data_courant = gen_aggregate_output(population)
         
         self._aggregate_output.update_output(data_courant)
-
-        if self.calibration_enabled:
-            # update calibration system 
-            self._calibration.set_system(population)
-            self._calibration.set_postset_margins_from_file()
         
         self.statusbar.showMessage(u"")
         QApplication.restoreOverrideCursor()
@@ -494,7 +491,8 @@ class MainWindow(QMainWindow):
     def calculated(self):
         self.statusbar.showMessage(u"Aggrégats calculés")
         self.emit(SIGNAL('aggregate_calculated()'))
-        if self.calibration_enabled:
+        self.action_refresh_aggregate.setEnabled(False)
+        if self.calibration_enabled:  # allow calibration on output margins
             self.action_refresh_calibration.setEnabled(True)    
-            self.action_refresh_aggregate.setEnabled(False)
+            
         
