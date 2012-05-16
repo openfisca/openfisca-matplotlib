@@ -29,6 +29,7 @@ encoding//src/resources_rc.py=utf-8
 encoding//src/setup.py=utf-8
 encoding//src/tableWriter.py=utf-8
 encoding//src/views/ui_graph.py=utf-8
+encoding//src/views/ui_logement.py=utf-8
 encoding//src/views/ui_parametres.py=utf-8
 encoding//src/widgets/AggregateOuput.py=utf-8
 encoding//src/widgets/Calibration.py=utf-8
