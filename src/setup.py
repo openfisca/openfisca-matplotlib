@@ -28,11 +28,13 @@ import matplotlib
 import os
 
 myDataFiles = matplotlib.get_py2exe_datafiles()
-myDataFiles.append(("data",["data/param.xml", "data/code_apl", "data/totaux.xml", "data/zone_apl_imputation_data"]))
+myDataFiles.append(("data",["data/param.xml", "data/totaux.xml"]))
 for f in os.listdir('castypes'):
     myDataFiles.append(('castypes', ['castypes/' + f]))
 for f in os.listdir('reformes'):
     myDataFiles.append(('reformes', ['reformes/' + f]))
+for f in os.listdir('calibrations'):
+    myDataFiles.append(('calibrations', ['calibrations/' + f]))
 setup(windows=[{
                 "script" : "openFisca.pyw"
                 }], 
