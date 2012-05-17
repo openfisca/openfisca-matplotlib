@@ -892,8 +892,9 @@ class MyComboBox(QWidget):
         combobox = QComboBox(parent)
         if tip is not None:
             combobox.setToolTip(tip)
-        for name, key in choices:
-            combobox.addItem(name, QVariant(key))
+        if choices:
+            for name, key in choices:
+                combobox.addItem(name, QVariant(key))
         layout = QHBoxLayout()
         for subwidget in (label, combobox):
             layout.addWidget(subwidget)
