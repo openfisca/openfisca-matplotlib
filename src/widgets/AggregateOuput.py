@@ -26,8 +26,8 @@ from PyQt4.QtCore import SIGNAL, Qt, QString
 from core.qthelpers import OfSs, DataFrameViewWidget
 import numpy as np
 from pandas import DataFrame
-from Calibration import MyComboBox
-from core.columns import BoolCol, AgesCol, EnumCol
+from core.qthelpers import MyComboBox
+from core.columns import EnumCol
 try:
     _fromUtf8 = QString.fromUtf8
 except AttributeError:
@@ -62,15 +62,9 @@ class AggregateOutputWidget(QDockWidget):
         agg_label = QLabel(u"Résultat aggregé de la simulation", self.dockWidgetContents)
         self.aggregate_view = DataFrameViewWidget(self.dockWidgetContents)
 
-        self.distribution_by_var = 'typ_men'
-#        self.distribution_by_var_dict = {}
-#        distribution_choices = [(u'déciles', 'decile'),
-#                                (u'types de famille', 'typ_men'),
-#                                (u'so', 'so'),
-#                                (u'typmen15', 'typmen15'),
-#                                (u'tu99', 'tu99')]
 
         self.distribution_combo = MyComboBox(self.dockWidgetContents, u"Distribution de l'impact par")
+        self.distribution_combo.box.setSizeAdjustPolicy(self.distribution_combo.box.AdjustToContents)
         self.distribution_combo.box.setDisabled(True)
         
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
@@ -95,11 +89,9 @@ class AggregateOutputWidget(QDockWidget):
         self.data = DataFrame() # Pandas DataFrame
 
     def dist_by_changed(self):    
-        print 'changing by var'
         widget = self.distribution_combo.box
         if isinstance(widget, QComboBox):
             data = widget.itemData(widget.currentIndex())
-            print data
             by_var = unicode(data.toString())
             self.distribution_by_var = by_var                
             self.update_output(self.data)
@@ -112,18 +104,21 @@ class AggregateOutputWidget(QDockWidget):
         '''
         Set the variables appearing in the ComboBox 
         '''
-        print 'setting the combobox'
-        self.distribution_combo.box.setEnabled(True)
-        self.disconnect(self.distribution_combo.box, SIGNAL('currentIndexChanged(int)'), self.dist_by_changed)
+        
+        combobox = self.distribution_combo.box
+        combobox.setEnabled(True)
+        self.disconnect(combobox, SIGNAL('currentIndexChanged(int)'), self.dist_by_changed)
          
         output_data_vars = set(self.data.columns)
-        print output_data_vars
         self.distribution_combo.box.clear()
         label2var = {}
         var2label = {}
+        var2enum = {}
         for var in description.col_names:
             varcol  = description.get_col(var)
-            if isinstance(varcol, EnumCol) or isinstance(varcol, BoolCol) or isinstance(varcol, BoolCol):
+            if isinstance(varcol, EnumCol): 
+                var2enum[var] = varcol.enum
+#            if isinstance(varcol, BoolCol) or isinstance(varcol, agesCol):
                 if varcol.label:
                     label2var[varcol.label] = var
                     var2label[var]          = varcol.label
@@ -132,16 +127,20 @@ class AggregateOutputWidget(QDockWidget):
                     var2label[var] = var
         
         for var in set(label2var.values()).intersection(output_data_vars):
-            print 'adding combo var:  ', var, '   ', var2label[var]
-            self.distribution_combo.box.addItem(var2label[var], var )
+            combobox.addItem(var2label[var], var )
 
-        self.label2var = label2var
-                
+        self.var2label = var2label
+        self.var2enum  = var2enum
+        ## TODO: 
+        if hasattr(self, 'distribution_by_var'):
+            index = combobox.findData(self.distribution_by_var)
+            if index != -1:
+                combobox.setCurrentIndex(index)
+        
         self.connect(self.distribution_combo.box, SIGNAL('currentIndexChanged(int)'), self.dist_by_changed)
                 
 
     def update_output(self, output_data, description = None):
-        print 'update'
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
         if output_data is None:
@@ -150,14 +149,13 @@ class AggregateOutputWidget(QDockWidget):
         
         if description is not None:  
             self.set_distribution_choices(description)
-           
-        if self.distribution_by_var is not None:
-            by_var = self.distribution_by_var
-        else:
-            by_var = 'typ_men'
+            
+        if not hasattr(self, 'distribution_by_var'):
+            self.distribution_by_var = 'typmen15'
+        
+        by_var = self.distribution_by_var
+        
 
-
-        print by_var
         V = []
         M = []
         B = []
@@ -174,6 +172,13 @@ class AggregateOutputWidget(QDockWidget):
         self.aggregate_view.set_dataframe(aggr_frame)
 
         dist_frame = self.group_by(['revdisp', 'nivvie'], by_var)
+        by_var_label = self.var2label[by_var]
+        dist_frame.insert(0,by_var_label,u"") 
+        enum = self.var2enum[by_var]
+        dist_frame[by_var_label] = dist_frame[by_var].apply(lambda x: enum._vars[x])
+        
+        dist_frame.pop(by_var)
+                
         self.distribution_view.set_dataframe(dist_frame)
         self.distribution_view.reset()
         self.calculated()
@@ -181,9 +186,7 @@ class AggregateOutputWidget(QDockWidget):
         
     def calculated(self):
         self.emit(SIGNAL('calculated()'))
-        
-        
-        
+                
     def get_aggregate(self, var):
         '''
         returns aggregate spending, nb of beneficiaries

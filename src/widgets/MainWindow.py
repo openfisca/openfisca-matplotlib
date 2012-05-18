@@ -380,7 +380,6 @@ class MainWindow(QMainWindow):
 
         self._dataframe_widget.set_dataframe(population.table)
         data_courant = gen_aggregate_output(population)
-
         self._aggregate_output.update_output(data_courant, self.survey.description)
         
         self.statusbar.showMessage(u"")

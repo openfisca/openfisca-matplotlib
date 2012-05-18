@@ -32,6 +32,7 @@ from PyQt4.QtCore import SIGNAL, Qt, QAbstractTableModel, QModelIndex, QVariant,
 from PyQt4.QtGui import (QWidget, QLabel, QDockWidget, QHBoxLayout, QVBoxLayout, 
                          QPushButton, QComboBox, QDoubleSpinBox, QCheckBox, QTableView, 
                          QInputDialog, QFileDialog, QMessageBox, QApplication, QIcon, QPixmap, QCursor)
+from core.qthelpers import MyComboBox, MyDoubleSpinBox
 
 try:
     _fromUtf8 = QString.fromUtf8
@@ -799,8 +800,7 @@ class MarginsTable(object):
             else:    
                 total = sum(w*(value == modality))
                 total_init = sum(w_init*(value == modality))
-            
-  
+        
             if varcol.enum:
                 mod_name = varcol.enum._vars[modality]
             else:
@@ -845,60 +845,3 @@ class MarginsTable(object):
             self._vars_dict[varname] = target         
 
 
-### Some useful widgets
-            
-class MyDoubleSpinBox(QWidget):
-    def __init__(self, parent, prefix = None, suffix = None, option = None, min_ = None, max_ = None,
-                 step = None, tip = None, value = None, changed =None):
-        super(MyDoubleSpinBox, self).__init__(parent)
-    
-        if prefix:
-            plabel = QLabel(prefix)
-        else:
-            plabel = None
-        if suffix:
-            slabel = QLabel(suffix)
-        else:
-            slabel = None
-        spinbox = QDoubleSpinBox(parent)
-        if min_ is not None:
-            spinbox.setMinimum(min_)
-        if max_ is not None:
-            spinbox.setMaximum(max_)
-        if step is not None:
-            spinbox.setSingleStep(step)
-        if tip is not None:
-            spinbox.setToolTip(tip)
-        layout = QHBoxLayout()
-        for subwidget in (plabel, spinbox, slabel):
-            if subwidget is not None:
-                layout.addWidget(subwidget)
-        if value is not None:
-            spinbox.setValue(value)
-        
-        if changed is not None:
-            self.connect(spinbox, SIGNAL('valueChanged(double)'), changed)
-
-        layout.addStretch(1)
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(layout)
-        self.spin = spinbox
-
-class MyComboBox(QWidget):
-    def __init__(self, parent, text, choices = None, option = None, tip = None):
-        super(MyComboBox, self).__init__(parent)
-        """choices: couples (name, key)"""
-        label = QLabel(text)
-        combobox = QComboBox(parent)
-        if tip is not None:
-            combobox.setToolTip(tip)
-        if choices:
-            for name, key in choices:
-                combobox.addItem(name, QVariant(key))
-        layout = QHBoxLayout()
-        for subwidget in (label, combobox):
-            layout.addWidget(subwidget)
-        layout.addStretch(1)
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(layout)
-        self.box = combobox
