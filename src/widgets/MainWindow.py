@@ -271,8 +271,7 @@ class MainWindow(QMainWindow):
 
     def enable_calibration(self, val = True):    
         if val and self.aggregate_enabled:
-            if True:
-#            try:
+            try:
                 # liberate some memory before loading new data
                 self.reset_calibration() 
                 gc.collect()
@@ -283,11 +282,12 @@ class MainWindow(QMainWindow):
                 
                 self.calibration_enabled = True
                 self._calibration.setEnabled(True)
+                self.action_refresh_calibration.setEnabled(True)
                 self._calibration.show()
                 return
 
-#            except Exception, e:
-#                print Warning("Unable to read data, switching to barème only mode \n%s" % e)
+            except Exception, e:
+                print Warning("Unable to read data, switching to barème only mode \n%s" % e)
 
         self.calibration_enabled = False
         self._calibration.setEnabled(False)
