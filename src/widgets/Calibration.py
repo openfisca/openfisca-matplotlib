@@ -26,24 +26,24 @@ from __future__ import division
 import os
 import numpy as np
 
-from pandas import read_csv, DataFrame
+from pandas import read_csv, DataFrame, concat, MultiIndex
 
-from PyQt4.QtCore import SIGNAL, Qt, QAbstractTableModel, QModelIndex, QVariant, QString, QSize 
+from PyQt4.QtCore import SIGNAL, Qt, QString, QSize 
 from PyQt4.QtGui import (QWidget, QLabel, QDockWidget, QHBoxLayout, QVBoxLayout, 
-                         QPushButton, QComboBox, QDoubleSpinBox, QCheckBox, QTableView, 
+                         QPushButton, QComboBox, QDoubleSpinBox, QCheckBox, 
                          QInputDialog, QFileDialog, QMessageBox, QApplication, QIcon, QPixmap, QCursor)
-from core.qthelpers import MyComboBox, MyDoubleSpinBox
+from core.qthelpers import MyComboBox, MyDoubleSpinBox, DataFrameViewWidget
 
 try:
     _fromUtf8 = QString.fromUtf8
 except AttributeError:
     _fromUtf8 = lambda s: s
 
-
 from widgets.matplotlibwidget import MatplotlibWidget
 
 from Config import CONF
 from core.columns import BoolCol, AgesCol, EnumCol
+
 
 class CalibrationWidget(QDockWidget):
     def __init__(self, parent = None):
@@ -56,14 +56,20 @@ class CalibrationWidget(QDockWidget):
         verticalLayout = QVBoxLayout(self.dockWidgetContents)
 
         self.param = {}
-                
+        self.inputs = None
+        self.outputs = None
+        self.frame = None
+        
+        self.input_margins_df = None
+        self.output_margins_df   = None
+
         # calibration widget
 
-        up_spinbox = MyDoubleSpinBox(self, 'Ratio maximal','','',min_=1, max_=100, step=1, value = CONF.get('calibration', 'up'), changed = self.set_param)
-        invlo_spinbox = MyDoubleSpinBox(self, 'Inverse du ratio minimal','','',min_=1, max_=100, step=1, value = CONF.get('calibration', 'invlo'), changed = self.set_param) 
+        up_spinbox = MyDoubleSpinBox(self.dockWidgetContents, 'Ratio maximal','','',min_=1, max_=100, step=1, value = CONF.get('calibration', 'up'), changed = self.set_param)
+        invlo_spinbox = MyDoubleSpinBox(self.dockWidgetContents, 'Inverse du ratio minimal','','',min_=1, max_=100, step=1, value = CONF.get('calibration', 'invlo'), changed = self.set_param) 
                 
         method_choices = [(u'Linéaire', 'linear'),(u'Raking ratio', 'raking ratio'), (u'Logit', 'logit')]
-        method_combo = MyComboBox(self, u'Choix de la méthode', method_choices)
+        method_combo = MyComboBox(self.dockWidgetContents, u'Choix de la méthode', method_choices)
         self.connect(method_combo.box, SIGNAL('currentIndexChanged(int)'), self.set_param)
         
         self.param_widgets = {'up': up_spinbox.spin, 'invlo': invlo_spinbox.spin, 'method': method_combo.box}        
@@ -75,10 +81,10 @@ class CalibrationWidget(QDockWidget):
         verticalLayout.addLayout(calib_lyt)
 
 
-        self.totalpop = None
         self.aggregate_calculated = False
 
         # Total population widget
+        self.totalpop = None
         
         self.pop_checkbox = QCheckBox(u"Ajuster la population totale", self.dockWidgetContents)
         self.pop_spinbox = MyDoubleSpinBox(self.dockWidgetContents, u"Popualtion cible :", u"ménages", option = None ,min_=15e6, max_=30e6, step=5e6, changed = self.set_totalpop)
@@ -91,23 +97,29 @@ class CalibrationWidget(QDockWidget):
       
         verticalLayout.addLayout(self.totalpop_lyt)
 
-        # margins 
-
-        self.margins = MarginsTable()        
-        self.margins_model = MarginsModel(self.margins, self.dockWidgetContents)
-        self.margins_view = QTableView(self.dockWidgetContents)
-        self.margins_view.setModel(self.margins_model)
-        
         self.init_totalpop()
+
+        # margins 
+        self.view = DataFrameViewWidget(self.dockWidgetContents)
+        
         
         #   buttons to add and rmv margins
+        add_rmv_choices = [(u"Ajouter une variable (marge renseignée)", 'add_input_margin'),
+                           (u"Ajouter une variable (marge libre)", 'add_free_margin'),
+                           (u"Ajouter une variable calculée (marge renseignée)", 'add_output_margin'),
+                           (u"Retirer une variable", 'rmv_margin')]
+                
+        self.add_rmv_combo = MyComboBox(self.dockWidgetContents, u'Ajouter/retirer', add_rmv_choices)
+        self.connect(self.add_rmv_combo.box, SIGNAL('currentIndexChanged(int)'), self.add_rmv_var)
+        calib_lyt.addWidget(self.add_rmv_combo)
+        
         self.add_input_margin_btn  = QPushButton(u'Ajouter une variable \n (marge renseignée)', self.dockWidgetContents)
         self.add_free_margin_btn = QPushButton('Ajouter une variable \n (marge libre)', self.dockWidgetContents)
         self.add_output_margin_btn = QPushButton(u'Ajouter une variable calculée \n (marge renseignée)', self.dockWidgetContents)
         self.rmv_margin_btn  = QPushButton('Retirer une variable', self.dockWidgetContents)
         self.reset_margin_btn  = QPushButton(u'Réinitialiser', self.dockWidgetContents)
         
-        self.save_btn = QPushButton(self.dockWidgetContents)
+        self.save_btn = QPushButton(self)
         self.save_btn.setToolTip(QApplication.translate("Calage", "Sauvegarder les paramètres et cales actuels", None, QApplication.UnicodeUTF8))
         self.save_btn.setText(_fromUtf8(""))
         icon = QIcon()
@@ -124,7 +136,6 @@ class CalibrationWidget(QDockWidget):
         self.open_btn.setIconSize(QSize(22, 22))
         self.open_btn.setObjectName(_fromUtf8("open_btn"))
 
-        
         margin_btn_lyt  = QVBoxLayout()
         margin_btn_lyt.addWidget(self.add_input_margin_btn)
         margin_btn_lyt.addWidget(self.add_free_margin_btn)    
@@ -138,7 +149,7 @@ class CalibrationWidget(QDockWidget):
 
         # Widgets in layout        
         margins_lyt = QHBoxLayout()
-        margins_lyt.addWidget(self.margins_view)
+        margins_lyt.addWidget(self.view)
         margins_lyt.addLayout(margin_btn_lyt)
 
         verticalLayout.addLayout(margins_lyt)
@@ -161,8 +172,66 @@ class CalibrationWidget(QDockWidget):
         self.connect(self.save_btn, SIGNAL('clicked()'), self.save_config)
         self.connect(self.open_btn, SIGNAL('clicked()'), self.load_config)
 
-        self.connect(self.parent(), SIGNAL('aggregate_calculated()'), self.update_aggregates)
 
+        self.connect(self.parent(), SIGNAL('aggregate_calculated()'), self.update_aggregates)
+    
+    
+    def add_rmv_var(self):
+        '''
+        add or remove variables depending on the content of the add/rmv combobox
+        '''
+        widget = self.add_rmv_combo.box
+        if isinstance(widget, QComboBox):
+            data = widget.itemData(widget.currentIndex())                
+            result = unicode(data.toString())
+            print result
+            if   result == "add_input_margin" : self.add_input_margin()
+            elif result == "add_output_margin": self.add_output_margin()
+            elif result == "add_free_margin"  : self.add_margin()    
+            elif result == "rmv_margin"       : self.rmv_margin()    
+        return True
+    
+    @property
+    def table_vars_list(self):
+        '''
+        List of the variables appearing in the table (and the dataframe)
+        '''
+        if self.frame:
+            df = self.frame
+            if 'var' in df.columns: 
+                return list(df['var'].unique())
+        else:
+            return []
+    
+    @property
+    def input_vars_list(self):
+        if self.input_margins_df is not None:
+            df = self.input_margins_df.reset_index()
+            #  TODO 'config' 
+            set_ic = set(df['var'].unique())
+            lic = set_ic.intersection( set(self.inputs.description.col_names))
+            return sorted(list(lic - set(self.table_vars_list)))
+        else:
+            return []
+    
+    @property
+    def free_vars_list(self):
+        if self.inputs:
+            return sorted(list(set(self.inputs.col_names) - set(self.table_vars_list)))
+        else:
+            return []
+    
+    @property
+    def output_vars_list(self):
+        if self.output_margins_df is not None:
+            df = self.output_margins_df.reset_index() 
+            #   data_oc = df[ df['source'] == 'output'] # + df['source'] == 'config']
+            set_oc = set(df['var'].unique())
+            loc = set_oc.intersection( set(self.outputs.description.col_names))
+            return sorted(list(loc - set(self.table_vars_list)))
+        else:
+            return []
+    
     def set_totalpop(self):
         if self.pop_checkbox.isChecked():
             self.pop_spinbox.setEnabled(True)
@@ -176,11 +245,11 @@ class CalibrationWidget(QDockWidget):
         self.param_or_margins_changed()
 
     def init_totalpop(self):
-        if self.margins_model._margins._totalpop:
+        if self.totalpop:
             self.pop_checkbox.setChecked(True)
             self.pop_spinbox.setEnabled(True)
             self.pop_spinbox.spin.setEnabled(True)
-            self.pop_spinbox.spin.setValue(self.margins_model._margins._totalpop)
+            self.pop_spinbox.spin.setValue(self.totalpop)
         else:
             self.pop_checkbox.setChecked(False)
             self.pop_spinbox.setDisabled(True)
@@ -190,33 +259,38 @@ class CalibrationWidget(QDockWidget):
         self.set_output_margins_from_file()
         self.add_output_margin_btn.setEnabled(True)
         self.aggregate_calculated = True
-        
-    def calibrated(self):
-#        if not self.margins_model._margins.get_calib_vars():
-#            self.reset_margin_btn.setEnabled(True)
-        self.emit(SIGNAL('calibrated()')) 
+         
         
     def param_or_margins_changed(self):
+        self.update_view()
         self.update_add_btns()
         self.emit(SIGNAL('param_or_margins_changed()'))
+        
+    def update_view(self):
+        self.view.clear()
+        if self.frame is not None:
+            df = self.frame.reset_index()
+            df_view = df[ ["var", u"modalités", "cible", u"cible ajustée", "marge", "marge initiale", "variable" ]]            
+            self.view.set_dataframe(df_view)
+        self.view.reset()    
         
     def update_add_btns(self):
         '''
         Update the states of add and remove buttons depending on lists contents
         '''
-        if self.margins.input_vars_list:
+        if self.input_vars_list:
             self.add_input_margin_btn.setEnabled(True)
         else:
             self.add_input_margin_btn.setDisabled(True)
-        if self.margins.free_vars_list:
+        if self.free_vars_list:
             self.add_free_margin_btn.setEnabled(True) 
         else:
             self.add_free_margin_btn.setDisabled(True)
-        if self.margins.output_vars_list:
+        if self.output_vars_list:
             self.add_output_margin_btn.setEnabled(True)
         else:
             self.add_output_margin_btn.setDisabled(True)
-        if self.margins._vars_dict:
+        if self.table_vars_list:
             self.reset_margin_btn.setEnabled(True)
             self.rmv_margin_btn.setEnabled(True)
         else:
@@ -231,8 +305,8 @@ class CalibrationWidget(QDockWidget):
             data_dir = CONF.get('paths', 'data_dir')
             filename = os.path.join(data_dir, fname)
         
-        self.margins.set_margins_from_file(filename, year, source="input")
-        self.margins_model.update_margins()
+        self.set_margins_from_file(filename, year, source="input")
+
         self.init_totalpop()
         self.add_input_margin_btn.setDisabled(True)
         
@@ -243,14 +317,106 @@ class CalibrationWidget(QDockWidget):
             fname    = CONF.get('calibration','pfam_filename')
             data_dir = CONF.get('paths', 'data_dir')
             filename = os.path.join(data_dir, fname)
-        self.margins.set_margins_from_file(filename, year, source='output')
-        self.margins_model.update_margins()
+        self.set_margins_from_file(filename, year, source='output')
         self.add_output_margin_btn.setDisabled(True)    
         
-    def add_margin(self, from_input = False, from_output = False):
-        self.margins_model.add_margin(from_input, from_output)
-        self.param_or_margins_changed()
-    
+    def add_margin(self,  source='free'):
+        '''
+        Add a margin
+        '''
+        datatables = {'input': self.inputs, 'output': self.outputs, 'free': self.inputs}
+        lists      = {'input': self.input_vars_list, 'output': self.output_vars_list, 'free': self.free_vars_list}
+        variables_list = lists[source]
+        datatable = datatables[source]   
+
+        varnames = {} # {varname: varlabel}
+        for var in variables_list:
+            varcol  = datatable.description.get_col(var)
+            if varcol.label:
+                varnames[_fromUtf8(varcol.label)] = var
+            else:
+                varnames[_fromUtf8(var)] = var
+        
+        varlabel, ok = QInputDialog.getItem(self.parent(), "Ajouter une variable", "Nom de la variable", 
+                                           sorted(varnames.keys()))
+        varname = varnames[varlabel]
+        insertion = ok and not(varlabel.isEmpty()) #and (varname not in self.margins._vars)
+        if insertion:
+            target = None
+            if source=='input' and self.input_margins_df is not None:
+                index = self.input_margins_df.index
+                indices = [ (var, mod)  for (var, mod) in index if var==varname ]
+                target_df = (self.input_margins_df['target'][indices]).reset_index()
+                target = dict(zip(target_df['mod'] ,target_df['target']))
+            
+            self.add_var(varname, target = target, source=source)
+            self.param_or_margins_changed()
+            
+    def add_var(self, varname, target=None, source = 'free'):
+        '''
+        Add a variable in the dataframe
+        '''    
+        datatables = {'input': self.inputs, 'output': self.outputs, 'free': self.inputs}
+        datatable = datatables[source]        
+        inputs = self.inputs        
+        w_init = inputs.get_value("wprm_init", inputs.index['men'])
+        w = inputs.get_value("wprm", inputs.index['men'])
+        varcol = datatable.description.get_col(varname)
+        value = datatable.get_value(varname, datatable.index['men'])
+        label = varcol.label
+        # TODO: rewrite this using pivot table
+        items = [ ('marge'    , w  ),
+                ('marge initiale' , w_init ),
+                ('mod',   value)]
+        df = DataFrame.from_items(items)
+        res = df.groupby('mod', sort= True).sum()
+        res.insert(0, u"modalités",u"")
+        res.insert(2, "cible", 0)
+        res.insert(2, u"cible ajustée", 0)
+        res.insert(4, "source", source)
+        mods = res.index
+
+        if target is not None:
+            if len(mods) != len(target.keys()):
+                print 'Problem with variable : ', varname
+                print len(target.keys()), ' target keys for ', len(mods), ' modalities' 
+                print 'Skipping the variable'
+                if source == 'input':
+                    drop_indices = [ (varname, mod) for mod in target.keys()]
+                    self.input_margins_df = self.input_margins_df.drop(drop_indices)
+                    self.input_margins_df.index.names = ['var','mod']
+                return
+
+        if isinstance(varcol, EnumCol):
+            if varcol.enum:
+                enum = varcol.enum
+                res[u'modalités'] = [enum._vars[mod] for mod in mods]
+            else:
+                res[u'modalités'] = [mod for mod in mods]
+        elif isinstance(varcol, BoolCol):
+            res[u'modalités'] = bool(mods)
+        elif isinstance(varcol, AgesCol):
+            res[u'modalités'] = mods
+        else:
+            res[u'modalités'] = "total"
+
+        res['var'] = varname
+        if label is not None:
+            res['variable'] = label
+        else:
+            res['variable'] = varname
+
+        if target is not None:
+            for mod, margin in target.iteritems():
+                res['cible'][mod] = margin     
+
+        res = concat([DataFrame(), res], verify_integrity = True, keys = ['', varname])
+                        
+        if self.frame is None:
+            self.frame = res
+        else: 
+            self.frame = concat([self.frame, res], verify_integrity = True)
+ 
     def add_output_margin(self):
         QMessageBox.critical(
                     self, "Erreur", u"Pas encore implémenté",
@@ -259,10 +425,39 @@ class CalibrationWidget(QDockWidget):
         self.emit(SIGNAL('calibrated()'))
     
     def add_input_margin(self):
-        self.add_margin(from_input=True)
+        self.add_margin(source='input')
         
     def rmv_margin(self, all_vars = False):
-        self.margins_model.rmv_margin(all_vars = all_vars)
+        '''
+        Remove margins (all by default)
+        '''
+        if all_vars:
+            self.frame = DataFrame()
+            self.param_or_margins_changed()
+            return
+        varnames = {}
+        
+        vars_in_table = self.frame['var'].unique() 
+        for var in vars_in_table:
+            if var in  self.output_vars_list:
+                datatable = self.outputs
+            else:
+                datatable = self.inputs
+            varcol  = datatable.description.get_col(var)
+            if varcol.label:
+                varnames[_fromUtf8(varcol.label)] = var
+            else:
+                varnames[_fromUtf8(var)] = var
+        
+        if not all_vars:
+            varlabel, ok = QInputDialog.getItem(self.parent(), "Retirer une variable", u"Nom de la variable à retirer", 
+                                           sorted(varnames.keys()))
+            varname = varnames[varlabel]
+            deletion = ok and not(varlabel.isEmpty())
+            if deletion:
+                df = self.frame 
+                cleaned = df[df['var'] != varname]
+                self.frame = cleaned
         self.param_or_margins_changed()
                                 
     def init_param(self):
@@ -293,15 +488,14 @@ class CalibrationWidget(QDockWidget):
 
     def set_inputs(self, inputs):
         inputs.gen_index(['men', 'fam', 'foy']) # TODO: REMOVE ?
-        self.margins._inputs = inputs
         self.inputs = inputs
         ini_totalpop = sum(inputs.get_value("wprm_init", inputs.index['men']))
-        totalpop_label = u"Population initiale totale :" + str(ini_totalpop) + u" ménages"
+        totalpop_label = u"Population initiale totale :" + str(int(round(ini_totalpop))) + u" ménages"
         self.ini_totalpop_label = QLabel(totalpop_label, parent = self.dockWidgetContents) 
         self.totalpop_lyt.addWidget(self.ini_totalpop_label)
         
     def reset(self):
-        self.rmv_margin( all_vars=True )
+        self.frame = None
         inputs = self.inputs
         inputs.set_value('wprm', inputs.get_value('wprm_init'),inputs.index['ind'])
         self.pop_checkbox.setChecked(False)        
@@ -336,28 +530,39 @@ class CalibrationWidget(QDockWidget):
         return p
               
     def calibrate(self):
-        margins_dict = self.margins_model._margins.get_calib_vars()
+        
+        df = self.frame
+        margins = {}
+        for var, mod in df.index:
+            if not margins.has_key(var):
+                margins[var] = {}
+            margins[var][mod] =  df.get_value((var,mod), 'cible')
         param = self.get_param()
-        print 'param:', param
+        
         print self.totalpop
         
         if self.totalpop is not None:
-            margins_dict['totalpop'] = self.totalpop
+            margins['totalpop'] = self.totalpop
         try:
             print 'calibration'
-            print margins_dict
+            print margins
             print param
             
-            self.margins_model._margins._adjusted_margins = self.inputs.update_weights(margins_dict,param=param, return_margins = True)
+            adjusted_margins = self.inputs.update_weights(margins, param=param, return_margins = True)
+            
+        
         except Exception, e:
             raise Exception(u"Vérifier les paramètres:\n%s"% e)
+        
         finally:
-            if 'totalpop' in margins_dict:
-                del margins_dict['totalpop']
-            self.margins_model.update_margins()            
+            if 'totalpop' in margins:
+                del margins['totalpop']
 
+        for var, mod in df.index:
+            df.set_value((var,mod), u"cible ajustée", adjusted_margins[var][mod])
+        self.update_view()
         self.plotWeightsRatios()
-        self.calibrated()
+        self.emit(SIGNAL('calibrated()'))
                     
     def plotWeightsRatios(self):
         ax = self.mplwidget.axes
@@ -368,39 +573,26 @@ class CalibrationWidget(QDockWidget):
         ax.set_ylabel(u"Densité")
         self.mplwidget.draw()
         
+
+    
+
     def save_config(self):
         '''
         Save calibration parameters
         '''
         # TODO: add  param
         # param_dict = self.get_param()
-        
         year     = str(CONF.get('simulation','datesim').year)
-        margins_dict = self.margins.get_calib_vars()
-        if not margins_dict:
+        df = self.frame
+        if len(df['var']) == 0:
             QMessageBox.critical(
                     self, "Erreur", u"Les marges sont vides" ,
                     QMessageBox.Ok, QMessageBox.NoButton)
             return
-            
-        data = []
-        for varname, value in margins_dict.iteritems():
-            if isinstance(value, dict):
-                for mod in value.iterkeys():
-                    varname = varname 
-                    modality = mod
-                    margin = margins_dict[varname][mod]
-                    data.append({ 'var': varname, 'mod': modality, year: margin}) 
-            else:
-                modality = 0
-                margin = margins_dict[varname]
-                data.append({ 'var': varname, 'mod': modality, year: margin})
         
-        if self.totalpop:
-            data.append({ 'var': 'totalpop', 'mod': 0, year: self.totalpop})
+        saved = df['cible'].rename(columns = {"cible" : year})
+        saved[year][('totalpop',0)] = self.totalpop
         
-        saved = DataFrame(data = data, columns = ['var', 'mod', year])
-        # TODO: sort these dataframes ! 
         calib_dir = CONF.get('paths','calib_dir')
         default_fileName = os.path.join(calib_dir, 'sans-titre')
         fileName = QFileDialog.getSaveFileName(self,
@@ -414,7 +606,6 @@ class CalibrationWidget(QDockWidget):
                     QMessageBox.Ok, QMessageBox.NoButton)
         
     def load_config(self):
-        
         year     = str(CONF.get('simulation','datesim').year)
         calib_dir = CONF.get('paths','calib_dir')
         fileName = QFileDialog.getOpenFileName(self,
@@ -423,10 +614,8 @@ class CalibrationWidget(QDockWidget):
             try: 
                 QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
                 self.reset()
-                self.margins.set_margins_from_file(fileName, year = year, source='config')
-                self.margins_model.update_margins()
+                self.set_margins_from_file(fileName, year = year, source='config')
                 self.init_totalpop()
-                
             except Exception, e:
                 QMessageBox.critical(
                     self, "Erreur", u"Impossible de lire le fichier : " + str(e),
@@ -435,413 +624,30 @@ class CalibrationWidget(QDockWidget):
                 QApplication.restoreOverrideCursor()    
             self.param_or_margins_changed()
 
-class MarginsModel(QAbstractTableModel):
-    def __init__(self, margins, parent = None):
-        super(MarginsModel, self).__init__(parent)
-        self._parent = parent
-        self._margins = margins        # MarginsTable object 
-        self._adjusted_margins = {}    # Adjusted margins to take into account total population rescaling
-    
-    def parent(self):
-        return self._parent
-    
-    def rowCount(self, parent = QModelIndex()):
-        return self._margins.rowCount()
-    
-    def columnCount(self, parent =QModelIndex()):
-        return self._margins.columnCount()
-    
-    def flags(self, index):
-        col = index.column()
-        if col == 1:
-            return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable
-        else:
-            return Qt.ItemIsEnabled | Qt.ItemIsSelectable
-    
-    def headerData(self, section, orientation, role = Qt.DisplayRole):
-        if role == Qt.DisplayRole:
-            if orientation == Qt.Horizontal:
-                if section == 0 : return  "Code"
-                elif section == 1: return "Cible"
-                elif section == 2: return u"Cible ajustée"
-                elif section == 3: return u"Marge calibrée"
-                elif section == 4: return "Marge initiale"
-                elif section == 5: return "Variable"
-                elif section == 6: return u"Modalité"        
-        
-        return super(MarginsModel, self).headerData(section, orientation, role)
-    
-    def data(self, index, role =  Qt.DisplayRole):
-        if not index.isValid():
-            return QVariant()
-        row = index.row()
-        col = index.column()
-        if role == Qt.DisplayRole or role == Qt.EditRole:
-            return QVariant(self._margins.data(row, col))
-        
-        if role == Qt.TextAlignmentRole:
-            if col != 0: return Qt.AlignRight
-        
-        return QVariant()
-
-    def setData(self, index, value, role = Qt.EditRole):
-        if not index.isValid():
-            return False
-        row = index.row()
-        col = index.column()
-        if role == Qt.EditRole:
-            if col == 1: self._margins.setData(row, col, value.toPyObject())
-            self.dataChanged.emit(index, index)
-            return True
-        return False
-    
-    def add_margin(self, from_input = False, from_output = False):
-        '''
-        Add a margin
-        '''
-        variables_list = list()
-        if from_input:
-            variables_list = self._margins.input_vars_list 
-            datatable = self._margins._inputs   
-        elif from_output:
-            variables_list = self._margins.output_vars_list
-            datatable = self._margins._outputs
-        else:
-            if self._margins._inputs:
-                datatable = self._margins._inputs
-                variables_list = self._margins.free_vars_list
-
-        varnames = {} # {varname: varlabel}
-        for var in variables_list:
-            varcol  = datatable.description.get_col(var)
-            if varcol.label:
-                varnames[_fromUtf8(varcol.label)] = var
-            else:
-                varnames[_fromUtf8(var)] = var
-        
-        varlabel, ok = QInputDialog.getItem(self.parent(), "Ajouter une variable", "Nom de la variable", 
-                                           sorted(varnames.keys()))
-        varname = varnames[varlabel]
-        insertion = ok and not(varlabel.isEmpty()) and (varname not in self._margins._vars)
-        if insertion :
-            nbrow = self._margins.howManyFields(str(varname), datatable)
-            self._var_to_insert = str(varname)
-            if str(varname) in self._margins._input_vars.keys():
-                self._margin_to_insert = self._margins._input_vars[str(varname)]
-            else:
-                self._margin_to_insert = None
-            self._margin_to_insert_datatable = datatable 
-            self.insertRows(0,nbrow-1)
-            del self._var_to_insert, self._margin_to_insert, self._margin_to_insert_datatable
-    
-    def rmv_margin(self, all_vars=True):
-        '''
-        Remove margins (all by default)
-        '''
-
-        margins_dict = self._margins.get_calib_vars()
-     
-        varnames = {} # {varname: varlabel}
-        for var in margins_dict:
-            if var in  self._margins.output_vars_list:
-                datatable = self._margins._outputs
-            else:
-                datatable = self._margins._inputs
-            varcol  = datatable.description.get_col(var)
-            if varcol.label:
-                varnames[_fromUtf8(varcol.label)] = var
-            else:
-                varnames[_fromUtf8(var)] = var
-        
-        varnames_to_rmv = []
-        if not all_vars:
-            varlabel, ok = QInputDialog.getItem(self.parent(), "Retirer une variable", u"Nom de la variable à retirer", 
-                                           sorted(varnames.keys()))
-            
-            varname = varnames[varlabel]
-            
-            deletion = ok and not(varlabel.isEmpty())
-            if deletion:
-                varnames_to_rmv = [varname]
-        else:
-            varnames_to_rmv = [keys for keys in margins_dict]
-
-        for varname in varnames_to_rmv:
-            varname = str(varname)
-            if varname in self._margins._output_vars.keys():
-                datatable = self._margins._outputs
-            else:
-                datatable = self._margins._inputs
-            nbrow = self._margins.howManyFields(varname, datatable)
-            self._margin_to_remove = varname
-            self.removeRows(0,nbrow-1)
-            del self._margin_to_remove
-
-    def update_margins(self):
-        self.beginResetModel()
-        self._margins._vars = []
-        for var, target in self._margins._vars_dict.iteritems():
-            if var in self._margins._input_vars:
-                self._margins.addVar(var, self._margins._inputs, target)
-            else:
-                if self._margins._outputs:
-                    self._margins.addVar(var, self._margins._outputs, target)    
-        self.endResetModel()
-
-    def insertRows(self, row, count, parent = QModelIndex()):
-        self.beginInsertRows(parent, row, row + count)
-        self._margins.addVar(self._var_to_insert, self._margin_to_insert_datatable, self._margin_to_insert)
-        self.endInsertRows()
-        return True
-    
-    def removeRows(self, row, count, parent = QModelIndex()):
-        self.beginRemoveRows(parent, row, row + count)
-        self._margins.rmvVar(str(self._margin_to_remove))
-        self.endRemoveRows()
-        return True
-
-class MarginsTable(object):
-    '''
-    TODO: complete
-    '''
-    def __init__(self):
-        super(MarginsTable, self).__init__()
-        self._vars_dict = {}    # dict of strings with varnames and margins 
-        self._vars = []         # list of strings with varnames_modality
-        self._attr = {}
-        self._inputs = None     # datatable of input vars
-        self._outputs  = None   # datatable of output vars
-        self._adjusted_margins   = {}
-        self._input_vars  = {}  # dict of input vars: dict(modality: margins) with margins from external file
-        self._output_vars = {}  # dict of output vars: dict(modality: margins) with margins from external file
-        self._totalpop = None
-
-    @property
-    def input_vars_list(self):
-        return sorted(list(set(self._input_vars.keys()) - set(self._vars_dict)))
-    
-    @property
-    def free_vars_list(self):
-        return sorted(list(set(self._inputs.col_names) - set(self._vars_dict)))
-    
-    @property
-    def output_vars_list(self):
-        return sorted(list(set(self._output_vars.keys()) - set(self._vars_dict)))
-    
-    def set_inputs(self, inputs):
-        self._inputs = inputs
-        
-    def set_inputs_margins_from_file(self, filename = None, year = None):              
-        if year is None:
-            year     = str(CONF.get('simulation','datesim').year)
-        if filename is None:
-            fname    = CONF.get('calibration','inputs_filename')
-            data_dir = CONF.get('paths', 'data_dir')
-            filename = os.path.join(data_dir, fname)
-        self.set_margins_from_file(filename, year, source="input")
-        
-    def clear_inputs(self):
-        for var in self._input_vars.iterkeys():
-            self.rmvVar(var)
-
-    
-#        try:
-#            f_tot = open(filename)
-#            totals = read_csv(f_tot,index_col = 0)
-#            marges = {}
-#            if self._outputs:
-#                for var in totals.index:
-#                    if var in self._outputs:
-#                        marges[var] = 1e6*totals.get_value(var,year)
-#                        self._output_vars[var] = marges[var]
-#                        self.addVar(var, self._output, marges[var])
-#        except Exception, e:
-#                print Warning("Unable to read output margins for %s, output margins left empty because:%s" % (year, e))
-#        finally:
-#            f_tot.close()
-
-    def clear_outputs(self):
-        for var in self._output_vars.iterkeys():
-            self.rmvVar(var)        
-
     def set_margins_from_file(self, filename, year, source):
         try:
             f_tot = open(filename)
             totals = read_csv(f_tot,index_col = (0,1))
             marges = {}
+            if source == 'input':
+                self.input_margins_df = DataFrame({'target':totals[year]})
+            elif source =='output':
+                self.output_margins_df = DataFrame({'target':totals[year]})
+                
             for var, mod in totals.index:
                 if not marges.has_key(var):
                     marges[var] = {}
                 marges[var][mod] =  totals.get_value((var,mod),year)
+                
+            for var in marges.keys():
                 if var == 'totalpop': 
                     if source == "input" or source == "config" :
                         totalpop = marges.pop('totalpop')[0]
                         marges['totalpop'] = totalpop
-                        self._totalpop = totalpop
+                        self.totalpop = totalpop
                 else:
-                    if source == "input":
-                        self._input_vars[var] = marges[var]
-                        self.addVar(var, self._inputs, marges[var])
-                    if source == 'output':
-                        self._output_vars[var] = marges[var]    
-                        self.addVar(var, self._outputs, marges[var])
-                    if source == "config":
-                        if var in self._inputs.col_names:
-                            self._input_vars[var] = marges[var]
-                            self.addVar(var, self._inputs, marges[var])
+                    self.add_var(var, marges[var], source = source)
         except Exception, e:
             print Warning("Unable to read %(source)s margins for %(year)s, margins left empty because %(e)s" % {'source':source, 'year': year, 'e':e})
         finally:
             f_tot.close()
-
-
-    def get_calib_vars(self):
-        return self._vars_dict
-
-    def rowCount(self):
-        return len(self._vars)
-    
-    def columnCount(self):
-        return 7
-        
-    def data(self, row, col):
-        var = str(self._vars[row])
-        if   col == 0: return  var
-        elif col == 1: return self._attr[var][0] 
-        elif col == 2: return self._attr[var][1] 
-        elif col == 3: return self._attr[var][2] 
-        elif col == 4: return self._attr[var][3] 
-        elif col == 5: return self._attr[var][4]
-        elif col == 6: return self._attr[var][5]
-        
-    def setData(self, row, col, value):
-        var = self._vars[row]
-        if col == 1: self._attr[var][0] = value
-        #if col == 2: self._attr[var][1] = value
-        
-        if var in self._vars_dict:
-            self.updateVarDict(var, value)
-        else:
-            varname, modality = var.split('_')
-            self.updateVarDict(varname, value, modality)
-
-    def howManyFields(self, varname, datatable):
-        varcol = datatable.description.get_col(varname)
-        if isinstance(varcol , BoolCol):
-            return 2
-        elif isinstance(varcol , AgesCol):
-            return len(np.unique(datatable.get_value(varname)))
-        elif isinstance(varcol , EnumCol):
-            if varcol.enum:
-                return varcol.enum._count
-            else:
-                return len(np.unique(datatable.get_value(varname)))
-        else:
-            return 1        
-
-    def addVar(self, varname, datatable, target=None):
-        varcol = datatable.description.get_col(varname)
-        if isinstance(varcol , BoolCol):
-            if target is not None:
-                ok1 = self.addVar2(varname, datatable, True,  target['True'])
-                ok0 = self.addVar2(varname, datatable, False, target['False'])
-            else:
-                ok1 = self.addVar2(varname, datatable, True)
-                ok0 = self.addVar2(varname, datatable, False)    
-            return ok1 and ok0
-        if isinstance(target , dict):
-            modalities = target.keys()
-            ok = True
-            for modality in modalities:
-                if target is not None: 
-                    ok2 = self.addVar2(varname, datatable, modality, target[modality])
-                else:
-                    ok2 = self.addVar2(varname, datatable, modality)
-                ok = ok and ok2 
-            return ok
-        if isinstance(varcol, EnumCol): 
-            if (varcol.enum is not None):
-                ok = True
-                for modality, index in varcol.enum.itervars():
-                    ok2 = self.addVar2(varname, datatable, modality)
-                    ok = ok and ok2 
-                return ok
-            else:
-                ok = True
-                for modality in (np.unique(datatable.get_value(varname))):
-                    ok2 = self.addVar2(varname, datatable, modality)
-                    ok = ok and ok2 
-                return ok
-        else:
-            ok = self.addVar2(varname, datatable, None, target)
-            return ok
-
-    def addVar2(self, varname, datatable, modality = None, target=None):
-        if modality is not None:
-            varname_mod = "%s_%s" % (varname, modality)
-        else:
-            varname_mod = varname
-        if varname_mod in self._vars:
-            return False
-        # elif varname not in self._inputs.col_names:
-        # raise Exception("The variable %s is not present in the inputs table" % varname)
-        # return None
-        self._vars.append(varname_mod)
-        w_init = self._inputs.get_value("wprm_init", self._inputs.index['men'])
-        w = self._inputs.get_value("wprm", self._inputs.index['men'])
-        varcol = datatable.description.get_col(varname)
-        value = datatable.get_value(varname, self._inputs.index['men'])
-        label = varcol.label
-        mod_name = None
-        if modality is not None:     
-            if isinstance(varcol, EnumCol) and (varcol.enum is not None):
-                total = sum(w*(value == modality))
-                total_init = sum(w_init*(value == modality))
-            else:    
-                total = sum(w*(value == modality))
-                total_init = sum(w_init*(value == modality))
-        
-            if varcol.enum:
-                mod_name = varcol.enum._vars[modality]
-            else:
-                mod_name = modality
-        else: 
-            total = sum(w*value)
-            total_init = sum(w_init*value)
-        if not target: 
-            target = 0
-        if varname_mod in self._adjusted_margins.keys(): # TODO
-            new_target = self._adjusted_margins[varname_mod]
-        else:
-            new_target = 0        
-        self._attr[varname_mod] = [float(target), float(new_target), float(total) , float(total_init), label, mod_name]
-        self.updateVarDict(varname, target, modality)
-        return True
-
-    def rmvVar(self, varname):
-        if not varname in self._vars_dict:
-            return None
-
-        if isinstance(self._vars_dict[varname], dict):
-            for modality in self._vars_dict[varname].iterkeys():
-                var_to_remove = "%s_%s" % (varname, modality)
-                ind = self._vars.index(var_to_remove)
-                self._vars.pop(ind)
-                del self._attr[var_to_remove]
-        else: 
-            var_to_remove = varname
-            ind = self._vars.index(var_to_remove)
-            self._vars.pop(ind)
-            del self._attr[var_to_remove]
-        del self._vars_dict[varname]
-        
-    def updateVarDict(self, varname, target, modality=None):
-        if modality is not None:
-            if varname not in self._vars_dict:
-                self._vars_dict[varname] = {modality: target}
-            else:
-                self._vars_dict[varname][modality] = target
-        else:
-            self._vars_dict[varname] = target         
-
-
