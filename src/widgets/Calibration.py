@@ -24,15 +24,15 @@ This file is part of openFisca.
 from __future__ import division
 
 import os
-import numpy as np
 
-from pandas import read_csv, DataFrame, concat, MultiIndex
+from pandas import read_csv, DataFrame, concat
 
 from PyQt4.QtCore import SIGNAL, Qt, QString, QSize 
 from PyQt4.QtGui import (QWidget, QLabel, QDockWidget, QHBoxLayout, QVBoxLayout, 
-                         QPushButton, QComboBox, QDoubleSpinBox, QCheckBox, 
-                         QInputDialog, QFileDialog, QMessageBox, QApplication, QIcon, QPixmap, QCursor)
-from core.qthelpers import MyComboBox, MyDoubleSpinBox, DataFrameViewWidget
+                         QPushButton, QComboBox, QSpinBox, QDoubleSpinBox, QCheckBox, 
+                         QInputDialog, QFileDialog, QMessageBox, QApplication, 
+                         QIcon, QPixmap, QCursor, QSpacerItem, QSizePolicy)
+from core.qthelpers import MyComboBox, MySpinBox, MyDoubleSpinBox, DataFrameViewWidget
 
 try:
     _fromUtf8 = QString.fromUtf8
@@ -53,7 +53,6 @@ class CalibrationWidget(QDockWidget):
         self.setWindowTitle("Calibration")
         self.setObjectName("Calibration")
         self.dockWidgetContents = QWidget()        
-        verticalLayout = QVBoxLayout(self.dockWidgetContents)
 
         self.param = {}
         self.inputs = None
@@ -63,61 +62,33 @@ class CalibrationWidget(QDockWidget):
         self.input_margins_df = None
         self.output_margins_df   = None
 
-        # calibration widget
+        # Parameters widgets
 
         up_spinbox = MyDoubleSpinBox(self.dockWidgetContents, 'Ratio maximal','','',min_=1, max_=100, step=1, value = CONF.get('calibration', 'up'), changed = self.set_param)
-        invlo_spinbox = MyDoubleSpinBox(self.dockWidgetContents, 'Inverse du ratio minimal','','',min_=1, max_=100, step=1, value = CONF.get('calibration', 'invlo'), changed = self.set_param) 
-                
+        invlo_spinbox = MyDoubleSpinBox(self.dockWidgetContents, 'Inverse du ratio minimal','','',min_=1, max_=100, step=1, value = CONF.get('calibration', 'invlo'), changed = self.set_param)                 
         method_choices = [(u'Linéaire', 'linear'),(u'Raking ratio', 'raking ratio'), (u'Logit', 'logit')]
         method_combo = MyComboBox(self.dockWidgetContents, u'Choix de la méthode', method_choices)
-        self.connect(method_combo.box, SIGNAL('currentIndexChanged(int)'), self.set_param)
-        
+        self.connect(method_combo.box, SIGNAL('currentIndexChanged(int)'), self.set_param)        
         self.param_widgets = {'up': up_spinbox.spin, 'invlo': invlo_spinbox.spin, 'method': method_combo.box}        
-                
-        calib_lyt = QHBoxLayout()
-        calib_lyt.addWidget(up_spinbox)
-        calib_lyt.addWidget(invlo_spinbox)
-        calib_lyt.addWidget(method_combo)
-        verticalLayout.addLayout(calib_lyt)
-
 
         self.aggregate_calculated = False
 
         # Total population widget
         self.totalpop = None
+        self.ini_totalpop = 0
         
-        self.pop_checkbox = QCheckBox(u"Ajuster la population totale", self.dockWidgetContents)
-        self.pop_spinbox = MyDoubleSpinBox(self.dockWidgetContents, u"Popualtion cible :", u"ménages", option = None ,min_=15e6, max_=30e6, step=5e6, changed = self.set_totalpop)
+        
+        self.ini_totalpop_label = QLabel("", parent = self.dockWidgetContents) 
+        self.pop_checkbox = QCheckBox(u"Ajuster", self.dockWidgetContents)
+        self.pop_spinbox = MySpinBox(self.dockWidgetContents, u" Cible :", "", option = None ,min_=15e6, max_=30e6, step=5e6, changed = self.set_totalpop)
         self.pop_spinbox.setDisabled(True)
         
-        self.totalpop_lyt = QHBoxLayout()
-        
-        self.totalpop_lyt.addWidget(self.pop_checkbox)
-        self.totalpop_lyt.addWidget(self.pop_spinbox)
-      
-        verticalLayout.addLayout(self.totalpop_lyt)
-
-        self.init_totalpop()
-
-        # margins 
+        # Margins table view
         self.view = DataFrameViewWidget(self.dockWidgetContents)
         
-        
-        #   buttons to add and rmv margins
-        add_rmv_choices = [(u"Ajouter une variable (marge renseignée)", 'add_input_margin'),
-                           (u"Ajouter une variable (marge libre)", 'add_free_margin'),
-                           (u"Ajouter une variable calculée (marge renseignée)", 'add_output_margin'),
-                           (u"Retirer une variable", 'rmv_margin')]
+        # Add/Remove margin button 
                 
-        self.add_rmv_combo = MyComboBox(self.dockWidgetContents, u'Ajouter/retirer', add_rmv_choices)
-        self.connect(self.add_rmv_combo.box, SIGNAL('currentIndexChanged(int)'), self.add_rmv_var)
-        calib_lyt.addWidget(self.add_rmv_combo)
-        
-        self.add_input_margin_btn  = QPushButton(u'Ajouter une variable \n (marge renseignée)', self.dockWidgetContents)
-        self.add_free_margin_btn = QPushButton('Ajouter une variable \n (marge libre)', self.dockWidgetContents)
-        self.add_output_margin_btn = QPushButton(u'Ajouter une variable calculée \n (marge renseignée)', self.dockWidgetContents)
-        self.rmv_margin_btn  = QPushButton('Retirer une variable', self.dockWidgetContents)
-        self.reset_margin_btn  = QPushButton(u'Réinitialiser', self.dockWidgetContents)
+        self.add_rmv_var_btn  = QPushButton(u'Ajouter/Retirer une variable', self.dockWidgetContents)
         
         self.save_btn = QPushButton(self)
         self.save_btn.setToolTip(QApplication.translate("Calage", "Sauvegarder les paramètres et cales actuels", None, QApplication.UnicodeUTF8))
@@ -136,39 +107,37 @@ class CalibrationWidget(QDockWidget):
         self.open_btn.setIconSize(QSize(22, 22))
         self.open_btn.setObjectName(_fromUtf8("open_btn"))
 
-        margin_btn_lyt  = QVBoxLayout()
-        margin_btn_lyt.addWidget(self.add_input_margin_btn)
-        margin_btn_lyt.addWidget(self.add_free_margin_btn)    
-        margin_btn_lyt.addWidget(self.add_output_margin_btn)
-        margin_btn_lyt.addWidget(self.rmv_margin_btn)
-        reset_lyt = QHBoxLayout()
-        reset_lyt.addWidget(self.reset_margin_btn)
-        reset_lyt.addWidget(self.save_btn)
-        reset_lyt.addWidget(self.open_btn)
-        margin_btn_lyt.addLayout(reset_lyt)
+        # Build layouts
+        spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        
+        verticalLayout = QVBoxLayout(self.dockWidgetContents)
+        calib_lyt = QHBoxLayout()
+        calib_lyt.addWidget(self.save_btn)
+        calib_lyt.addWidget(self.open_btn)
+        calib_lyt.addItem(spacerItem)
+        calib_lyt.addWidget(up_spinbox)
+        calib_lyt.addWidget(invlo_spinbox)
+        calib_lyt.addWidget(method_combo)
+        verticalLayout.addLayout(calib_lyt)
 
-        # Widgets in layout        
-        margins_lyt = QHBoxLayout()
-        margins_lyt.addWidget(self.view)
-        margins_lyt.addLayout(margin_btn_lyt)
-
-        verticalLayout.addLayout(margins_lyt)
-
-        self.add_output_margin_btn.setDisabled(True)
+        totalpop_lyt = QHBoxLayout()
+        totalpop_lyt.addWidget(self.add_rmv_var_btn)
+        totalpop_lyt.addItem(spacerItem)
+        totalpop_lyt.addWidget(self.ini_totalpop_label)
+        totalpop_lyt.addWidget(self.pop_checkbox)
+        totalpop_lyt.addWidget(self.pop_spinbox)
+        verticalLayout.addLayout(totalpop_lyt)
+        self.init_totalpop()
+        verticalLayout.addWidget(self.view)
 
         # weights ratio plot        
         self.mplwidget = MatplotlibWidget(self.dockWidgetContents)
         verticalLayout.addWidget(self.mplwidget)
-        
         self.setWidget(self.dockWidgetContents)            
 
         # Connect signals
         self.connect(self.pop_checkbox, SIGNAL('clicked()'), self.set_totalpop)
-        self.connect(self.add_input_margin_btn, SIGNAL('clicked()'), self.add_input_margin)
-        self.connect(self.add_free_margin_btn, SIGNAL('clicked()'), self.add_margin)
-        self.connect(self.add_output_margin_btn, SIGNAL('clicked()'), self.add_output_margin)
-        self.connect(self.rmv_margin_btn, SIGNAL('clicked()'), self.rmv_margin)
-        self.connect(self.reset_margin_btn, SIGNAL('clicked()'), self.reset)
+        self.connect(self.add_rmv_var_btn, SIGNAL('clicked()'), self.add_rmv_var)
         self.connect(self.save_btn, SIGNAL('clicked()'), self.save_config)
         self.connect(self.open_btn, SIGNAL('clicked()'), self.load_config)
 
@@ -176,19 +145,39 @@ class CalibrationWidget(QDockWidget):
         self.connect(self.parent(), SIGNAL('aggregate_calculated()'), self.update_aggregates)
     
     
+    def get_add_rmv_var_choices(self):
+        '''
+        List the available choices for the  add and remove dialog depending on lists contents
+        '''
+        choices = []
+        if self.input_vars_list:
+            choices.append((_fromUtf8(u"Ajouter une variable (marge renseignée)"), 'add_input_margin'))
+        if self.free_vars_list:
+            choices.append((_fromUtf8(u"Ajouter une variable (marge libre)"), 'add_free_margin'))
+        if self.output_vars_list:
+            choices.append((_fromUtf8(u"Ajouter une variable calculée (marge renseignée)"), 'add_output_margin')),
+        if self.table_vars_list:
+            choices.append((_fromUtf8(u"Retirer une variable"), 'rmv_margin'))
+            choices.append((_fromUtf8(u"Retirer toute les variables"), 'rmv_all_margin'))
+        return dict(choices)
+
+    
     def add_rmv_var(self):
         '''
         add or remove variables depending on the content of the add/rmv combobox
         '''
-        widget = self.add_rmv_combo.box
-        if isinstance(widget, QComboBox):
-            data = widget.itemData(widget.currentIndex())                
-            result = unicode(data.toString())
-            print result
+        
+        choices = self.get_add_rmv_var_choices()        
+        varlabel, ok = QInputDialog.getItem(self.parent(), "Ajouter/Retirer une variable", "Type d'action", 
+                                           sorted(choices.keys()))
+        result = choices[varlabel]
+        insertion = ok and not(varlabel.isEmpty()) #and (varname not in self.margins._vars)
+        if insertion:
             if   result == "add_input_margin" : self.add_input_margin()
             elif result == "add_output_margin": self.add_output_margin()
             elif result == "add_free_margin"  : self.add_margin()    
-            elif result == "rmv_margin"       : self.rmv_margin()    
+            elif result == "rmv_margin"       : self.rmv_margin()
+            elif result == "rmv_all_margin"   : self.reset()    
         return True
     
     @property
@@ -257,13 +246,10 @@ class CalibrationWidget(QDockWidget):
         
     def update_aggregates(self):
         self.set_output_margins_from_file()
-        self.add_output_margin_btn.setEnabled(True)
         self.aggregate_calculated = True
-         
-        
+
     def param_or_margins_changed(self):
         self.update_view()
-        self.update_add_btns()
         self.emit(SIGNAL('param_or_margins_changed()'))
         
     def update_view(self):
@@ -272,31 +258,9 @@ class CalibrationWidget(QDockWidget):
             df = self.frame.reset_index()
             df_view = df[ ["var", u"modalités", "cible", u"cible ajustée", "marge", "marge initiale", "variable" ]]            
             self.view.set_dataframe(df_view)
+#            (self.view).set_role('Edit', ["cible"])
         self.view.reset()    
-        
-    def update_add_btns(self):
-        '''
-        Update the states of add and remove buttons depending on lists contents
-        '''
-        if self.input_vars_list:
-            self.add_input_margin_btn.setEnabled(True)
-        else:
-            self.add_input_margin_btn.setDisabled(True)
-        if self.free_vars_list:
-            self.add_free_margin_btn.setEnabled(True) 
-        else:
-            self.add_free_margin_btn.setDisabled(True)
-        if self.output_vars_list:
-            self.add_output_margin_btn.setEnabled(True)
-        else:
-            self.add_output_margin_btn.setDisabled(True)
-        if self.table_vars_list:
-            self.reset_margin_btn.setEnabled(True)
-            self.rmv_margin_btn.setEnabled(True)
-        else:
-            self.reset_margin_btn.setDisabled(True)
-            self.rmv_margin_btn.setDisabled(True)        
-        
+                
     def set_inputs_margins_from_file(self, filename = None, year = None):
         if year is None:
             year     = str(CONF.get('simulation','datesim').year)
@@ -304,11 +268,8 @@ class CalibrationWidget(QDockWidget):
             fname    = CONF.get('calibration','inputs_filename')
             data_dir = CONF.get('paths', 'data_dir')
             filename = os.path.join(data_dir, fname)
-        
         self.set_margins_from_file(filename, year, source="input")
-
         self.init_totalpop()
-        self.add_input_margin_btn.setDisabled(True)
         
     def set_output_margins_from_file(self, filename = None, year = None):
         if year is None:
@@ -317,8 +278,7 @@ class CalibrationWidget(QDockWidget):
             fname    = CONF.get('calibration','pfam_filename')
             data_dir = CONF.get('paths', 'data_dir')
             filename = os.path.join(data_dir, fname)
-        self.set_margins_from_file(filename, year, source='output')
-        self.add_output_margin_btn.setDisabled(True)    
+        self.set_margins_from_file(filename, year, source='output')    
         
     def add_margin(self,  source='free'):
         '''
@@ -328,15 +288,13 @@ class CalibrationWidget(QDockWidget):
         lists      = {'input': self.input_vars_list, 'output': self.output_vars_list, 'free': self.free_vars_list}
         variables_list = lists[source]
         datatable = datatables[source]   
-
         varnames = {} # {varname: varlabel}
         for var in variables_list:
             varcol  = datatable.description.get_col(var)
             if varcol.label:
                 varnames[_fromUtf8(varcol.label)] = var
             else:
-                varnames[_fromUtf8(var)] = var
-        
+                varnames[_fromUtf8(var)] = var        
         varlabel, ok = QInputDialog.getItem(self.parent(), "Ajouter une variable", "Nom de la variable", 
                                            sorted(varnames.keys()))
         varname = varnames[varlabel]
@@ -351,18 +309,26 @@ class CalibrationWidget(QDockWidget):
             
             self.add_var(varname, target = target, source=source)
             self.param_or_margins_changed()
+
             
     def add_var(self, varname, target=None, source = 'free'):
         '''
         Add a variable in the dataframe
         '''    
-        datatables = {'input': self.inputs, 'output': self.outputs, 'free': self.inputs}
-        datatable = datatables[source]        
-        inputs = self.inputs        
+        inputs = self.inputs
+        outputs = self.outputs        
         w_init = inputs.get_value("wprm_init", inputs.index['men'])
         w = inputs.get_value("wprm", inputs.index['men'])
-        varcol = datatable.description.get_col(varname)
-        value = datatable.get_value(varname, datatable.index['men'])
+        try:
+            varcol = inputs.description.get_col(varname)
+            value = inputs.get_value(varname, inputs.index['men'])
+        except:
+            try: 
+                varcol = outputs.description.get_col(varname)
+                value = outputs.get_value(varname, inputs.index['men'])
+            except:                
+                print "Variable %s is absent from both inputs and outputs" %varname
+                return            
         label = varcol.label
         # TODO: rewrite this using pivot table
         items = [ ('marge'    , w  ),
@@ -381,10 +347,13 @@ class CalibrationWidget(QDockWidget):
                 print 'Problem with variable : ', varname
                 print len(target.keys()), ' target keys for ', len(mods), ' modalities' 
                 print 'Skipping the variable'
-                if source == 'input':
-                    drop_indices = [ (varname, mod) for mod in target.keys()]
+                drop_indices = [ (varname, mod) for mod in target.keys()]
+                if source == 'input':                    
                     self.input_margins_df = self.input_margins_df.drop(drop_indices)
                     self.input_margins_df.index.names = ['var','mod']
+                if source == 'output':
+                    self.output_margins_df = self.output_margins_df.drop(drop_indices)
+                    self.output_margins_df.index.names = ['var','mod']
                 return
 
         if isinstance(varcol, EnumCol):
@@ -417,6 +386,7 @@ class CalibrationWidget(QDockWidget):
         else: 
             self.frame = concat([self.frame, res], verify_integrity = True)
  
+ 
     def add_output_margin(self):
         QMessageBox.critical(
                     self, "Erreur", u"Pas encore implémenté",
@@ -436,7 +406,6 @@ class CalibrationWidget(QDockWidget):
             self.param_or_margins_changed()
             return
         varnames = {}
-        
         vars_in_table = self.frame['var'].unique() 
         for var in vars_in_table:
             if var in  self.output_vars_list:
@@ -447,8 +416,7 @@ class CalibrationWidget(QDockWidget):
             if varcol.label:
                 varnames[_fromUtf8(varcol.label)] = var
             else:
-                varnames[_fromUtf8(var)] = var
-        
+                varnames[_fromUtf8(var)] = var       
         if not all_vars:
             varlabel, ok = QInputDialog.getItem(self.parent(), "Retirer une variable", u"Nom de la variable à retirer", 
                                            sorted(varnames.keys()))
@@ -481,18 +449,18 @@ class CalibrationWidget(QDockWidget):
             if isinstance(widget, QComboBox):
                 data = widget.itemData(widget.currentIndex())                
                 self.param[parameter] = unicode(data.toString())
-            if isinstance(widget, QDoubleSpinBox):
+            if isinstance(widget, QSpinBox) or isinstance(widget, QDoubleSpinBox):
                 self.param[parameter] = widget.value()
         self.param_or_margins_changed()        
         return True
 
     def set_inputs(self, inputs):
-        inputs.gen_index(['men', 'fam', 'foy']) # TODO: REMOVE ?
+        inputs.gen_index(['men', 'fam', 'foy']) # TODO: REMOVE ? test this
         self.inputs = inputs
-        ini_totalpop = sum(inputs.get_value("wprm_init", inputs.index['men']))
-        totalpop_label = u"Population initiale totale :" + str(int(round(ini_totalpop))) + u" ménages"
-        self.ini_totalpop_label = QLabel(totalpop_label, parent = self.dockWidgetContents) 
-        self.totalpop_lyt.addWidget(self.ini_totalpop_label)
+        self.ini_totalpop = sum(inputs.get_value("wprm_init", inputs.index['men']))
+        label_str = u"Population initiale totale :" + str(int(round(self.ini_totalpop))) + u" ménages"
+        self.ini_totalpop_label.setText(label_str)
+
         
     def reset(self):
         self.frame = None
@@ -503,7 +471,6 @@ class CalibrationWidget(QDockWidget):
         self.pop_spinbox.spin.setDisabled(True)
         self.set_totalpop()
         self.plotWeightsRatios()
-        self.update_add_btns()
                 
 #    def update_output_margins(self):
 #        datatable = self.outputs
@@ -530,36 +497,39 @@ class CalibrationWidget(QDockWidget):
         return p
               
     def calibrate(self):
-        
+        '''
+        Calibrate accoding to margins found in frame
+        '''
         df = self.frame
+        inputs = self.inputs
+        outputs = self.outputs
         margins = {}
         for var, mod in df.index:
             if not margins.has_key(var):
                 margins[var] = {}
             margins[var][mod] =  df.get_value((var,mod), 'cible')
         param = self.get_param()
-        
-        print self.totalpop
-        
         if self.totalpop is not None:
             margins['totalpop'] = self.totalpop
         try:
-            print 'calibration'
-            print margins
-            print param
-            
-            adjusted_margins = self.inputs.update_weights(margins, param=param, return_margins = True)
-            
-        
+            adjusted_margins = inputs.update_weights(margins, param=param, return_margins = True)
         except Exception, e:
             raise Exception(u"Vérifier les paramètres:\n%s"% e)
         
-        finally:
-            if 'totalpop' in margins:
-                del margins['totalpop']
-
-        for var, mod in df.index:
-            df.set_value((var,mod), u"cible ajustée", adjusted_margins[var][mod])
+        w = inputs.get_value("wprm", inputs.index['men'])
+        for varname in set([var for var, mod in df.index]): 
+            try:
+                value = inputs.get_value(varname, inputs.index['men'])
+            except:
+                try: 
+                    value = outputs.get_value(varname, inputs.index['men'])
+                except:                
+                    print "Calibration : Variable %s is absent from both inputs and outputs" %varname
+            items = [('marge', w  ),('mod', value)]
+            updated_margins = DataFrame.from_items(items).groupby('mod', sort= True).sum()
+            for mod in set([mod for var, mod in df.index if var == varname]):
+                df.set_value((varname,mod), u"cible ajustée", adjusted_margins[varname][mod])
+                df.set_value((varname,mod), u"marge", updated_margins['marge'][mod])
         self.update_view()
         self.plotWeightsRatios()
         self.emit(SIGNAL('calibrated()'))
@@ -573,9 +543,6 @@ class CalibrationWidget(QDockWidget):
         ax.set_ylabel(u"Densité")
         self.mplwidget.draw()
         
-
-    
-
     def save_config(self):
         '''
         Save calibration parameters
@@ -590,9 +557,14 @@ class CalibrationWidget(QDockWidget):
                     QMessageBox.Ok, QMessageBox.NoButton)
             return
         
-        saved = df['cible'].rename(columns = {"cible" : year})
-        saved[year][('totalpop',0)] = self.totalpop
+        saved = DataFrame(index = df.index, columns = [year], data=df['cible']).reset_index()
+        saved = saved.append({'level_0' : 'totalpop',
+                      'level_1' : 0,
+                      year      : self.totalpop}, 
+                      ignore_index = True)
         
+        
+        saved = saved.rename(columns = { 'level_0' : 'var', 'level_1'  : 'mod'} )
         calib_dir = CONF.get('paths','calib_dir')
         default_fileName = os.path.join(calib_dir, 'sans-titre')
         fileName = QFileDialog.getSaveFileName(self,
@@ -613,7 +585,6 @@ class CalibrationWidget(QDockWidget):
         if not fileName == '':
             try: 
                 QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-                self.reset()
                 self.set_margins_from_file(fileName, year = year, source='config')
                 self.init_totalpop()
             except Exception, e:
