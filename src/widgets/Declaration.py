@@ -21,9 +21,9 @@ This file is part of openFisca.
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from views import ui_declaration, ui_page01, ui_page02A, ui_page03A, ui_page03B, ui_page03C, ui_page04A, ui_page04B, ui_page04C
-from PyQt4.QtCore import QAbstractListModel, Qt, QVariant, SIGNAL, QSize
-from PyQt4.QtGui import QWidget, QVBoxLayout, QDialog, QCheckBox, QSpinBox, QLabel
+from views import ui_declaration, ui_page01, ui_page02, ui_page03, ui_page04, ui_page05, ui_page06, ui_page07, ui_page08
+from PyQt4.QtCore import Qt, SIGNAL, QSize
+from PyQt4.QtGui import QWidget, QDialog, QCheckBox, QSpinBox, QLabel, QStackedWidget, QListWidgetItem
     
 class Declaration(QDialog, ui_declaration.Ui_Declaration):
     def __init__(self, parent, noi):
@@ -33,47 +33,54 @@ class Declaration(QDialog, ui_declaration.Ui_Declaration):
         self.parent = parent
         self.scenario = parent.scenario
 
-        self.pagesSlideShow = PagesSlideShow(self)
-        self.scrollArea.setWidget(self.pagesSlideShow)
 
-        self.pagesModel = PagesModel(self.pagesSlideShow.pages)
-        self.navigationView.setModel(self.pagesModel)
-        self.selectionModel = self.navigationView.selectionModel()
-        self._nbpages = len(self.pagesSlideShow.pages)
+        self.pages_widget = QStackedWidget()
+        self.connect(self.pages_widget, SIGNAL("currentChanged(int)"), self.current_page_changed)
+        self.connect(self.contents_widget, SIGNAL("currentRowChanged(int)"), self.pages_widget.setCurrentIndex)
+                
+        self.scrollArea.setWidget(self.pages_widget)
+
+        self.connect(self.next_btn, SIGNAL('clicked()'), self.next_page)
+        self.connect(self.prev_btn, SIGNAL('clicked()'), self.prev_page)
+
+        self.pages = [Page01(self),  Page02(self), Page03(self), Page04(self), 
+                      Page05(self), Page06(self), Page07(self)]
+
+        for widget in self.pages:
+            self.add_page(widget)
+
+
+        self.set_current_index(0)
+        self.current_page_changed(0)
+
+    def current_page_changed(self, index):
+        nb = self.pages_widget.count() - 1
+        self.prev_btn.setEnabled(True)
+        self.next_btn.setEnabled(True)
+        if index == nb:
+            self.next_btn.setEnabled(False)
+        if index == 0:
+            self.prev_btn.setEnabled(False)            
+
+    def next_page(self):
+        idx = self.pages_widget.currentIndex()
+        self.set_current_index(idx + 1)
+
+    def prev_page(self):
+        idx = self.pages_widget.currentIndex()
+        self.set_current_index(idx - 1)
+
+    def get_current_index(self):
+        """Return current page index"""
+        return self.contents_widget.currentRow()
         
-        for page in self.pagesSlideShow.pages:
-            page.setVisible(False)
-
-        self._currentPage = 0
-        self.getPage(self._currentPage)
-
-        self.connect(self.nextButton,SIGNAL('clicked()'),self.nextPage)
-        self.connect(self.prevButton,SIGNAL('clicked()'),self.prevPage)
-        self.connect(self.selectionModel,SIGNAL('currentChanged(QModelIndex, QModelIndex)'), self.getSelection)
-
-    def getSelection(self, startIndex, endIndex):
-        self.getPage(startIndex.row())
-    
-    def getPage(self,pageIndex = 0):
-        self.pagesSlideShow.pages[self._currentPage].setVisible(False)
-        self._currentPage = pageIndex
-        self.pagesSlideShow.pages[self._currentPage].setVisible(True)
-        self.prevButton.setEnabled(True)
-        self.nextButton.setEnabled(True)
-        if self._currentPage == 0:
-            self.prevButton.setEnabled(False)
-        elif self._currentPage >= self._nbpages -1:
-            self.nextButton.setEnabled(False)
-        self.selectionModel.setCurrentIndex(self.pagesModel.index(self._currentPage),self.selectionModel.ClearAndSelect )
-        
-    def nextPage(self):
-        self.getPage(self._currentPage +1 )
-    
-    def prevPage(self):
-        self.getPage(self._currentPage -1)
+    def set_current_index(self, index):
+        """Set current page index"""
+        self.contents_widget.setCurrentRow(index)
+        self.pages_widget.setCurrentIndex(index)
 
     def accept(self):
-        for page in self.pagesSlideShow.pages:
+        for page in self.pages:
             for key in page.__dict__:
                 widget = getattr(page,key)
                 if  isinstance(widget, QSpinBox):
@@ -86,22 +93,11 @@ class Declaration(QDialog, ui_declaration.Ui_Declaration):
                     page.updateFoyer(var, val)
         QDialog.accept(self)
 
-class PagesSlideShow(QWidget):
-    def __init__(self, parent):
-        super(PagesSlideShow, self).__init__(parent)
-
-        self.parent = parent
-        self.scenario = parent.scenario
-        self.noidec = parent.noidec
-
-        self.pages = [Page01(self),  Page02A(self), Page03A(self), Page03B(self), 
-                      Page03C(self), Page04A(self), Page04B(self)]
-        
-        self.declarationLayout = QVBoxLayout(self)
-        self.setLayout(self.declarationLayout)
-        
-        for page in self.pages:
-            self.declarationLayout.addWidget(page)
+    def add_page(self, widget):
+        self.pages_widget.addWidget(widget)
+        item = QListWidgetItem(self.contents_widget)
+        item.setText(widget.get_name())
+        item.setFlags(Qt.ItemIsSelectable|Qt.ItemIsEnabled)
 
 class Page(QWidget):
     def __init__(self, parent):
@@ -113,6 +109,9 @@ class Page(QWidget):
         self._type = u'Page non spécifiée'
         
         self.restore_values()
+        
+    def get_name(self):
+        return self._type
 
     def setupUi(self, base):
         raise NotImplementedError
@@ -186,12 +185,12 @@ class Page01(ui_page01.Ui_Page01, Page):
     def updateFoyer(self, sender, value):
         pass
 
-class Page02A(ui_page02A.Ui_Page02A, Page):
+class Page02(ui_page02.Ui_Page02, Page):
     def __init__(self, parent):
         Page.__init__(self, parent)
         self._type = u'Situation du foyer'
 
-class Page03A(ui_page03A.Ui_Page03A, Page):
+class Page03(ui_page03.Ui_Page03, Page):
     def __init__(self, parent):
         Page.__init__(self, parent)
         self.n = 0
@@ -262,47 +261,27 @@ class Page03A(ui_page03A.Ui_Page03A, Page):
         cb.setObjectName(name)
         return cb
 
-class Page03B(ui_page03B.Ui_Page03B, Page):
+class Page04(ui_page04.Ui_Page04, Page):
     def __init__(self, parent):
         Page.__init__(self, parent)
         self._type = u'Revenus des valeurs et capitaux mobiliers'
 
-class Page03C(ui_page03C.Ui_Page03C, Page):
+class Page05(ui_page05.Ui_Page05, Page):
     def __init__(self, parent):
         Page.__init__(self, parent)
         self._type = u'Plus values et revenus fonciers'
 
-class Page04A(ui_page04A.Ui_Page04A, Page):
+class Page06(ui_page06.Ui_Page06, Page):
     def __init__(self, parent):
         Page.__init__(self, parent)
         self._type = u'Charges déductibles'
 
-class Page04B(ui_page04B.Ui_Page04B, Page):
+class Page07(ui_page07.Ui_Page07, Page):
     def __init__(self, parent):
         Page.__init__(self, parent)
         self._type = u"Réduction et crédit d'impôt"
          
-class Page04C(ui_page04C.Ui_Page04C, Page):
+class Page08(ui_page08.Ui_Page08, Page):
     def __init__(self, parent):
         Page.__init__(self, parent)
         self._type = u'Divers'
-
-class PagesModel(QAbstractListModel):
-    def __init__(self, pages = [], parent = None):
-        super(PagesModel,self).__init__(parent)
-        self.__pages = pages
-
-    def headerData(self, section, orientation, role):        
-        return QVariant()
-
-    def rowCount(self, parent):
-        return len(self.__pages)
-
-    def data(self, index, role):                
-        if role == Qt.DisplayRole:            
-            value = self.__pages[index.row()]            
-            return value._type
-
-    def flags(self, index):
-        return Qt.ItemIsEnabled | Qt.ItemIsSelectable
-        

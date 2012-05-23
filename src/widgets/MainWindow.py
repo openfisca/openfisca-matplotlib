@@ -28,7 +28,7 @@ from PyQt4.QtGui import (QMainWindow, QWidget, QGridLayout, QMessageBox, QKeySeq
                          QApplication, QCursor, QPixmap, QSplashScreen, QColor,
                          QActionGroup, QStatusBar)
 
-from Config import CONF, VERSION, ConfigDialog, SimConfigPage, PathConfigPage, CalConfigPage, AggConfigPage
+from Config import CONF, VERSION, ConfigDialog, SimConfigPage, PathConfigPage, CalConfigPage
 from widgets.Parametres import ParamWidget
 from widgets.Composition import ScenarioWidget
 from widgets.Output import Graph, OutTable
@@ -40,8 +40,6 @@ from core.datatable import DataTable, SystemSf
 from core.utils import gen_output_data, gen_aggregate_output, Scenario
 from core.qthelpers import create_action, add_actions, get_icon
 import gc
-import warnings
-
 
 class MainWindow(QMainWindow):
     def __init__(self, parent = None):
@@ -85,12 +83,12 @@ class MainWindow(QMainWindow):
         
         self.scenario = Scenario()
         # Preferences
-        self.general_prefs = [SimConfigPage, PathConfigPage, AggConfigPage, CalConfigPage]
+        self.general_prefs = [SimConfigPage, PathConfigPage, CalConfigPage]
         self.oldXAXIS = 'sal'
         self.reforme = False
         self.apply_settings()
         
-        # Creation des dockwidgets
+        # Dockwidgets creation
         self.splash.showMessage("Creating widgets...", Qt.AlignBottom | Qt.AlignCenter | 
                                 Qt.AlignAbsolute, QColor(Qt.black))
 
@@ -173,10 +171,11 @@ class MainWindow(QMainWindow):
         self.move(position)
         self.restoreState(settings.value("MainWindow/State").toByteArray())
 
-        self.splash.showMessage("Loading external data...", Qt.AlignBottom | Qt.AlignCenter | 
+
+
+        self.splash.showMessage("Loading survey data...", Qt.AlignBottom | Qt.AlignCenter | 
                                 Qt.AlignAbsolute, QColor(Qt.black))
         
-
         self.enable_aggregate(True)
         self.enable_calibration(True)
         
@@ -223,33 +222,52 @@ class MainWindow(QMainWindow):
         if hasattr(widget, callback):
             getattr(widget, callback)()
 
-    def enable_aggregate(self, val = True):
-        if val:
-            try:
-                # liberate some memory before loading new data
-                self.reset_aggregate()
-                gc.collect()
-                
-                fname = CONF.get('aggregates', 'external_data_file')
-                self.erfs = DataTable(InputTable, external_data = fname)
-                self._aggregate_output.setEnabled(True)
-                self.aggregate_enabled = True
-                self.action_refresh_aggregate.setEnabled(True)
-                self._dataframe_widget.set_dataframe(self.erfs.table)
-                return
-            except Exception, e:
-                warnings.warn("Unable to read data, switching to barème only mode\n%s" % e)
-                self.general_prefs.remove(AggConfigPage)
 
-        self.aggregate_enabled = False
-        self._aggregate_output.setEnabled(False)
-        self.action_refresh_aggregate.setEnabled(False)
+    def load_survey_data(self):
+        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+        try:
+            # liberate some memory before loading new data
+            self.reset_aggregate()
+            gc.collect()
+            fname = CONF.get('paths', 'survey_data_file')
+            self.survey = DataTable(InputTable, survey_data = fname)
+            self._dataframe_widget.set_dataframe(self.survey.table)
+            return True
+        except Exception, e:
+            self.aggregate_enabled = False
+            QMessageBox.warning(self, u"Impossible de lire les données", 
+                                u"OpenFisca n'a pas réussi à lire les données d'enquête et passe en mode barème. L'erreur suivante a été renvoyé:\n%s\n\nVous pouvez charger des nouvelles données d'enquête dans Fichier>Paramètres>Chemins>Données d'enquête"%e)
+            return False
+        finally:
+            QApplication.restoreOverrideCursor()
+        
+    def enable_aggregate(self, val = True):
+        loaded = False
+        if val:
+            loaded = self.load_survey_data()
+
+        if loaded:
+            # Show widgets and enabled actions
+            self.aggregate_enabled = True
+            self._aggregate_output.setEnabled(True)
+            self._aggregate_output.show()
+            self._dataframe_widget.show()
+            self.action_refresh_aggregate.setEnabled(True)
+        else:
+            self.aggregate_enabled = False
+            self._aggregate_output.setEnabled(False)
+            self._aggregate_output.hide()
+            self._dataframe_widget.hide()
+            self.action_refresh_aggregate.setEnabled(False)
 
     def reset_aggregate(self):
-        self.erfs = None
+        '''
+        Clear all pointers to the survey data to allow its garbage collection
+        '''
+        self.survey = None
         self._dataframe_widget.clear()
         self._aggregate_output.clear()
-        self._calibration.reset_postset_margins()
+# TODO: adpat this        self._calibration.reset_output_margins()
 
     def enable_calibration(self, val = True):    
         if val and self.aggregate_enabled:
@@ -258,27 +276,22 @@ class MainWindow(QMainWindow):
                 self.reset_calibration() 
                 gc.collect()
                 
-                
-                P_default = self._parametres.getParam(defaut = True)    
-                P_courant = self._parametres.getParam(defaut = False)
-                system = SystemSf(ModelFrance, P_courant, P_default)
-                system.set_inputs(self.erfs)
-                self._calibration.set_system(system)
-
-                self._calibration.set_inputs(self.erfs)                
+                self._calibration.set_inputs(self.survey)                
                 self._calibration.init_param()
                 self._calibration.set_inputs_margins_from_file()
                 
-                self._calibration.setEnabled(True)
                 self.calibration_enabled = True
+                self._calibration.setEnabled(True)
+                self.action_refresh_calibration.setEnabled(True)
+                self._calibration.show()
                 return
 
             except Exception, e:
-                warnings.warn("Unable to read data, switching to barème only mode \n%s" % e)
-                self.general_prefs.remove(CalConfigPage)
+                print Warning("Unable to read data, switching to barème only mode \n%s" % e)
 
         self.calibration_enabled = False
         self._calibration.setEnabled(False)
+        self._calibration.hide()
         self.action_refresh_calibration.setEnabled(False)
 
     def reset_calibration(self):
@@ -286,6 +299,7 @@ class MainWindow(QMainWindow):
         TODO: Write here what it should do
         '''
         pass
+        
         
     def modeReforme(self, b):
         self.reforme = b
@@ -340,32 +354,33 @@ class MainWindow(QMainWindow):
         self.statusbar.showMessage(u"")
         QApplication.restoreOverrideCursor()
     
+    def compute_aggregate(self):
+        P_default = self._parametres.getParam(defaut = True)    
+        P_courant = self._parametres.getParam(defaut = False)
+        
+        input_table = self.survey
+
+        population = SystemSf(ModelFrance, P_courant, P_default)
+        population.set_inputs(input_table)
+        
+        population.calculate()
+        
+        return population
+    
     def refresh_aggregate(self):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
         self.statusbar.showMessage(u"Calcul des aggrégats en cours, ceci peut prendre quelques minutes...")
         self.action_refresh_aggregate.setEnabled(False)
+
         self._aggregate_output.clear()
         self._dataframe_widget.clear()
 
-        P_default = self._parametres.getParam(defaut = True)    
-        P_courant = self._parametres.getParam(defaut = False)
-        
-        input_table = self.erfs
+        population = self.compute_aggregate()
 
-        population_courant = SystemSf(ModelFrance, P_courant, P_default)
-        population_courant.set_inputs(input_table)
-        
-        population_courant.calculate()
-
-        self._dataframe_widget.set_dataframe(population_courant.table)
-        data_courant = gen_aggregate_output(population_courant)
-        
-        self._aggregate_output.update_output(data_courant)
-
-        # update calibration system 
-        self._calibration.set_system(population_courant)
-        self._calibration.set_postset_margins_from_file()
+        self._dataframe_widget.set_dataframe(population.table)
+        data_courant = gen_aggregate_output(population)
+        self._aggregate_output.update_output(data_courant, self.survey.description)
         
         self.statusbar.showMessage(u"")
         QApplication.restoreOverrideCursor()
@@ -474,7 +489,9 @@ class MainWindow(QMainWindow):
 
     def calculated(self):
         self.statusbar.showMessage(u"Aggrégats calculés")
-        if self.calibration_enabled:
-            self._calibration.aggregate_calculated()
+        self.emit(SIGNAL('aggregate_calculated()'))
+        self.action_refresh_aggregate.setEnabled(False)
+        if self.calibration_enabled:  # allow calibration on output margins
             self.action_refresh_calibration.setEnabled(True)    
-            self.action_refresh_aggregate.setEnabled(False)    
+            
+        
