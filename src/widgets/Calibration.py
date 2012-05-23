@@ -34,6 +34,8 @@ from PyQt4.QtGui import (QWidget, QLabel, QDockWidget, QHBoxLayout, QVBoxLayout,
                          QIcon, QPixmap, QCursor, QSpacerItem, QSizePolicy)
 from core.qthelpers import MyComboBox, MySpinBox, MyDoubleSpinBox, DataFrameViewWidget
 
+from core.datatable import SystemSf
+
 try:
     _fromUtf8 = QString.fromUtf8
 except AttributeError:
@@ -58,6 +60,8 @@ class CalibrationWidget(QDockWidget):
         self.inputs = None
         self.outputs = None
         self.frame = None
+        self.sfsystem = None
+        self.sfparam  = None
         
         self.input_margins_df = None
         self.output_margins_df   = None
@@ -109,23 +113,23 @@ class CalibrationWidget(QDockWidget):
 
         # Build layouts
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-        
+        spacerItem2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         verticalLayout = QVBoxLayout(self.dockWidgetContents)
         calib_lyt = QHBoxLayout()
-        calib_lyt.addWidget(self.save_btn)
-        calib_lyt.addWidget(self.open_btn)
-        calib_lyt.addItem(spacerItem)
-        calib_lyt.addWidget(up_spinbox)
-        calib_lyt.addWidget(invlo_spinbox)
-        calib_lyt.addWidget(method_combo)
+        for w in [self.save_btn, self.open_btn, spacerItem, up_spinbox, invlo_spinbox, method_combo]:
+            if isinstance(w, QSpacerItem):
+                calib_lyt.addItem(w)
+            else:
+                calib_lyt.addWidget(w)
         verticalLayout.addLayout(calib_lyt)
 
         totalpop_lyt = QHBoxLayout()
-        totalpop_lyt.addWidget(self.add_rmv_var_btn)
-        totalpop_lyt.addItem(spacerItem)
-        totalpop_lyt.addWidget(self.ini_totalpop_label)
-        totalpop_lyt.addWidget(self.pop_checkbox)
-        totalpop_lyt.addWidget(self.pop_spinbox)
+        for w in [self.add_rmv_var_btn, spacerItem2, self.ini_totalpop_label, 
+                  self.pop_checkbox, self.pop_spinbox]:
+            if isinstance(w, QSpacerItem):
+                totalpop_lyt.addItem(w)
+            else:
+                totalpop_lyt.addWidget(w)
         verticalLayout.addLayout(totalpop_lyt)
         self.init_totalpop()
         verticalLayout.addWidget(self.view)
@@ -141,10 +145,39 @@ class CalibrationWidget(QDockWidget):
         self.connect(self.save_btn, SIGNAL('clicked()'), self.save_config)
         self.connect(self.open_btn, SIGNAL('clicked()'), self.load_config)
 
-
         self.connect(self.parent(), SIGNAL('aggregate_calculated()'), self.update_aggregates)
-    
-    
+
+
+    def set_sfmodel(self, sfmodel):
+        self.sfmodel = sfmodel
+        
+    def set_sfparam(self, sfparam):
+        self.sfparam = sfparam
+        
+    def set_population(self):
+        print self.sfmodel
+        print self.sfparam
+        self.population = SystemSf(self.sfmodel, self.sfparam, self.sfparam)
+        self.population.set_inputs(self.inputs)
+
+#        model.calculate()
+#        for varname in model.col_names:
+#        val = model.get_value(varname, idx, opt = people, sum_ = True)
+#        out_dct[varname] = val
+        
+    def add_output_margin(self):
+        print self.sfparam
+        self.set_population()
+        print self.population.col_names
+        
+        QMessageBox.critical(
+                    self, "Erreur", u"Pas encore implémenté",
+                    QMessageBox.Ok, QMessageBox.NoButton)
+        # TODO: uncomment this wehn implemented self.add_margin(from_output=True)
+        self.emit(SIGNAL('calibrated()'))
+
+        
+        
     def get_add_rmv_var_choices(self):
         '''
         List the available choices for the  add and remove dialog depending on lists contents
@@ -205,8 +238,11 @@ class CalibrationWidget(QDockWidget):
     
     @property
     def free_vars_list(self):
-        if self.inputs:
-            return sorted(list(set(self.inputs.col_names) - set(self.table_vars_list)))
+        if self.inputs is not None:
+            if self.population is not None:
+                return sorted(list(set(self.inputs.col_names) + set(self.population.col_names)- set(self.table_vars_list)))
+            else:
+                return sorted(list(set(self.inputs.col_names) - set(self.table_vars_list)))
         else:
             return []
     
@@ -216,7 +252,7 @@ class CalibrationWidget(QDockWidget):
             df = self.output_margins_df.reset_index() 
             #   data_oc = df[ df['source'] == 'output'] # + df['source'] == 'config']
             set_oc = set(df['var'].unique())
-            loc = set_oc.intersection( set(self.outputs.description.col_names))
+            loc = set_oc.intersection( set(self.population.col_names))
             return sorted(list(loc - set(self.table_vars_list)))
         else:
             return []
@@ -386,14 +422,7 @@ class CalibrationWidget(QDockWidget):
         else: 
             self.frame = concat([self.frame, res], verify_integrity = True)
  
- 
-    def add_output_margin(self):
-        QMessageBox.critical(
-                    self, "Erreur", u"Pas encore implémenté",
-                    QMessageBox.Ok, QMessageBox.NoButton)
-        # TODO: uncomment this wehn implemented self.add_margin(from_output=True)
-        self.emit(SIGNAL('calibrated()'))
-    
+     
     def add_input_margin(self):
         self.add_margin(source='input')
         

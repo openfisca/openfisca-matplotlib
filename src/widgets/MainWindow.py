@@ -34,6 +34,7 @@ from widgets.Composition import ScenarioWidget
 from widgets.Output import Graph, OutTable
 from widgets.AggregateOuput import AggregateOutputWidget, DataFrameDock
 from widgets.Calibration import CalibrationWidget
+from widgets.ExploreData import ExploreDataWidget
 from france.data import InputTable
 from france.model import ModelFrance
 from core.datatable import DataTable, SystemSf
@@ -198,7 +199,9 @@ class MainWindow(QMainWindow):
         self._table = OutTable(self)
         self._aggregate_output = AggregateOutputWidget(self)
         self._calibration = CalibrationWidget(self)
-        self._dataframe_widget = DataFrameDock(self)
+#        self._dataframe_widget = DataFrameDock(self)
+        self._dataframe_widget = ExploreDataWidget(self)
+        
         
     def populate_mainwidow(self):
         self.addDockWidget(Qt.RightDockWidgetArea, self._parametres)
@@ -279,6 +282,10 @@ class MainWindow(QMainWindow):
                 self._calibration.set_inputs(self.survey)                
                 self._calibration.init_param()
                 self._calibration.set_inputs_margins_from_file()
+                self._calibration.set_sfmodel(ModelFrance)
+                P_default = self._parametres.getParam(defaut = True)
+                self._calibration.set_sfparam(P_default)
+               
                 
                 self.calibration_enabled = True
                 self._calibration.setEnabled(True)
@@ -298,7 +305,8 @@ class MainWindow(QMainWindow):
         '''
         TODO: Write here what it should do
         '''
-        pass
+        self._calibration.sfmodel = None
+        self._calibration.sfparam  = None
         
         
     def modeReforme(self, b):
