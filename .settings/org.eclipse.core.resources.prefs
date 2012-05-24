@@ -1,3 +1,4 @@
+#Wed May 23 18:10:39 CEST 2012
 eclipse.preferences.version=1
 encoding//src/Config.py=utf-8
 encoding//src/buildUi.py=utf-8
@@ -16,6 +17,7 @@ encoding//src/france/irpp.py=utf-8
 encoding//src/france/irpp_charges_deductibles.py=utf-8
 encoding//src/france/irpp_credits_impots.py=utf-8
 encoding//src/france/irpp_reductions_impots.py=utf-8
+encoding//src/france/isf.py=utf-8
 encoding//src/france/lgtm.py=utf-8
 encoding//src/france/mini.py=utf-8
 encoding//src/france/model.py=utf-8
@@ -26,9 +28,10 @@ encoding//src/parametres/paramData.py=utf-8
 encoding//src/parametres/paramModel.py=utf-8
 encoding//src/resources_rc.py=utf-8
 encoding//src/setup.py=utf-8
-encoding//src/tableWriter.py=utf-8
 encoding//src/views/ui_graph.py=utf-8
 encoding//src/views/ui_logement.py=utf-8
+encoding//src/views/ui_page01.py=utf-8
+encoding//src/views/ui_page_isf.py=utf-8
 encoding//src/views/ui_parametres.py=utf-8
 encoding//src/widgets/AggregateOuput.py=utf-8
 encoding//src/widgets/Calibration.py=utf-8

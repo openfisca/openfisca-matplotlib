@@ -21,7 +21,7 @@ This file is part of openFisca.
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from views import ui_declaration, ui_page01, ui_page02, ui_page03, ui_page04, ui_page05, ui_page06, ui_page07, ui_page08
+from views import ui_declaration, ui_page01, ui_page02, ui_page03, ui_page04, ui_page05, ui_page06, ui_page07, ui_page08, ui_page_isf
 from PyQt4.QtCore import Qt, SIGNAL, QSize
 from PyQt4.QtGui import QWidget, QDialog, QCheckBox, QSpinBox, QLabel, QStackedWidget, QListWidgetItem
     
@@ -44,7 +44,7 @@ class Declaration(QDialog, ui_declaration.Ui_Declaration):
         self.connect(self.prev_btn, SIGNAL('clicked()'), self.prev_page)
 
         self.pages = [Page01(self),  Page02(self), Page03(self), Page04(self), 
-                      Page05(self), Page06(self), Page07(self)]
+                      Page05(self), Page06(self), Page07(self), PageIsf(self)]
 
         for widget in self.pages:
             self.add_page(widget)
@@ -285,3 +285,8 @@ class Page08(ui_page08.Ui_Page08, Page):
     def __init__(self, parent):
         Page.__init__(self, parent)
         self._type = u'Divers'
+
+class PageIsf(ui_page_isf.Ui_Page_isf, Page):
+    def __init__(self, parent):
+        Page.__init__(self, parent)
+        self._type = u'ISF'
