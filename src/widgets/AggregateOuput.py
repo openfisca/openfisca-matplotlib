@@ -131,7 +131,6 @@ class AggregateOutputWidget(QDockWidget):
 
         self.var2label = var2label
         self.var2enum  = var2enum
-        ## TODO: 
         if hasattr(self, 'distribution_by_var'):
             index = combobox.findData(self.distribution_by_var)
             if index != -1:
