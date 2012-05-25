@@ -319,14 +319,14 @@ class CalibrationWidget(QDockWidget):
         '''
         lists      = {'input': self.input_vars_list, 'output': self.output_vars_list, 'free': self.free_vars_list}        
         variables_list = lists[source]
-        varnames = self.get_name_label_dict(variables_list) # {varname: varlabel}
-                    
+        varnames = self.get_name_label_dict(variables_list) # {varname: varlabel} 
         varlabel, ok = QInputDialog.getItem(self.parent(), "Ajouter une variable", "Nom de la variable", 
                                            sorted(varnames.keys()))
-        varname = varnames[varlabel]
-        insertion = ok and not(varlabel.isEmpty()) #and (varname not in self.margins._vars)
-        datatable_name = self.get_var_datatable(varname)
+        
+        insertion = ok and not(varlabel.isEmpty()) and (varlabel in sorted(varnames.keys()))
         if insertion:
+            varname = varnames[varlabel]
+            datatable_name = self.get_var_datatable(varname)
             target = None
             if source=='input' and self.input_margins_df is not None:
                 index = self.input_margins_df.index
@@ -336,7 +336,7 @@ class CalibrationWidget(QDockWidget):
             elif datatable_name =='population':
                 varcol = self.population.description.get_col(varname)
                 if varcol.__class__ not in MODCOLS:
-                    val, ok = QInputDialog.getDouble(self.parent(), "Valeur de la  marge (en millions d'euros)", str(varlabel))
+                    val, ok = QInputDialog.getDouble(self.parent(), "Valeur de la  marge (en millions d'euros)", unicode(varlabel))
                     insertion = ok
                     if insertion:
                         target = {str(varname): val*1e6}
