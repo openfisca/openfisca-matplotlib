@@ -23,6 +23,7 @@ This file is part of µSim.
 """
 
 from distutils.core import setup
+from Config import VERSION
 import py2exe
 import matplotlib
 import os
@@ -39,6 +40,6 @@ setup(windows=[{
                 "script" : "openFisca.pyw"
                 }], 
       options={"py2exe" : {"includes" : ["sip", "encodings.*", "numpy.*"],
-                           "dist_dir": "C:/users/utilisateur/documents/dist",
+                           "dist_dir": "C:/users/utilisateur/documents/OpenFisca %s" % VERSION,
                            "bundle_files":1}}, 
       data_files=myDataFiles)
