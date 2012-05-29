@@ -40,7 +40,7 @@ from france.model import ModelFrance
 from core.datatable import DataTable, SystemSf
 from core.utils import gen_output_data, gen_aggregate_output, Scenario
 from core.qthelpers import create_action, add_actions, get_icon
-import gc
+import gc, warnings
 
 class MainWindow(QMainWindow):
     def __init__(self, parent = None):
@@ -286,7 +286,6 @@ class MainWindow(QMainWindow):
                 P_default = self._parametres.getParam(defaut = True)
                 self._calibration.set_sfparam(P_default)
                
-                
                 self.calibration_enabled = True
                 self._calibration.setEnabled(True)
                 self.action_refresh_calibration.setEnabled(True)
@@ -294,7 +293,8 @@ class MainWindow(QMainWindow):
                 return
 
             except Exception, e:
-                print Warning("Unable to read data, switching to barème only mode \n%s" % e)
+                QMessageBox.warning(self, u"Erreur de calibration",
+                                    u"Erreur lors de la calibration, celle ci est désormais désactivée.\nL'erreur suivante a été renvoyé:\n%s\n\nVous pouvez charger des nouvelles données d'enquête dans Fichier>Paramètres>Chemins>Données d'enquête"%e)
 
         self.calibration_enabled = False
         self._calibration.setEnabled(False)
@@ -317,7 +317,6 @@ class MainWindow(QMainWindow):
         self.mode = 'bareme'
         NMEN = CONF.get('simulation', 'nmen')
         if NMEN == 1: CONF.set('simulation', 'nmen', 101)
-        print "date", CONF.get('simulation', 'datesim')
         self.changed_bareme()
 
     def modeCasType(self):

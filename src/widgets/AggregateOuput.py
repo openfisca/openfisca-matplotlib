@@ -22,16 +22,12 @@ This file is part of openFisca.
 """
 from PyQt4.QtGui import (QWidget, QDockWidget, QLabel, QVBoxLayout, QHBoxLayout, QComboBox,
                          QSpacerItem, QSizePolicy, QApplication, QCursor)
-from PyQt4.QtCore import SIGNAL, Qt, QString
+from PyQt4.QtCore import SIGNAL, Qt
 from core.qthelpers import OfSs, DataFrameViewWidget
 import numpy as np
 from pandas import DataFrame
 from core.qthelpers import MyComboBox
 from core.columns import EnumCol
-try:
-    _fromUtf8 = QString.fromUtf8
-except AttributeError:
-    _fromUtf8 = lambda s: s
 
 class DataFrameDock(QDockWidget):
     def __init__(self, parent = None):

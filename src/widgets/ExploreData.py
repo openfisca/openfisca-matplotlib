@@ -22,14 +22,10 @@ This file is part of openFisca.
 """
 from PyQt4.QtGui import (QWidget, QDockWidget, QLabel, QVBoxLayout, QHBoxLayout, QPushButton,
                          QSpacerItem, QSizePolicy, QApplication, QCursor, QInputDialog)
-from PyQt4.QtCore import SIGNAL, Qt, QString
+from PyQt4.QtCore import SIGNAL, Qt
 from core.qthelpers import OfSs, DataFrameViewWidget
 from pandas import DataFrame
 from core.columns import EnumCol
-try:
-    _fromUtf8 = QString.fromUtf8
-except AttributeError:
-    _fromUtf8 = lambda s: s
 
 
 class ExploreDataWidget(QDockWidget):
@@ -94,33 +90,22 @@ class ExploreDataWidget(QDockWidget):
             choices =  self.selected_vars
             label = "Retirer une variable"
             
-        print 'vars', self.vars
-        print 'selected', self.selected_vars
-        print 'choices', sorted(list(choices))
-        # var , ok
         var, ok = QInputDialog.getItem(self, label , "Choisir la variable", 
                                        sorted(list(choices)))
-        print 'ok', ok
-        print 'var',  var
         if ok and var in list(choices): 
             return str(var)
         else:
             return None 
 
     def add_var(self):
-        
-        print 'entering add'
         var = self.ask()
-        print 'var in add', var
         if var is not None:
             self.selected_vars.add(var)
-            print 'adding'
             self.update_view()
         else:
             return
     
     def remove_var(self):
-        print 'remove'
         var = self.ask(remove=True)
         if var is not None:
             self.selected_vars.remove(var)
@@ -160,7 +145,6 @@ class ExploreDataWidget(QDockWidget):
             return
         
         cols = self.selected_vars
-        print vars
         df = self.data[list(cols)]
         self.view.set_dataframe(df)
 

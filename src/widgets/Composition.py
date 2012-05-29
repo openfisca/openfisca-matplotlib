@@ -353,10 +353,10 @@ class Logement(QDialog, Ui_Logement):
         code_file.close()
 
         def update_ville(code):        
-            try:
+            if str(code) in code_dict:
                 commune = code_dict[str(code)]
                 self.bbox.button(QDialogButtonBox.Ok).setEnabled(True)
-            except:
+            else:
                 commune = ("Ce code postal n'est pas reconnu", '2')
                 self.bbox.button(QDialogButtonBox.Ok).setEnabled(False)
                 

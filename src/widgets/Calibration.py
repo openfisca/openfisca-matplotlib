@@ -27,22 +27,14 @@ import os
 
 from pandas import read_csv, DataFrame, concat
 
-from PyQt4.QtCore import SIGNAL, Qt, QString, QSize 
+from PyQt4.QtCore import SIGNAL, Qt, QSize 
 from PyQt4.QtGui import (QWidget, QLabel, QDockWidget, QHBoxLayout, QVBoxLayout, 
                          QPushButton, QComboBox, QSpinBox, QDoubleSpinBox, QCheckBox, 
                          QInputDialog, QFileDialog, QMessageBox, QApplication, 
                          QIcon, QPixmap, QCursor, QSpacerItem, QSizePolicy)
 from core.qthelpers import MyComboBox, MySpinBox, MyDoubleSpinBox, DataFrameViewWidget
-
 from core.datatable import SystemSf
-
-try:
-    _fromUtf8 = QString.fromUtf8
-except AttributeError:
-    _fromUtf8 = lambda s: s
-
 from widgets.matplotlibwidget import MatplotlibWidget
-
 from Config import CONF
 from core.columns import EnumCol, BoolCol, AgesCol, DateCol, BoolPresta
 
@@ -99,20 +91,18 @@ class CalibrationWidget(QDockWidget):
         
         self.save_btn = QPushButton(self)
         self.save_btn.setToolTip(QApplication.translate("Calage", "Sauvegarder les paramètres et cales actuels", None, QApplication.UnicodeUTF8))
-        self.save_btn.setText(_fromUtf8(""))
         icon = QIcon()
-        icon.addPixmap(QPixmap(_fromUtf8(":/images/document-save.png")), QIcon.Normal, QIcon.Off)
+        icon.addPixmap(QPixmap(":/images/document-save.png"), QIcon.Normal, QIcon.Off)
         self.save_btn.setIcon(icon)
         self.save_btn.setIconSize(QSize(22, 22))
         
         self.open_btn = QPushButton(self.dockWidgetContents)
         self.open_btn.setToolTip(QApplication.translate("Parametres", "Ouvrir des paramètres", None, QApplication.UnicodeUTF8))
-        self.open_btn.setText(_fromUtf8(""))
         icon1 = QIcon()
-        icon1.addPixmap(QPixmap(_fromUtf8(":/images/document-open.png")), QIcon.Normal, QIcon.Off)
+        icon1.addPixmap(QPixmap(":/images/document-open.png"), QIcon.Normal, QIcon.Off)
         self.open_btn.setIcon(icon1)
         self.open_btn.setIconSize(QSize(22, 22))
-        self.open_btn.setObjectName(_fromUtf8("open_btn"))
+        self.open_btn.setObjectName("open_btn")
 
         # Build layouts
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
@@ -183,14 +173,14 @@ class CalibrationWidget(QDockWidget):
         '''
         choices = []
         if self.input_vars_list:
-            choices.append((_fromUtf8(u"Ajouter une variable (marge renseignée)"), 'add_input_margin'))
+            choices.append((u"Ajouter une variable (marge renseignée)", 'add_input_margin'))
         if self.free_vars_list:
-            choices.append((_fromUtf8(u"Ajouter une variable (marge libre)"), 'add_free_margin'))
+            choices.append((u"Ajouter une variable (marge libre)", 'add_free_margin'))
         if self.output_vars_list:
-            choices.append((_fromUtf8(u"Ajouter une variable calculée (marge renseignée)"), 'add_output_margin')),
+            choices.append((u"Ajouter une variable calculée (marge renseignée)", 'add_output_margin')),
         if self.table_vars_list:
-            choices.append((_fromUtf8(u"Retirer une variable"), 'rmv_margin'))
-            choices.append((_fromUtf8(u"Retirer toute les variables"), 'rmv_all_margin'))
+            choices.append((u"Retirer une variable", 'rmv_margin'))
+            choices.append((u"Retirer toute les variables", 'rmv_all_margin'))
         return dict(choices)
 
     
@@ -346,26 +336,25 @@ class CalibrationWidget(QDockWidget):
     def add_var(self, varname, target=None, source = 'free'):
         '''
         Add a variable in the dataframe
-        '''    
+        '''
         inputs = self.inputs
         outputs = self.population        
         w_init = inputs.get_value("wprm_init", inputs.index['men'])
         w = inputs.get_value("wprm", inputs.index['men'])
-        try:
+        if inputs.description.has_col(varname):
             varcol = inputs.description.get_col(varname)
             value = inputs.get_value(varname, inputs.index['men'])
-        except:
-            try: 
-                varcol = outputs.description.get_col(varname)
-                outputs.calculate(varname)
-                unit = 'men'
-                idx = outputs.index['men']
-                enum = outputs._inputs.description.get_col('qui'+unit).enum
-                people = [x[1] for x in enum]
-                value = outputs.get_value(varname, index = idx, opt = people, sum_ = True)
-            except:                
-                print "Variable %s is absent from both inputs and outputs" %varname
-                return            
+        elif outputs.description.has_col(varname):
+            varcol = outputs.description.get_col(varname)
+            outputs.calculate(varname)
+            unit = 'men'
+            idx = outputs.index['men']
+            enum = outputs._inputs.description.get_col('qui'+unit).enum
+            people = [x[1] for x in enum]
+            value = outputs.get_value(varname, index = idx, opt = people, sum_ = True)
+        else:
+            print "Variable %s is absent from both inputs and outputs" %varname
+            return            
         label = varcol.label
         # TODO: rewrite this using pivot table
         items = [ ('marge'    , w  ), ('marge initiale' , w_init )]        
@@ -558,20 +547,16 @@ class CalibrationWidget(QDockWidget):
         if 'totalpop' in margins.keys():
             del margins['totalpop']
         
-        
-        w = inputs.get_value("wprm", inputs.index['men'])
+        unit = 'men'
+        w = inputs.get_value("wprm", inputs.index[unit])
         for var in margins.keys():
-            try:
-                value = inputs.get_value(var, inputs.index['men'])
-            except:
-                try: 
-                    unit = 'men'
-                    idx = self.population.index['men']
-                    enum = self.population._inputs.description.get_col('qui'+unit).enum
-                    people = [x[1] for x in enum]
-                    value = self.population.get_value(var, index=idx, opt=people, sum_=True)
-                except:                
-                    print "Calibration : Variable %s is absent from both inputs and outputs" %var
+            if inputs.description.has_col(var):
+                value = inputs.get_value(var, inputs.index[unit])
+            else:
+                idx = self.population.index[unit]
+                enum = self.population._inputs.description.get_col('qui'+unit).enum
+                people = [x[1] for x in enum]
+                value = self.population.get_value(var, index=idx, opt=people, sum_=True)
                 
             if isinstance(margins[var], dict):
                 items = [('marge', w  ),('mod', value)]
@@ -647,45 +632,36 @@ class CalibrationWidget(QDockWidget):
         fileName = QFileDialog.getOpenFileName(self,
                                                u"Ouvrir un calage", calib_dir, u"Calages OpenFisca (*.csv)")
         if not fileName == '':
-            try: 
-                QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-                self.set_margins_from_file(fileName, year = year, source='config')
-                self.init_totalpop()
-            except Exception, e:
-                QMessageBox.critical(
-                    self, "Erreur", u"Impossible de lire le fichier : " + str(e),
-                    QMessageBox.Ok, QMessageBox.NoButton)
-            finally:
-                QApplication.restoreOverrideCursor()    
+            QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+            self.set_margins_from_file(fileName, year = year, source='config')
+            self.init_totalpop()
+            QApplication.restoreOverrideCursor()    
             self.param_or_margins_changed()
 
     def set_margins_from_file(self, filename, year, source):
-        try:
-            f_tot = open(filename)
+
+        with open(filename) as f_tot:
             totals = read_csv(f_tot,index_col = (0,1))
-            marges = {}
-            if source == 'input':
-                self.input_margins_df = DataFrame({'target':totals[year]})
-            elif source =='output':
-                self.output_margins_df = DataFrame({'target':totals[year]})
-                
-            for var, mod in totals.index:
-                if not marges.has_key(var):
-                    marges[var] = {}
-                marges[var][mod] =  totals.get_value((var,mod),year)
-                
-            for var in marges.keys():
-                if var == 'totalpop': 
-                    if source == "input" or source == "config" :
-                        totalpop = marges.pop('totalpop')[0]
-                        marges['totalpop'] = totalpop
-                        self.totalpop = totalpop
-                else:
-                    self.add_var(var, marges[var], source = source)
-        except Exception, e:
-            print Warning("Unable to read %(source)s margins for %(year)s, margins left empty because %(e)s" % {'source':source, 'year': year, 'e':e})
-        finally:
-            f_tot.close()
+
+        marges = {}
+        if source == 'input':
+            self.input_margins_df = DataFrame({'target':totals[year]})
+        elif source =='output':
+            self.output_margins_df = DataFrame({'target':totals[year]})
+            
+        for var, mod in totals.index:
+            if not marges.has_key(var):
+                marges[var] = {}
+            marges[var][mod] =  totals.get_value((var,mod),year)
+            
+        for var in marges.keys():
+            if var == 'totalpop': 
+                if source == "input" or source == "config" :
+                    totalpop = marges.pop('totalpop')[0]
+                    marges['totalpop'] = totalpop
+                    self.totalpop = totalpop
+            else:
+                self.add_var(var, marges[var], source = source)
 
     def get_name_label_dict(self, variables_list):
         '''
@@ -694,33 +670,29 @@ class CalibrationWidget(QDockWidget):
         varnames = {}
         for varname in variables_list:
             keep = True
-            try:
+            if self.inputs.description.has_col(varname):
                 varcol = self.inputs.description.get_col(varname)
-            except:
-                try:
-                    varcol = self.population.description.get_col(varname)
-                except:                
-                    print "Variable %s is absent from both inputs and outputs" %varname
-                    keep = False
+            elif self.population.description.has_col(varname):
+                varcol = self.population.description.get_col(varname)
+            else:
+                print "Variable %s is absent from both inputs and outputs" %varname
+                keep = False
 
             if keep:
                 if varcol.label:
-                    varnames[_fromUtf8(varcol.label)] = varname
+                    varnames[varcol.label] = varname
                 else:
-                    varnames[_fromUtf8(varname)] = varname
+                    varnames[varname] = varname
             
         return varnames
     
     
     def get_var_datatable(self, varname):
-            try:
-                varcol = self.inputs.description.get_col(varname)
-                return 'inputs'
-            except:
-                try:
-                    varcol = self.population.description.get_col(varname)
-                    return 'population'
-                except:                
-                    print "Variable %s is absent from both inputs and outputs" %varname
-                    return None
+        if self.inputs.description.has_col(varname):
+            return 'inputs'
+        elif self.population.description.has_col(varname):
+            return 'population'
+        else:
+            print "Variable %s is absent from both inputs and outputs" %varname
+            return None
             
