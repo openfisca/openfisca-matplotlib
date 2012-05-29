@@ -18,5 +18,9 @@
     <file>images/list-remove.png</file>
     <file>images/logo1.png</file>
     <file>images/splash.png</file>
+    <file>images/scale22.png</file>
+    <file>images/calculator_red.png</file>
+    <file>images/calculator_green.png</file>
+    <file>images/calculator_blue.png</file>
   </qresource>
 </RCC>
