@@ -28,7 +28,7 @@ import matplotlib
 import os
 
 myDataFiles = matplotlib.get_py2exe_datafiles()
-myDataFiles.append(("data",["data/param.xml", "data/totaux.xml"]))
+myDataFiles.append(("data",["data/param.xml",  "data/code_apl", "data/totaux.xml"]))
 for f in os.listdir('castypes'):
     myDataFiles.append(('castypes', ['castypes/' + f]))
 for f in os.listdir('reformes'):
