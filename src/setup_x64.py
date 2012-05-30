@@ -40,6 +40,6 @@ setup(windows=[{
                 "script" : "openFisca.pyw"
                 }], 
       options={"py2exe" : {"includes" : ["sip", "encodings.*", "numpy.*"],
-                           "dist_dir": "C:/users/utilisateur/documents/OpenFisca %s" % VERSION,
-                           "bundle_files":1}}, 
+                           "dist_dir": "C:/users/utilisateur/documents/OpenFisca-%s-x64" % VERSION,
+                           "bundle_files":3}}, 
       data_files=myDataFiles)
