@@ -97,7 +97,7 @@ class CalibrationWidget(QDialog):
                                         icon = "view-refresh.png")
 
         calibrate_btn = self.add_toolbar_btn(tooltip = u"Lancer le calage",
-                                             icon = "view-refresh.png")
+                                             icon = "calculator_red.png")
 
         
         toolbar_btns = [save_btn, open_btn, add_var_btn, rmv_var_btn, rst_var_btn, calibrate_btn]
