@@ -230,7 +230,7 @@ class MainWindow(QMainWindow):
             # liberate some memory before loading new data
             self.reset_aggregate()
             gc.collect()
-            fname = CONF.get('paths', 'survey_data_file')
+            fname = CONF.get('paths', 'survey_data/file')
             self.survey = DataTable(InputTable, survey_data = fname)
             self._dataframe_widget.set_dataframe(self.survey.table)
             return True
@@ -244,8 +244,9 @@ class MainWindow(QMainWindow):
             QApplication.restoreOverrideCursor()
         
     def enable_aggregate(self, val = True):
+        survey_enabled = CONF.get('paths', 'survey_data/survey_enabled')
         loaded = False
-        if val:
+        if val and survey_enabled:
             loaded = self.load_survey_data()
 
         if loaded:
@@ -255,6 +256,7 @@ class MainWindow(QMainWindow):
             self._aggregate_output.show()
             self._dataframe_widget.show()
             self.action_refresh_aggregate.setEnabled(True)
+            self.action_calibrate.setEnabled(True)
         else:
             self.switch_bareme_only()
 
