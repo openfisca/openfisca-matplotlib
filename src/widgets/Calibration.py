@@ -233,20 +233,24 @@ class CalibrationWidget(QDialog):
             datatable_name = self.get_var_datatable(varname)
             target = None
             if source=='input' and self.input_margins_df:
-                print 'hi 1'
                 index = self.input_margins_df.index
                 indices = [ (var, mod)  for (var, mod) in index if var==varname ]
                 target_df = (self.input_margins_df['target'][indices]).reset_index()
                 target = dict(zip(target_df['mod'] ,target_df['target']))
-            elif datatable_name =='outputs':
-                varcol = self.outputs.description.get_col(varname)
-                if varcol.__class__ not in MODCOLS:
-                    val, ok = QInputDialog.getDouble(self.parent(), "Valeur de la  marge (en millions d'euros)", unicode(varlabel))
-                    insertion = ok
+            else:
+                if datatable_name =='outputs':
+                    varcol = self.outputs.description.get_col(varname)
+                elif datatable_name =='inputs':
+                    varcol = self.inputs.description.get_col(varname) 
+                
+                    if varcol.__class__ not in MODCOLS:
+                        val, ok = QInputDialog.getDouble(self.parent(), "Valeur de la  marge", unicode(varlabel) + "  (millions d'euros)")
+                        insertion = ok
                     if insertion:
                         target = {str(varname): val*1e6}
-            self.add_var2(varname, target = target, source=source)
-            self.param_or_margins_changed()
+            if target:
+                self.add_var2(varname, target = target, source=source)
+                self.param_or_margins_changed()
         
     def rmv_var(self):
         '''
@@ -366,8 +370,6 @@ class CalibrationWidget(QDialog):
         label = varcol.label
         # TODO: rewrite this using pivot table
         items = [ ('marge'    , w  ), ('marge initiale' , w_init )]        
-
-
         if varcol.__class__  in MODCOLS:
             items.append(('mod',   value))
             df = DataFrame.from_items(items)
@@ -433,6 +435,7 @@ class CalibrationWidget(QDialog):
             self.frame = concat([self.frame, res])
         
         self.frame = self.frame.reset_index(drop=True)
+
              
     def set_param(self):
         '''
@@ -470,7 +473,7 @@ class CalibrationWidget(QDialog):
         p['use_proportions'] = True
         p['pondini']  = 'wprm_init'
         return p
-    
+
 
     def build_calmar_data(self, marges, weights_in):
         data = {weights_in: self.weights_init}
@@ -485,6 +488,7 @@ class CalibrationWidget(QDialog):
                         people = [x[1] for x in enum]
                         data[var] = self.outputs.get_value(var, index=idx, opt=people, sum_=True)        
         return data
+
     
     def update_weights(self, marges, param = {}, weights_in='wprm_init'):
         '''
@@ -497,7 +501,6 @@ class CalibrationWidget(QDialog):
             raise Exception("Calmar returned error '%s'" % e)
 
         self.weights = val_pondfin
-
         return marge_new    
     
     def calibrate(self):

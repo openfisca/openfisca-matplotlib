@@ -27,6 +27,7 @@ encoding//src/parametres/paramData.py=utf-8
 encoding//src/parametres/paramModel.py=utf-8
 encoding//src/resources_rc.py=utf-8
 encoding//src/setup.py=utf-8
+encoding//src/setup_x64.py=utf-8
 encoding//src/views/ui_composition.py=utf-8
 encoding//src/views/ui_graph.py=utf-8
 encoding//src/views/ui_logement.py=utf-8
