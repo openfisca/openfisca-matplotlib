@@ -29,7 +29,7 @@ import matplotlib
 import os
 
 myDataFiles = matplotlib.get_py2exe_datafiles()
-myDataFiles.append(("data",["data/param.xml",  "data/code_apl", "data/totaux.xml", "data/final.csv", "data/calage_men.csv", "data/calge_pfam.csv"]))
+myDataFiles.append(("data",["data/param.xml",  "data/code_apl", "data/totaux.xml", "data/calage_men.csv", "data/calage_pfam.csv"]))
 for f in os.listdir('castypes'):
     myDataFiles.append(('castypes', ['castypes/' + f]))
 for f in os.listdir('reformes'):
@@ -41,5 +41,7 @@ setup(windows=[{
                 }], 
       options={"py2exe" : {"includes" : ["sip", "encodings.*", "numpy.*"],
                            "dist_dir": "C:/users/utilisateur/documents/OpenFisca-%s-x64" % VERSION,
-                           "bundle_files":3}}, 
+                           "bundle_files":3,
+                           "dll_excludes": ["MSVCP90.dll"]
+                           }}, 
       data_files=myDataFiles)

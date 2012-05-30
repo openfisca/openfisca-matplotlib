@@ -243,10 +243,10 @@ class CalibrationWidget(QDialog):
                 elif datatable_name =='inputs':
                     varcol = self.inputs.description.get_col(varname) 
                 
-                    if varcol.__class__ not in MODCOLS:
+                if varcol.__class__ not in MODCOLS:
                         val, ok = QInputDialog.getDouble(self.parent(), "Valeur de la  marge", unicode(varlabel) + "  (millions d'euros)")
                         insertion = ok
-                    if insertion:
+                if insertion:
                         target = {str(varname): val*1e6}
             if target:
                 self.add_var2(varname, target = target, source=source)
@@ -570,6 +570,8 @@ class CalibrationWidget(QDialog):
         with open(filename) as f_tot:
             totals = read_csv(f_tot,index_col = (0,1))
 
+        if year not in totals:
+            return
         marges = {}
         if source == 'input':
             self.input_margins_df = DataFrame({'target':totals[year]})
