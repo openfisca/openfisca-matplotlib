@@ -248,6 +248,7 @@ class CalibrationWidget(QDialog):
                         insertion = ok
                 if insertion:
                         target = {str(varname): val*1e6}
+           
             if target:
                 self.add_var2(varname, target = target, source=source)
                 self.param_or_margins_changed()
@@ -566,10 +567,13 @@ class CalibrationWidget(QDialog):
         self.mplwidget.draw()
         
     def set_margins_from_file(self, filename, year, source):
-
+        '''
+        Sets margins for inputs variable from file
+        '''
         with open(filename) as f_tot:
             totals = read_csv(f_tot,index_col = (0,1))
 
+        # if data for the configured year is not availbale leave margins empty
         if year not in totals:
             return
         marges = {}
