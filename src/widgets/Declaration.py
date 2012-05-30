@@ -24,17 +24,19 @@ This file is part of openFisca.
 from views import ui_declaration, ui_page01, ui_page02, ui_page03, ui_page04, ui_page05, ui_page06, ui_page07, ui_page08, ui_page_isf
 from PyQt4.QtCore import Qt, SIGNAL, QSize
 from PyQt4.QtGui import QWidget, QDialog, QCheckBox, QSpinBox, QLabel, QStackedWidget, QListWidgetItem
-    
+from core.qthelpers import OfSs    
+
 class Declaration(QDialog, ui_declaration.Ui_Declaration):
     def __init__(self, parent, noi):
         super(Declaration, self).__init__(parent)
         self.setupUi(self)
+        self.setStyleSheet(OfSs.declaration_page_style)
         self.noidec = noi
         self.parent = parent
         self.scenario = parent.scenario
 
 
-        self.pages_widget = QStackedWidget()
+        self.pages_widget = QStackedWidget(self)
         self.connect(self.pages_widget, SIGNAL("currentChanged(int)"), self.current_page_changed)
         self.connect(self.contents_widget, SIGNAL("currentRowChanged(int)"), self.pages_widget.setCurrentIndex)
                 
