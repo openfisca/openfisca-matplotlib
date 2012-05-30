@@ -163,6 +163,7 @@ class MainWindow(QMainWindow):
         self.connect(self._parametres, SIGNAL('changed()'), self.changed_param)
         self.connect(self._aggregate_output, SIGNAL('calculated()'), self.calculated)
         self.connect(self, SIGNAL('weights_changed()'), self.refresh_aggregate)
+        self.connect(self, SIGNAL('bareme_only()'), self.switch_bareme_only)
         
         # Window settings
         self.splash.showMessage("Restoring settings...", Qt.AlignBottom | Qt.AlignCenter | 
@@ -237,6 +238,7 @@ class MainWindow(QMainWindow):
             self.aggregate_enabled = False
             QMessageBox.warning(self, u"Impossible de lire les données", 
                                 u"OpenFisca n'a pas réussi à lire les données d'enquête et passe en mode barème. L'erreur suivante a été renvoyé:\n%s\n\nVous pouvez charger des nouvelles données d'enquête dans Fichier>Paramètres>Chemins>Données d'enquête"%e)
+            self.emit(SIGNAL('baremeOnly()'))
             return False
         finally:
             QApplication.restoreOverrideCursor()
@@ -254,11 +256,15 @@ class MainWindow(QMainWindow):
             self._dataframe_widget.show()
             self.action_refresh_aggregate.setEnabled(True)
         else:
+            self.switch_bareme_only()
+
+    def switch_bareme_only(self):
             self.aggregate_enabled = False
             self._aggregate_output.setEnabled(False)
             self._aggregate_output.hide()
             self._dataframe_widget.hide()
             self.action_refresh_aggregate.setEnabled(False)
+            self.action_calibrate.setEnabled(False)
 
     def reset_aggregate(self):
         '''
