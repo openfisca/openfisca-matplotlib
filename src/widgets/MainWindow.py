@@ -232,6 +232,7 @@ class MainWindow(QMainWindow):
             gc.collect()
             fname = CONF.get('paths', 'survey_data/file')
             self.survey = DataTable(InputTable, survey_data = fname)
+#            self.survey.inflate() to be activated when data/calage.csv is fixed
             self._dataframe_widget.set_dataframe(self.survey.table)
             return True
         except Exception, e:
