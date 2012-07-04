@@ -29,6 +29,8 @@ from PyQt4.QtGui import (QLabel, QDialog, QHBoxLayout, QVBoxLayout, QPushButton,
                          QSpinBox, QDoubleSpinBox, QCheckBox, QInputDialog, QFileDialog, 
                          QMessageBox, QApplication, QCursor, QSpacerItem, QSizePolicy,
                          QDialogButtonBox)
+from numpy import logical_and, isnan
+from pandas import read_csv, DataFrame, concat
 from Config import CONF
 from core.qthelpers import DataFrameViewWidget, get_icon, _fromUtf8
 
@@ -40,6 +42,7 @@ class InflationWidget(QDialog):
 
 
         self.targets_df = None
+        self.frame = None
 
         self.setWindowTitle("Inflation")
         self.setObjectName("Inflation")
@@ -67,6 +70,8 @@ class InflationWidget(QDialog):
         verticalLayout = QVBoxLayout(self)
         verticalLayout.addLayout(toolbar_lyt)
         
+        verticalLayout.addWidget(self.view)
+        
         button_box = QDialogButtonBox(QDialogButtonBox.Cancel| QDialogButtonBox.Ok, parent = self)
         verticalLayout.addWidget(button_box)
 
@@ -77,7 +82,34 @@ class InflationWidget(QDialog):
         self.connect(button_box, SIGNAL('accepted()'), self.accept);
         self.connect(button_box, SIGNAL('rejected()'), self.reject);
 
+        self.set_inputs(inputs)
+        self.set_targets_from_file()
 
+    
+    @property
+    def frame_vars_list(self):
+        '''
+        List of the variables appearing in the frame (and the dataframe)
+        '''
+        if self.frame:
+            df = self.frame
+            if 'var' in df.columns: 
+                return list(df['var'])
+        else:
+            return []
+    
+    @property
+    def target_vars_list(self):
+        '''
+        List of the variables appearing in the targets dataframe
+        '''
+        if self.targets_df:
+            df = self.targets_df 
+            return list((df.index))
+        else:
+            return []
+        
+    
     def add_toolbar_btn(self, tooltip = None, icon = None):
         btn = QPushButton(self)
         if tooltip:
@@ -90,125 +122,146 @@ class InflationWidget(QDialog):
 
     def set_inputs(self, inputs):
         self.inputs = inputs
-        
-    def set_inputs_targets_from_file(self, filename = None, year = None):
+        self.unit = 'ind'
+        self.weights = 1*self.inputs.get_value("wprm", inputs.index[self.unit])
+
+    def set_targets_from_file(self, filename = None, year = None):
         if year is None:
             year     = str(CONF.get('simulation','datesim').year)
         if filename is None:
-            fname    = CONF.get('calibration','inflation_filename')
+            fname = 'inflate.csv'
+            #fname    = CONF.get('calibration','inflation_filename')
             data_dir = CONF.get('paths', 'data_dir')
             filename = os.path.join(data_dir, fname)
+        with open(filename) as f_tot:
+            totals = read_csv(f_tot)
+        if year in totals:
+            if self.targets_df is None:
+                self.targets_df = DataFrame(data = {"var" : totals["var"],
+                              "cible" : totals[year]  } )
+                
+                condition = logical_and(self.targets_df["var"].isin(set(self.inputs.description.col_names)), 
+                                        (self.targets_df["cible"] > 0)) 
+                self.targets_df = self.targets_df[condition]
+                self.targets_df = self.targets_df.set_index("var")
+                df = self.targets_df
+                self.targets_df['total initial'] = 0
+
+            for varname in self.targets_df.index:
+                target = df.get_value(varname, "cible")
+                self.add_var2(varname, target=target)
             
-    
-    
-    
-    def add_var(self, target= None):
+        self.inflation_targets_changed()
+
+    def inflate(self):
+        '''
+        Inflate the displayed variables 
+        '''
+        table = self.inputs.table
+        df = self.targets_df
+        
+        for varname in self.frame_vars_list:
+            self.rmv_var(varname)
+            target = df.get_value(varname, "cible") 
+            if varname in table:
+                x = sum(table[varname]*table['wprm'])/target                    
+                if x>0:
+                    self.add_var2(varname, target=target, inflator = 1.0/x)
+            self.inflated()
+
+    def add_var(self):
         '''
         Adds a variable to the targets
         '''
-        variables_list = self.targets["var"]
+        # variables_list = sorted(list(set(self.inputs.description.col_names)-set(self.frame_vars_list)))
+        variables_list = sorted(list(set(self.target_vars_list)-set(self.frame_vars_list)))
         varnames = self.get_name_label_dict(variables_list) # {varname: varlabel}
         
-        varlabel, ok = QInputDialog.getItem(self.parent(), "Ajouter une variable", "Nom de la variable", 
-                                           sorted(varnames.keys()))
+        if varnames:
+            varlabel, ok = QInputDialog.getItem(self.parent(), "Ajouter une variable", "Nom de la variable", 
+                                       sorted(varnames.keys()))
+        else:
+            QMessageBox.critical(self, "Erreur", u"Toutes les variables sont déja présentes dans la table" ,
+                QMessageBox.Ok, QMessageBox.NoButton)
+            return
         
         insertion = ok and not(varlabel.isEmpty()) and (varlabel in sorted(varnames.keys()))
         if insertion:
             varname = varnames[varlabel]
             #varcol = self.inputs.description.get_col(varname) 
-            
-            if target:
-                self.add_var2(varname, target = target)
-                self.inflation_targets_changed() # targets_changed
+            df = self.targets_df
+            target = df.get_value(varname, "cible")
+            self.add_var2(varname, target = target)
+            self.inflation_targets_changed() # targets_changed
     
-    def add_var2(self, varname, target=None):
+    def add_var2(self, varname, target=None, inflator = None):
         '''
         Add a variable in the dataframe
         '''
-        w_init = self.weights_init
         w = self.weights
 
-        varcol = self.get_col(varname)
+        varcol = self.inputs.description.get_col(varname)
         idx = self.inputs.index[self.unit]
-        enum = self.inputs.description.get_col('qui'+self.unit).enum
-        people = [x[1] for x in enum]
-
-
         value = self.inputs.get_value(varname, index = idx)
-        
+            
         label = varcol.label
-        # TODO: rewrite this using pivot table
-        items = [ ('marge'    , w  ), ('marge initiale' , w_init )]        
-        if varcol.__class__  in MODCOLS:
-            items.append(('mod',   value))
-            df = DataFrame.from_items(items)
-            res = df.groupby('mod', sort= True).sum()
-        else:
-            res = DataFrame(index = ['total'], 
-                            data = {'marge' : (value*w).sum(),
-                                    'marge initiale' : (value*w_init).sum()  } )
-        res.insert(0, u"modalités",u"")
-        res.insert(2, "cible", 0)
-        res.insert(2, u"cible ajustée", 0)
-        res.insert(4, "source", source)
-        mods = res.index
-    
-        if target is not None:
-            if len(mods) != len(target.keys()):
-                print 'Problem with variable : ', varname
-                print len(target.keys()), ' target keys for ', len(mods), ' modalities' 
-                print 'Skipping the variable'
-                drop_indices = [ (varname, mod) for mod in target.keys()]
-                if source == 'input':                    
-                    self.input_margins_df = self.input_margins_df.drop(drop_indices)
-                    self.input_margins_df.index.names = ['var','mod']
-                if source == 'output':
-                    self.output_margins_df = self.output_margins_df.drop(drop_indices)
-                    self.output_margins_df.index.names = ['var','mod']
-                return
-
-        if isinstance(varcol, EnumCol):
-            if varcol.enum:
-                enum = varcol.enum
-                res[u'modalités'] = [enum._vars[mod] for mod in mods]
-                res['mod'] = mods
-            else:
-                res[u'modalités'] = [mod for mod in mods]
-                res['mod'] = mods
-        elif isinstance(varcol, BoolCol) or isinstance(varcol, BoolPresta):
-            res[u'modalités'] = bool(mods)
-            res['mod']        = mods
-        elif isinstance(varcol, AgesCol):
-            res[u'modalités'] = mods
-            res['mod'] = mods
-        else:
-            res[u'modalités'] = "total"
-            res['mod']  = 0
-
+        res = DataFrame(index = [varname], data = {'var'   : varname})
+        total = (value*w).sum()
+        res['total initial'] = total
+        
+        if inflator is None:
+            self.targets_df.set_value(varname, 'total initial', total)
+            inflator = 1
+        
+        res['inflateur'] = 100*inflator
+        res[u'total inflaté'] = inflator*total
+        
         if label is not None:
             res['variable'] = label
         else:
             res['variable'] = varname
-        res['var'] = varname
 
-        if target is not None: 
-            for mod, margin in target.iteritems():
-                if mod == varname:    # dirty to deal with non catgorical data
-                    res['cible'][0] = margin
-                else:
-                    res['cible'][mod] = margin     
+        if target is not None:
+            res['cible'] = target     
+                        
                         
         if self.frame is None:
             self.frame = res
         else: 
             self.frame = concat([self.frame, res])
-        
-        self.frame = self.frame.reset_index(drop=True)
 
+        
+        
+    def rmv_var(self, varname = None):
+        '''
+        Removes variable from the frame
+        '''
+        if varname is None:
+            vars_in_table = self.frame_vars_list
+            varnames = self.get_name_label_dict(vars_in_table)        
+            varlabel, ok = QInputDialog.getItem(self.parent(), "Retirer une variable", "Nom de la variable", 
+                                           sorted(varnames.keys()))
+            varname = varnames[varlabel]
+            deletion = ok and not(varlabel.isEmpty())
+        else:
+            if varname in self.frame['var']:
+                deletion = True
+        if deletion:
+            df =  self.frame
+            cleaned = df[df['var'] != varname]
+            self.frame = cleaned 
+        self.inflation_targets_changed()
     
+    def rst_var(self):
+        '''
+        Removes all variables from the margins
+        '''
+        self.frame = None
+        self.update_view()
     
-    
-                
+    def inflated(self):
+        self.update_view()
+        self.emit(SIGNAL('inflated()'))
                 
     def inflation_targets_changed(self):
         self.update_view()
@@ -218,12 +271,9 @@ class InflationWidget(QDialog):
         self.view.clear()
         if self.frame is not None:
             df = self.frame.reset_index(drop=True)
-            df_view = df[ ["var", "total (poids initiaux)", "total (poids calibrés)", "cible", "variable" ]]            
+            df_view = df[ ["var", "cible", "total initial", u"total inflaté", "inflateur", "variable"]]
             self.view.set_dataframe(df_view)
         self.view.reset()
-        
-        
-                
 
     def get_name_label_dict(self, variables_list):
         '''
@@ -241,3 +291,18 @@ class InflationWidget(QDialog):
         return varnames
     
     
+    def accept(self):
+        '''
+        Updates inputs weights and close dialog
+        '''
+        for varname in self.frame_vars_list:
+            table = self.inputs.table
+            target = self.frame.get_value(varname, "cible") 
+            if varname in table:
+                x = sum(table[varname]*table['wprm'])/target                    
+                if x>0:
+                    table[varname] = table[varname]/x
+
+        self.parent().emit(SIGNAL('inflated()'))
+
+        QDialog.accept(self)

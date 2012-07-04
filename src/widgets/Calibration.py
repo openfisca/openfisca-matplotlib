@@ -349,7 +349,8 @@ class CalibrationWidget(QDialog):
             df = self.frame.reset_index(drop=True)
             df_view = df[ ["var", u"modalités", "cible", u"cible ajustée", "marge", "marge initiale", "variable" ]]            
             self.view.set_dataframe(df_view)
-        self.view.reset()    
+        self.view.reset()
+        self.plotWeightsRatios()   
                                         
     def add_var2(self, varname, target=None, source = 'free'):
         '''
@@ -508,6 +509,10 @@ class CalibrationWidget(QDialog):
         '''
         Calibrate accoding to margins found in frame
         '''
+        if self.frame is None:
+            self.update_view()
+            return
+        
         df = self.frame
         inputs = self.inputs
         margins = {}
@@ -555,7 +560,7 @@ class CalibrationWidget(QDialog):
         
         self.frame = df.reset_index()
         self.update_view()
-        self.plotWeightsRatios()
+
                     
     def plotWeightsRatios(self):
         ax = self.mplwidget.axes
