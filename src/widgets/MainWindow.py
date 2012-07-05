@@ -166,6 +166,7 @@ class MainWindow(QMainWindow):
         self.connect(self._parametres, SIGNAL('changed()'), self.changed_param)
         self.connect(self._aggregate_output, SIGNAL('calculated()'), self.calculated)
         self.connect(self, SIGNAL('weights_changed()'), self.refresh_aggregate)
+        self.connect(self, SIGNAL('inflated()'), self.refresh_aggregate)
         self.connect(self, SIGNAL('bareme_only()'), self.switch_bareme_only)
         
         # Window settings
