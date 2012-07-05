@@ -121,11 +121,18 @@ class InflationWidget(QDialog):
         return btn
 
     def set_inputs(self, inputs):
+        '''
+        Sets inputs datatable
+        '''
         self.inputs = inputs
         self.unit = 'ind'
         self.weights = 1*self.inputs.get_value("wprm", inputs.index[self.unit])
 
     def set_targets_from_file(self, filename = None, year = None):
+        '''
+        Loads targets from file and display them in the frame
+        '''
+        
         if year is None:
             year     = str(CONF.get('simulation','datesim').year)
         if filename is None:
@@ -155,7 +162,7 @@ class InflationWidget(QDialog):
 
     def inflate(self):
         '''
-        Inflate the displayed variables 
+        Computest inflators for the displayed variables 
         '''
         table = self.inputs.table
         df = self.targets_df
@@ -196,7 +203,7 @@ class InflationWidget(QDialog):
     
     def add_var2(self, varname, target=None, inflator = None):
         '''
-        Add a variable in the dataframe
+        Add a variable in the displayed frame
         '''
         w = self.weights
 
@@ -230,7 +237,6 @@ class InflationWidget(QDialog):
         else: 
             self.frame = concat([self.frame, res])
 
-        
         
     def rmv_var(self, varname = None):
         '''
@@ -268,6 +274,9 @@ class InflationWidget(QDialog):
         self.emit(SIGNAL('inflation_targets_changed()'))
                 
     def update_view(self):
+        '''
+        Update the displayed dataframe view
+        '''
         self.view.clear()
         if self.frame is not None:
             df = self.frame.reset_index(drop=True)
@@ -293,7 +302,7 @@ class InflationWidget(QDialog):
     
     def accept(self):
         '''
-        Updates inputs weights and close dialog
+        Updates inputs variables and close dialog
         '''
         for varname in self.frame_vars_list:
             table = self.inputs.table

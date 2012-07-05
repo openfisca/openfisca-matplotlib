@@ -152,10 +152,7 @@ class CalibrationWidget(QDialog):
         self.set_inputs(inputs)                
         self.init_param()
         self.set_inputs_margins_from_file()
-
         self.outputs = outputs
-    
-    
     
     def add_toolbar_btn(self, tooltip = None, icon = None):
         btn = QPushButton(self)
