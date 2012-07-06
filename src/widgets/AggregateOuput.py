@@ -20,12 +20,15 @@ This file is part of openFisca.
     You should have received a copy of the GNU General Public License
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
+
+import numpy as np
+from pandas import DataFrame, read_csv
+import os 
 from PyQt4.QtGui import (QWidget, QDockWidget, QLabel, QVBoxLayout, QHBoxLayout, QComboBox,
                          QSpacerItem, QSizePolicy, QApplication, QCursor)
 from PyQt4.QtCore import SIGNAL, Qt
+from Config import CONF
 from core.qthelpers import OfSs, DataFrameViewWidget
-import numpy as np
-from pandas import DataFrame
 from core.qthelpers import MyComboBox
 from core.columns import EnumCol
 
@@ -56,6 +59,9 @@ class AggregateOutputWidget(QDockWidget):
         self.dockWidgetContents = QWidget()
         
         agg_label = QLabel(u"Résultat aggregé de la simulation", self.dockWidgetContents)
+
+        self.totals_df = None
+        
         self.aggregate_view = DataFrameViewWidget(self.dockWidgetContents)
 
 
@@ -79,6 +85,8 @@ class AggregateOutputWidget(QDockWidget):
         verticalLayout.addWidget(self.distribution_view)
         self.setWidget(self.dockWidgetContents)
 
+        self.load_totals_from_file()
+        
         # Initialize attributes
         self.parent = parent
         self.varlist = ['irpp', 'ppe', 'af', 'cf', 'ars', 'aeeh', 'asf', 'aspa', 'aah', 'caah', 'rsa', 'aefa', 'api', 'logt']
@@ -154,17 +162,29 @@ class AggregateOutputWidget(QDockWidget):
         V = []
         M = []
         B = []
+        T = []            # Totals de l'année 
         for var in self.varlist:
             montant, benef = self.get_aggregate(var)
             V.append(var)
             M.append(montant)
             B.append(benef)
+            if var in self.totals_df.index:
+                T.append(self.totals_df.get_value(var, "total"))
+            else:
+                T.append("n.d.")
+        
         
         items = [(u'Mesure', V), 
                  (u"Dépense\n(millions d'€)", M), 
                  (u"Bénéficiaires\n(milliers de ménages)", B)]
+        
+        if True:
+            items.append((u"Dépenses réelles\n(millions d'€)", T))
+        
         aggr_frame = DataFrame.from_items(items)
         self.aggregate_view.set_dataframe(aggr_frame)
+
+
 
         dist_frame = self.group_by(['revdisp', 'nivvie'], by_var)
         by_var_label = self.var2label[by_var]
@@ -213,3 +233,27 @@ class AggregateOutputWidget(QDockWidget):
         self.data = None
         self.wght = None
             
+    def load_totals_from_file(self, filenames=None, year=None):
+        '''
+        Loads totals from files
+        '''
+        if year is None:
+            year     = str(CONF.get('simulation','datesim').year)
+        if filenames is None:
+            data_dir = CONF.get('paths', 'data_dir')
+            fname = "totals_pfam.csv"
+            filename = os.path.join(data_dir, fname)
+            filenames = [filename]
+            #fname    = CONF.get('calibration','inflation_filename')
+        
+        print filenames
+        for fname in filenames:
+            with open(fname) as f_tot:
+                totals = read_csv(f_tot)
+            if year in totals:
+                if self.totals_df is None:
+                    self.totals_df = DataFrame(data = {"var" : totals["var"],
+                              "total" : totals[year]  } )
+                    self.totals_df = self.totals_df.set_index("var")
+            
+        print self.totals_df

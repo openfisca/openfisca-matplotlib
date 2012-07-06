@@ -388,6 +388,10 @@ class CalibrationWidget(QDialog):
             if len(mods) != len(target.keys()):
                 print 'Problem with variable : ', varname
                 print len(target.keys()), ' target keys for ', len(mods), ' modalities' 
+                print "modalities"
+                print mods
+                print "targets"
+                print target.keys()
                 print 'Skipping the variable'
                 drop_indices = [ (varname, mod) for mod in target.keys()]
                 if source == 'input':                    
