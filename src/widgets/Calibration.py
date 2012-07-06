@@ -24,7 +24,7 @@ This file is part of openFisca.
 from __future__ import division
 
 import os
-
+from numpy import logical_not
 from pandas import read_csv, DataFrame, concat
 
 from PyQt4.QtCore import SIGNAL, Qt, QSize 
@@ -180,8 +180,9 @@ class CalibrationWidget(QDialog):
         self.unit = 'men'
         self.weights = 1*self.inputs.get_value("wprm", inputs.index[self.unit])
         self.weights_init = self.inputs.get_value("wprm_init", inputs.index[self.unit])
+        self.champm =  self.inputs.get_value("champm", self.inputs.index[self.unit])
         
-        self.ini_totalpop = sum(self.weights_init)
+        self.ini_totalpop = sum(self.weights_init*self.champm)
         label_str = u"Population initiale totale :" + str(int(round(self.ini_totalpop))) + u" ménages"
         self.ini_totalpop_label.setText(label_str)
 
@@ -353,8 +354,8 @@ class CalibrationWidget(QDialog):
         '''
         Add a variable in the dataframe
         '''
-        w_init = self.weights_init
-        w = self.weights
+        w_init = self.weights_init*self.champm
+        w = self.weights*self.champm
 
         varcol = self.get_col(varname)
         idx = self.inputs.index[self.unit]
@@ -475,7 +476,13 @@ class CalibrationWidget(QDialog):
 
 
     def build_calmar_data(self, marges, weights_in):
-        data = {weights_in: self.weights_init}
+        '''
+        Builds the data dictionnary used as calmar input argument
+        '''
+        
+        # Select only champm ménages by nullifying weght for irrelevant ménages
+        
+        data = {weights_in: self.weights_init*self.champm}
         for var in marges:
             if self.inputs.description.has_col(var):
                 data[var] = self.inputs.get_value(var, self.inputs.index[self.unit])
@@ -499,7 +506,8 @@ class CalibrationWidget(QDialog):
         except Exception, e:
             raise Exception("Calmar returned error '%s'" % e)
 
-        self.weights = val_pondfin
+        # Updating only champm weights
+        self.weights = val_pondfin*self.champm + self.weights*(logical_not(self.champm))
         return marge_new    
     
     def calibrate(self):

@@ -308,7 +308,7 @@ class InflationWidget(QDialog):
             table = self.inputs.table
             target = self.frame.get_value(varname, "cible") 
             if varname in table:
-                x = sum(table[varname]*table['wprm'])/target                    
+                x = sum(table[varname]*table['wprm'])/target                   
                 if x>0:
                     table[varname] = table[varname]/x
 
