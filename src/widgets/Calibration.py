@@ -369,9 +369,9 @@ class CalibrationWidget(QDialog):
 
         label = varcol.label
         # TODO: rewrite this using pivot table
-        items = [ ('marge'    , w  ), ('marge initiale' , w_init )]        
+        items = [ ('marge'    , w[self.champm]  ), ('marge initiale' , w_init[self.champm] )]        
         if varcol.__class__  in MODCOLS:
-            items.append(('mod',   value))
+            items.append(('mod',   value[self.champm]))
             df = DataFrame.from_items(items)
             res = df.groupby('mod', sort= True).sum()
         else:
