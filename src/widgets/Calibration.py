@@ -24,7 +24,7 @@ This file is part of openFisca.
 from __future__ import division
 
 import os
-from numpy import logical_not
+from numpy import logical_not, unique
 from pandas import read_csv, DataFrame, concat
 
 from PyQt4.QtCore import SIGNAL, Qt, QSize 
@@ -35,10 +35,10 @@ from PyQt4.QtGui import (QLabel, QDialog, QHBoxLayout, QVBoxLayout, QPushButton,
 from core.qthelpers import MyComboBox, MySpinBox, MyDoubleSpinBox, DataFrameViewWidget, _fromUtf8, get_icon
 from widgets.matplotlibwidget import MatplotlibWidget
 from Config import CONF
-from core.columns import EnumCol, BoolCol, AgesCol, DateCol, BoolPresta
+from core.columns import EnumCol, BoolCol, AgesCol, DateCol, BoolPresta, IntPresta
 from core.calmar import calmar
 
-MODCOLS = [EnumCol, BoolCol, BoolPresta, AgesCol, DateCol]
+MODCOLS = [EnumCol, BoolCol, BoolPresta, IntPresta, AgesCol, DateCol]
 
 class CalibrationWidget(QDialog):
     def __init__(self,  inputs, outputs = None, parent = None):
@@ -243,10 +243,24 @@ class CalibrationWidget(QDialog):
                 
                 if varcol.__class__ not in MODCOLS:
                         val, ok = QInputDialog.getDouble(self.parent(), "Valeur de la  marge", unicode(varlabel) + "  (millions d'euros)")
-                        insertion = ok
-                if insertion:
-                        target = {str(varname): val*1e6}
-           
+                        if ok:
+                            target = {str(varname): val*1e6}
+                else:
+                    if datatable_name =='outputs':
+                        idx = self.outputs.index[self.unit]
+                        unique_values = unique(self.outputs.get_value(varname, idx))
+                    elif datatable_name =='inputs':
+                        idx = self.inputs.index[self.unit]
+                        unique_values = unique(self.inputs.get_value(varname, idx))
+                    target = {}
+                    
+                    for mod in unique_values:
+                        val, ok = QInputDialog.getDouble(self.parent(), "Valeur de la  marge", unicode(varlabel) + u" pour la modalité " + str(mod) )
+                        if ok:
+                            target[mod] = val
+                        else:
+                            return
+                    
             if target:
                 self.add_var2(varname, target = target, source=source)
                 self.param_or_margins_changed()
@@ -412,6 +426,9 @@ class CalibrationWidget(QDialog):
                 res['mod'] = mods
         elif isinstance(varcol, BoolCol) or isinstance(varcol, BoolPresta):
             res[u'modalités'] = bool(mods)
+            res['mod']        = mods
+        elif isinstance(varcol, IntPresta):
+            res[u'modalités'] = mods
             res['mod']        = mods
         elif isinstance(varcol, AgesCol):
             res[u'modalités'] = mods
