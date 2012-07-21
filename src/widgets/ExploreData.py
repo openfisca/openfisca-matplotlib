@@ -22,9 +22,10 @@ This file is part of openFisca.
 """
 from PyQt4.QtGui import (QWidget, QDockWidget, QLabel, QVBoxLayout, QHBoxLayout, QPushButton,
                          QSpacerItem, QSizePolicy, QApplication, QCursor, QInputDialog)
-from PyQt4.QtCore import SIGNAL, Qt
+from PyQt4.QtCore import SIGNAL, Qt, QVariant
 from core.qthelpers import OfSs, DataFrameViewWidget
 from pandas import DataFrame
+from core.qthelpers import MyComboBox
 from core.columns import EnumCol
 
 
@@ -41,14 +42,18 @@ class ExploreDataWidget(QDockWidget):
 
         self.add_btn = QPushButton(u"Ajouter variable",self.dockWidgetContents)        
         self.remove_btn = QPushButton(u"Retirer variable",self.dockWidgetContents)  
-        self.add_btn.setDisabled(True)
-        self.remove_btn.setDisabled(True)
+        self.datatables_choices = []
+        self.datatable_combo = MyComboBox(self.dockWidgetContents, u'Choix de la table', self.datatables_choices) 
+        
+#        self.add_btn.setDisabled(True)
+#        self.remove_btn.setDisabled(True)
         
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         horizontalLayout = QHBoxLayout()
         horizontalLayout.addWidget(self.add_btn)
         horizontalLayout.addWidget(self.remove_btn)
+        horizontalLayout.addWidget(self.datatable_combo)
         horizontalLayout.addItem(spacerItem)
         self.view = DataFrameViewWidget(self.dockWidgetContents)
 
@@ -61,12 +66,16 @@ class ExploreDataWidget(QDockWidget):
 
         # Initialize attributes
         self.parent = parent
+
         self.selected_vars = set()
-        self.data = DataFrame() # Pandas DataFrame
+        self.data = DataFrame() 
+        self.view_data = None
+        self.dataframes = {}
         self.vars = set()
 
         self.connect(self.add_btn, SIGNAL('clicked()'), self.add_var)
         self.connect(self.remove_btn, SIGNAL('clicked()'), self.remove_var)
+        self.connect(self.datatable_combo.box, SIGNAL('currentIndexChanged(int)'), self.select_data)        
 
         self.update_btns()
 
@@ -75,11 +84,45 @@ class ExploreDataWidget(QDockWidget):
             self.add_btn.setEnabled(True)
         if self.selected_vars:
             self.remove_btn.setEnabled(True)
+            
+    def update_choices(self):
+        box = self.datatable_combo.box
+        box.clear()
+        for name, key in self.datatables_choices:
+            box.addItem(name, QVariant(key))
 
-    def set_dataframe(self, dataframe):
-        self.data = dataframe
+    def select_data(self):
+        widget = self.datatable_combo.box
+        dataframe_name = unicode(widget.itemData(widget.currentIndex()).toString())
+        if dataframe_name: # to deal with the box.clear() 
+            self.set_dataframe(name = dataframe_name)
+        self.update_btns()
+
+    def add_dataframe(self, dataframe, name = None):
+        '''
+        Adds a dataframe to the list of the available dataframe 
+        '''
+        if name == None:
+            name = "dataframe" + len(self.dataframes.keys())
+    
+        if not self.data:
+            self.dataframes = {}
+
+        self.dataframes[name] = dataframe
+        self.datatables_choices.append((name, name))
+        self.update_choices()
+        self.update_btns()
+
+    def set_dataframe(self, dataframe = None, name = None):
+        '''
+        Sets the current dataframe
+        '''
+        if name is not None:
+            self.data = self.dataframes[name]
+        if dataframe is not None:
+            self.data = dataframe
+            
         self.vars = set(self.data.columns)
-        self.selected_vars = set()
         self.update_btns()
 
     def ask(self, remove=False):
@@ -145,7 +188,17 @@ class ExploreDataWidget(QDockWidget):
             return
         
         cols = self.selected_vars
-        df = self.data[list(cols)]
+
+        if self.view_data is None:
+            self.view_data = self.data[list(cols)]
+        
+        new_col = cols - set(self.view_data)
+        if new_col:
+            self.view_data[list(new_col)] = self.data[list(new_col)] 
+            df = self.view_data
+        else:
+            df = self.view_data[list(cols)]
+    
         self.view.set_dataframe(df)
 
 #        by_var_label = self.var2label[by_var]
@@ -163,3 +216,6 @@ class ExploreDataWidget(QDockWidget):
     def clear(self):
         self.view.clear()
         self.data = None
+        self.datatables_choices = []
+        self.dataframes = {}
+        self.update_btns()

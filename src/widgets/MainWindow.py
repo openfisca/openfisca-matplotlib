@@ -245,7 +245,7 @@ class MainWindow(QMainWindow):
             fname = CONF.get('paths', 'survey_data/file')
             self.survey = DataTable(InputTable, survey_data = fname)
 #            self.survey.inflate() #to be activated when data/inflate.csv is fixed
-            self._dataframe_widget.set_dataframe(self.survey.table)
+#            self._dataframe_widget.set_dataframe(self.survey.table)
             return True
         except Exception, e:
             self.aggregate_enabled = False
@@ -384,8 +384,8 @@ class MainWindow(QMainWindow):
         gc.collect()
 
         self.survey_outputs = self.compute_aggregate()
-
-        self._dataframe_widget.set_dataframe(self.survey_outputs.table)
+        self._dataframe_widget.add_dataframe(self.survey.table, name = "input")
+        self._dataframe_widget.add_dataframe(self.survey_outputs.table, name = "output")
         data_courant = gen_aggregate_output(self.survey_outputs)
         self._aggregate_output.update_output(data_courant, self.survey.description)
         
