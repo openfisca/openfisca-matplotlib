@@ -181,8 +181,16 @@ class MainWindow(QMainWindow):
                                 Qt.AlignAbsolute, QColor(Qt.black))
         
         self.enable_aggregate(True)
-        
+
+        self.splash.showMessage("Refreshing bareme...", Qt.AlignBottom | Qt.AlignCenter | 
+                                Qt.AlignAbsolute, QColor(Qt.black))        
         self.refresh_bareme()
+        
+        if self.aggregate_enabled:
+            self.splash.showMessage("Refreshing aggregate...", Qt.AlignBottom | Qt.AlignCenter | 
+                                    Qt.AlignAbsolute, QColor(Qt.black))        
+
+            self.refresh_aggregate()
         
         self.isLoaded = True
         self.splash.hide()
