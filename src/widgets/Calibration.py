@@ -24,7 +24,7 @@ This file is part of openFisca.
 from __future__ import division
 
 import os
-
+from numpy import logical_not, unique
 from pandas import read_csv, DataFrame, concat
 
 from PyQt4.QtCore import SIGNAL, Qt, QSize 
@@ -35,10 +35,10 @@ from PyQt4.QtGui import (QLabel, QDialog, QHBoxLayout, QVBoxLayout, QPushButton,
 from core.qthelpers import MyComboBox, MySpinBox, MyDoubleSpinBox, DataFrameViewWidget, _fromUtf8, get_icon
 from widgets.matplotlibwidget import MatplotlibWidget
 from Config import CONF
-from core.columns import EnumCol, BoolCol, AgesCol, DateCol, BoolPresta
+from core.columns import EnumCol, BoolCol, AgesCol, DateCol, BoolPresta, IntPresta
 from core.calmar import calmar
 
-MODCOLS = [EnumCol, BoolCol, BoolPresta, AgesCol, DateCol]
+MODCOLS = [EnumCol, BoolCol, BoolPresta, IntPresta, AgesCol, DateCol]
 
 class CalibrationWidget(QDialog):
     def __init__(self,  inputs, outputs = None, parent = None):
@@ -152,10 +152,7 @@ class CalibrationWidget(QDialog):
         self.set_inputs(inputs)                
         self.init_param()
         self.set_inputs_margins_from_file()
-
         self.outputs = outputs
-    
-    
     
     def add_toolbar_btn(self, tooltip = None, icon = None):
         btn = QPushButton(self)
@@ -183,8 +180,9 @@ class CalibrationWidget(QDialog):
         self.unit = 'men'
         self.weights = 1*self.inputs.get_value("wprm", inputs.index[self.unit])
         self.weights_init = self.inputs.get_value("wprm_init", inputs.index[self.unit])
+        self.champm =  self.inputs.get_value("champm", self.inputs.index[self.unit])
         
-        self.ini_totalpop = sum(self.weights_init)
+        self.ini_totalpop = sum(self.weights_init*self.champm)
         label_str = u"Population initiale totale :" + str(int(round(self.ini_totalpop))) + u" ménages"
         self.ini_totalpop_label.setText(label_str)
 
@@ -245,10 +243,24 @@ class CalibrationWidget(QDialog):
                 
                 if varcol.__class__ not in MODCOLS:
                         val, ok = QInputDialog.getDouble(self.parent(), "Valeur de la  marge", unicode(varlabel) + "  (millions d'euros)")
-                        insertion = ok
-                if insertion:
-                        target = {str(varname): val*1e6}
-           
+                        if ok:
+                            target = {str(varname): val*1e6}
+                else:
+                    if datatable_name =='outputs':
+                        idx = self.outputs.index[self.unit]
+                        unique_values = unique(self.outputs.get_value(varname, idx))
+                    elif datatable_name =='inputs':
+                        idx = self.inputs.index[self.unit]
+                        unique_values = unique(self.inputs.get_value(varname, idx))
+                    target = {}
+                    
+                    for mod in unique_values:
+                        val, ok = QInputDialog.getDouble(self.parent(), "Valeur de la  marge", unicode(varlabel) + u" pour la modalité " + str(mod) )
+                        if ok:
+                            target[mod] = val
+                        else:
+                            return
+                    
             if target:
                 self.add_var2(varname, target = target, source=source)
                 self.param_or_margins_changed()
@@ -349,14 +361,15 @@ class CalibrationWidget(QDialog):
             df = self.frame.reset_index(drop=True)
             df_view = df[ ["var", u"modalités", "cible", u"cible ajustée", "marge", "marge initiale", "variable" ]]            
             self.view.set_dataframe(df_view)
-        self.view.reset()    
+        self.view.reset()
+        self.plotWeightsRatios()   
                                         
     def add_var2(self, varname, target=None, source = 'free'):
         '''
         Add a variable in the dataframe
         '''
-        w_init = self.weights_init
-        w = self.weights
+        w_init = self.weights_init*self.champm
+        w = self.weights*self.champm
 
         varcol = self.get_col(varname)
         idx = self.inputs.index[self.unit]
@@ -370,9 +383,9 @@ class CalibrationWidget(QDialog):
 
         label = varcol.label
         # TODO: rewrite this using pivot table
-        items = [ ('marge'    , w  ), ('marge initiale' , w_init )]        
+        items = [ ('marge'    , w[self.champm]  ), ('marge initiale' , w_init[self.champm] )]        
         if varcol.__class__  in MODCOLS:
-            items.append(('mod',   value))
+            items.append(('mod',   value[self.champm]))
             df = DataFrame.from_items(items)
             res = df.groupby('mod', sort= True).sum()
         else:
@@ -389,6 +402,10 @@ class CalibrationWidget(QDialog):
             if len(mods) != len(target.keys()):
                 print 'Problem with variable : ', varname
                 print len(target.keys()), ' target keys for ', len(mods), ' modalities' 
+                print "modalities"
+                print mods
+                print "targets"
+                print target.keys()
                 print 'Skipping the variable'
                 drop_indices = [ (varname, mod) for mod in target.keys()]
                 if source == 'input':                    
@@ -409,6 +426,9 @@ class CalibrationWidget(QDialog):
                 res['mod'] = mods
         elif isinstance(varcol, BoolCol) or isinstance(varcol, BoolPresta):
             res[u'modalités'] = bool(mods)
+            res['mod']        = mods
+        elif isinstance(varcol, IntPresta):
+            res[u'modalités'] = mods
             res['mod']        = mods
         elif isinstance(varcol, AgesCol):
             res[u'modalités'] = mods
@@ -477,7 +497,13 @@ class CalibrationWidget(QDialog):
 
 
     def build_calmar_data(self, marges, weights_in):
-        data = {weights_in: self.weights_init}
+        '''
+        Builds the data dictionnary used as calmar input argument
+        '''
+        
+        # Select only champm ménages by nullifying weght for irrelevant ménages
+        
+        data = {weights_in: self.weights_init*self.champm}
         for var in marges:
             if self.inputs.description.has_col(var):
                 data[var] = self.inputs.get_value(var, self.inputs.index[self.unit])
@@ -501,13 +527,18 @@ class CalibrationWidget(QDialog):
         except Exception, e:
             raise Exception("Calmar returned error '%s'" % e)
 
-        self.weights = val_pondfin
+        # Updating only champm weights
+        self.weights = val_pondfin*self.champm + self.weights*(logical_not(self.champm))
         return marge_new    
     
     def calibrate(self):
         '''
         Calibrate accoding to margins found in frame
         '''
+        if self.frame is None:
+            self.update_view()
+            return
+        
         df = self.frame
         inputs = self.inputs
         margins = {}
@@ -555,7 +586,7 @@ class CalibrationWidget(QDialog):
         
         self.frame = df.reset_index()
         self.update_view()
-        self.plotWeightsRatios()
+
                     
     def plotWeightsRatios(self):
         ax = self.mplwidget.axes

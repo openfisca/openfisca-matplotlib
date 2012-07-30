@@ -34,6 +34,7 @@ from widgets.Composition import ScenarioWidget
 from widgets.Output import Graph, OutTable
 from widgets.AggregateOuput import AggregateOutputWidget
 from widgets.Calibration import CalibrationWidget
+from widgets.Inflation import InflationWidget
 from widgets.ExploreData import ExploreDataWidget
 from france.data import InputTable
 from france.model import ModelFrance
@@ -48,6 +49,7 @@ class MainWindow(QMainWindow):
         self.dirty = False
         self.isLoaded = False
         self.calibration_enabled = False
+        self.inflation_enabled = False
         self.aggregate_enabled = False
 
         self.setObjectName("MainWindow")
@@ -125,6 +127,7 @@ class MainWindow(QMainWindow):
         self.action_refresh_aggregate   = create_action(self, u'Calculer aggrégats', shortcut = 'F10', icon = 'calculator_blue.png', triggered = self.refresh_aggregate)
 
         self.action_calibrate = create_action(self, u'Caler les poids', shortcut = 'CTRL+K', icon = 'scale22.png', triggered = self.calibrate)
+        self.action_inflate = create_action(self, u'Inflater les montants', shortcut = 'CTRL+I', icon = 'scale22.png', triggered = self.inflate)
 
         action_bareme = create_action(self, u'Barème', icon = 'bareme22.png', toggled = self.modeBareme)
         action_cas_type = create_action(self, u'Cas type', icon = 'castype22.png', toggled = self.modeCasType)
@@ -135,7 +138,7 @@ class MainWindow(QMainWindow):
         self.mode = 'bareme'
         action_bareme.trigger()
 
-        simulation_actions = [self.action_refresh_bareme, self.action_refresh_aggregate , None, self.action_calibrate, None, action_bareme, action_cas_type, None, action_mode_reforme]
+        simulation_actions = [self.action_refresh_bareme, self.action_refresh_aggregate , None, self.action_calibrate, self.action_inflate, None, action_bareme, action_cas_type, None, action_mode_reforme]
         add_actions(self.simulation_menu, simulation_actions)
         
         # Menu Help
@@ -154,7 +157,7 @@ class MainWindow(QMainWindow):
         # Toolbar
         self.main_toolbar = self.create_toolbar(u"Barre d'outil", 'main_toolbar')
         toolbar_actions = [action_export_png, action_export_csv, None, self.action_refresh_bareme,
-                           self.action_refresh_aggregate, None, self.action_calibrate, None,
+                           self.action_refresh_aggregate, None, self.action_calibrate, None, self.action_inflate, None,
                             action_bareme, action_cas_type, None, action_mode_reforme]
         add_actions(self.main_toolbar, toolbar_actions)
 
@@ -163,6 +166,7 @@ class MainWindow(QMainWindow):
         self.connect(self._parametres, SIGNAL('changed()'), self.changed_param)
         self.connect(self._aggregate_output, SIGNAL('calculated()'), self.calculated)
         self.connect(self, SIGNAL('weights_changed()'), self.refresh_aggregate)
+        self.connect(self, SIGNAL('inflated()'), self.refresh_aggregate)
         self.connect(self, SIGNAL('bareme_only()'), self.switch_bareme_only)
         
         # Window settings
@@ -240,7 +244,8 @@ class MainWindow(QMainWindow):
             gc.collect()
             fname = CONF.get('paths', 'survey_data/file')
             self.survey = DataTable(InputTable, survey_data = fname)
-            self._dataframe_widget.set_dataframe(self.survey.table)
+#            self.survey.inflate() #to be activated when data/inflate.csv is fixed
+#            self._dataframe_widget.set_dataframe(self.survey.table)
             return True
         except Exception, e:
             self.aggregate_enabled = False
@@ -265,6 +270,7 @@ class MainWindow(QMainWindow):
             self._dataframe_widget.show()
             self.action_refresh_aggregate.setEnabled(True)
             self.action_calibrate.setEnabled(True)
+            self.action_inflate.setEnabled(True)
         else:
             self.switch_bareme_only()
 
@@ -275,6 +281,7 @@ class MainWindow(QMainWindow):
             self._dataframe_widget.hide()
             self.action_refresh_aggregate.setEnabled(False)
             self.action_calibrate.setEnabled(False)
+            self.action_inflate.setEnabled(False)
 
     def reset_aggregate(self):
         '''
@@ -285,10 +292,20 @@ class MainWindow(QMainWindow):
         self._dataframe_widget.clear()
         self._aggregate_output.clear()
 
-    def calibrate(self):    
+    def calibrate(self):
+        '''
+        Launch Calibration widget
+        '''
         # liberate some memory before loading new data
         calibration = CalibrationWidget(inputs = self.survey, outputs = self.survey_outputs, parent = self)
         calibration.exec_()
+        
+    def inflate(self):
+        '''
+        Launch Calibration widget
+        '''
+        inflation = InflationWidget(inputs = self.survey, parent = self)
+        inflation.exec_()
                 
     def modeReforme(self, b):
         self.reforme = b
@@ -367,8 +384,8 @@ class MainWindow(QMainWindow):
         gc.collect()
 
         self.survey_outputs = self.compute_aggregate()
-
-        self._dataframe_widget.set_dataframe(self.survey_outputs.table)
+        self._dataframe_widget.add_dataframe(self.survey.table, name = "input")
+        self._dataframe_widget.add_dataframe(self.survey_outputs.table, name = "output")
         data_courant = gen_aggregate_output(self.survey_outputs)
         self._aggregate_output.update_output(data_courant, self.survey.description)
         
@@ -421,6 +438,8 @@ class MainWindow(QMainWindow):
             self.refresh_bareme()
         if self.calibration_enabled:
             self.action_calibrate.setEnabled(True)
+        if self.inflation_enabled:
+            self.action_inflate.setEnabled(True)
         if self.aggregate_enabled:
             self.action_refresh_aggregate.setEnabled(True)
 
