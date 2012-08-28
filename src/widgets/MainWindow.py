@@ -387,7 +387,7 @@ class MainWindow(QMainWindow):
         self._dataframe_widget.add_dataframe(self.survey.table, name = "input")
         self._dataframe_widget.add_dataframe(self.survey_outputs.table, name = "output")
         data_courant = gen_aggregate_output(self.survey_outputs)
-        self._aggregate_output.update_output(data_courant, self.survey.description)
+        self._aggregate_output.update_output(data_courant, [self.survey.description, self.survey_outputs.description] )
         
         self.statusbar.showMessage(u"")
         QApplication.restoreOverrideCursor()
