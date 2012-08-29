@@ -32,6 +32,7 @@ from datetime import date
 import pickle
 from Config import CONF
 import os
+from core.utils import Scenario
 
 class S:
     name = 0
@@ -55,7 +56,9 @@ class ScenarioWidget(QDockWidget, Ui_Menage):
         self.connect(self.rmv_btn, SIGNAL('clicked()'), self.rmvPerson)
         self.connect(self.lgt_btn, SIGNAL('clicked()'), self.openLogement)
         self.connect(self.inf_btn, SIGNAL('clicked()'), self.openInfoComp)
+        self.connect(self.reset_btn, SIGNAL('clicked()'), self.resetScenario)
         self.connect(self, SIGNAL('compoChanged()'), self.changed)
+
 
         self._listPerson = []
         self.addPref()
@@ -263,6 +266,19 @@ class ScenarioWidget(QDockWidget, Ui_Menage):
             widget.setParent(None)
         if len(self.scenario.indiv) == 1: self.rmv_btn.setEnabled(False)
 
+
+    def resetScenario(self):
+        '''
+        Resets scenario
+        '''
+        while self.nbRow() > 1:
+            self.rmvPerson()
+            
+        self.scenario = Scenario()
+        self.emit(SIGNAL('compoChanged()'))
+        
+        
+        
     def openDeclaration(self):
         noi = int(self.sender().objectName()[3])
         self.scenario.genNbEnf()
