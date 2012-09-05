@@ -36,11 +36,7 @@ class ParamWidget(QDockWidget, Ui_Parametres):
         self.setupUi(self)
         
         country = CONF.get('simulation', 'country')
-        print country
-        if country == 'france':
-            self._file = 'data/param.xml' 
-        elif country == 'tunisia':
-            self._file = 'tunisia/param/param.xml'
+        self._file = country + '/param/param.xml' 
         
         
         self.__parent = parent
