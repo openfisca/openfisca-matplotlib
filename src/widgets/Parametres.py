@@ -31,10 +31,18 @@ from Config import CONF
 import os
 
 class ParamWidget(QDockWidget, Ui_Parametres):
-    def __init__(self, fileName, parent = None):
+    def __init__(self, parent = None):
         super(ParamWidget, self).__init__(parent)
         self.setupUi(self)
-        self._file = fileName
+        
+        country = CONF.get('simulation', 'country')
+        print country
+        if country == 'france':
+            self._file = 'data/param.xml' 
+        elif country == 'tunisia':
+            self._file = 'tunisia/param/param.xml'
+        
+        
         self.__parent = parent
 
         self.connect(self.save_btn, SIGNAL("clicked()"), self.saveXml)

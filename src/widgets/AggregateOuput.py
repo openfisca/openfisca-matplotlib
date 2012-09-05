@@ -181,8 +181,6 @@ class AggregateOutputWidget(QDockWidget):
                 varcol  = description.get_col(var)
                 if isinstance(varcol, EnumCol):
                     var2enum[var] = varcol.enum
-#                    if var == 'decile':
-#                        print varcol.__dict__
                         
                     if varcol.label:
                         label2var[varcol.label] = var
@@ -327,5 +325,3 @@ class AggregateOutputWidget(QDockWidget):
                     self.totals_df = DataFrame(data = {"var" : totals["var"],
                               "total" : totals[year]  } )
                     self.totals_df = self.totals_df.set_index("var")
-            
-        print self.totals_df

@@ -30,18 +30,29 @@ from PyQt4.QtGui import (QMainWindow, QWidget, QGridLayout, QMessageBox, QKeySeq
 
 from Config import CONF, VERSION, ConfigDialog, SimConfigPage, PathConfigPage, CalConfigPage
 from widgets.Parametres import ParamWidget
-from widgets.Composition import ScenarioWidget
 from widgets.Output import Graph, OutTable
 from widgets.AggregateOuput import AggregateOutputWidget
 from widgets.Calibration import CalibrationWidget
 from widgets.Inflation import InflationWidget
 from widgets.ExploreData import ExploreDataWidget
-from france.data import InputTable
-from france.model import ModelFrance
 from core.datatable import DataTable, SystemSf
-from core.utils import gen_output_data, gen_aggregate_output, Scenario
+from core.utils import gen_output_data, gen_aggregate_output
 from core.qthelpers import create_action, add_actions, get_icon
 import gc
+
+
+country = CONF.get('simulation', 'country')
+
+if country == 'france':
+    from france.data import InputTable
+    from france.model import ModelSF
+    from core.utils import Scenario
+    from france.widgets.Composition import ScenarioWidget
+elif country == 'tunisia':
+    from tunisia.data import InputTable
+    from tunisia.model import ModelSF
+    from tunisia.utils import Scenario
+    from tunisia.widgets.Composition import ScenarioWidget
 
 class MainWindow(QMainWindow):
     def __init__(self, parent = None):
@@ -207,7 +218,7 @@ class MainWindow(QMainWindow):
 
     def create_dockwidgets(self):
         # Création des dockwidgets
-        self._parametres = ParamWidget('data/param.xml', self)
+        self._parametres = ParamWidget(self)
         self._menage = ScenarioWidget(self.scenario, self)
         self._graph = Graph(self)
         self._table = OutTable(self)
@@ -262,7 +273,7 @@ class MainWindow(QMainWindow):
         if val and survey_enabled:
             loaded = self.load_survey_data()
 
-        if loaded:
+        if loaded and country=='france':
             # Show widgets and enabled actions
             self.aggregate_enabled = True
             self._aggregate_output.setEnabled(True)
@@ -342,12 +353,12 @@ class MainWindow(QMainWindow):
         
         input_table = DataTable(InputTable, scenario = self.scenario)
 
-        population_courant = SystemSf(ModelFrance, P_courant, P_default)
+        population_courant = SystemSf(ModelSF, P_courant, P_default)
         population_courant.set_inputs(input_table)
         data_courant = gen_output_data(population_courant)
 
         if self.reforme:
-            population_default = SystemSf(ModelFrance, P_default, P_default)
+            population_default = SystemSf(ModelSF, P_default, P_default)
             population_default.set_inputs(input_table)
             data_default = gen_output_data(population_default)
             data_courant.difference(data_default)
@@ -365,7 +376,8 @@ class MainWindow(QMainWindow):
         
         input_table = self.survey
 
-        output_table = SystemSf(ModelFrance, P_courant, P_default)
+        output_table = SystemSf(ModelSF, P_courant, P_default)
+        print output_table.index
         output_table.set_inputs(input_table)
         
         output_table.calculate()
