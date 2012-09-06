@@ -29,7 +29,7 @@ import matplotlib
 import os
 
 myDataFiles = matplotlib.get_py2exe_datafiles()
-myDataFiles.append(("data",["data/param.xml",  "data/code_apl", "data/totaux.xml", "data/calage_men.csv", "data/calage_pfam.csv"]))
+myDataFiles.append(("data",["data/code_apl", "data/totaux.xml", "data/calage_men.csv", "data/calage_pfam.csv"]))
 for f in os.listdir('castypes'):
     myDataFiles.append(('castypes', ['castypes/' + f]))
 for f in os.listdir('reformes'):

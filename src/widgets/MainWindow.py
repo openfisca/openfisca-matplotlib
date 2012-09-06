@@ -321,6 +321,7 @@ class MainWindow(QMainWindow):
     def modeReforme(self, b):
         self.reforme = b
         self.changed_bareme()
+        self.changed_aggregate()
 
     def modeBareme(self):
         self.mode = 'bareme'
@@ -372,17 +373,21 @@ class MainWindow(QMainWindow):
     
     def compute_aggregate(self):
         P_default = self._parametres.getParam(defaut = True)    
-        P_courant = self._parametres.getParam(defaut = False)
-        
+        P = self._parametres.getParam(defaut = False)
         input_table = self.survey
 
-        output_table = SystemSf(ModelSF, P_courant, P_default)
-        print output_table.index
-        output_table.set_inputs(input_table)
-        
-        output_table.calculate()
-        
-        return output_table
+        output = SystemSf(ModelSF, P, P_default)
+        output.set_inputs(input_table)
+        output.calculate()
+
+        if self.reforme:
+            output_default = SystemSf(ModelSF, P_default, P_default)
+            output_default.set_inputs(input_table)
+            output_default.calculate()
+        else:
+            output_default = output
+    
+        return output, output_default
     
     def refresh_aggregate(self):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
@@ -393,13 +398,25 @@ class MainWindow(QMainWindow):
         self._aggregate_output.clear()
         self._dataframe_widget.clear()
         self.survey_outputs = None
+        self.survey_outputs_default = None
         gc.collect()
 
-        self.survey_outputs = self.compute_aggregate()
+        self.survey_outputs, self.survey_outputs_default = self.compute_aggregate()
+
+        # Populate dataframes in dataframe_widget
         self._dataframe_widget.add_dataframe(self.survey.table, name = "input")
         self._dataframe_widget.add_dataframe(self.survey_outputs.table, name = "output")
-        data_courant = gen_aggregate_output(self.survey_outputs)
-        self._aggregate_output.update_output(data_courant, [self.survey.description, self.survey_outputs.description] )
+        if self.reforme:
+            self._dataframe_widget.add_dataframe(self.survey_outputs.table, name = "output_default")
+        
+        # Compute aggregates
+        data = gen_aggregate_output(self.survey_outputs)
+        descr = [self.survey.description, self.survey_outputs.description]
+        if self.reforme:
+            data_default = gen_aggregate_output(self.survey_outputs_default)
+            self._aggregate_output.update_output(data, descriptions = descr, default = data_default)
+        else:
+            self._aggregate_output.update_output(data, descriptions = descr)
         
         self.statusbar.showMessage(u"")
         QApplication.restoreOverrideCursor()
@@ -477,6 +494,11 @@ class MainWindow(QMainWindow):
             self.action_refresh_aggregate.setEnabled(True)
                 
         self.action_refresh_bareme.setEnabled(True)
+            
+    def changed_aggregate(self):
+        self.statusbar.showMessage(u"Appuyez sur F10 pour lancer la simulation")
+        if self.aggregate_enabled:
+            self.action_refresh_aggregate.setEnabled(True)
             
     def calculated(self):
         self.statusbar.showMessage(u"Aggrégats calculés")
