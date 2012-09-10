@@ -479,6 +479,9 @@ def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None):
     createLegend(ax)
         
 def createLegend(ax):
+    '''
+    Creates legend
+    '''
     p = []
     l = []
     for collec in ax.collections:

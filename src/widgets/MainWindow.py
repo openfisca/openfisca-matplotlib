@@ -22,6 +22,8 @@ This file is part of openFisca.
 """
 
 import platform
+
+from os import path
 from PyQt4.QtCore import (SIGNAL, SLOT, Qt, QSettings, QVariant, QSize, QPoint, 
                           PYQT_VERSION_STR, QT_VERSION_STR, QLocale)
 from PyQt4.QtGui import (QMainWindow, QWidget, QGridLayout, QMessageBox, QKeySequence,
@@ -35,6 +37,7 @@ from widgets.AggregateOuput import AggregateOutputWidget
 from widgets.Calibration import CalibrationWidget
 from widgets.Inflation import InflationWidget
 from widgets.ExploreData import ExploreDataWidget
+from widgets.Inequality import InequalityWidget
 from core.datatable import DataTable, SystemSf
 from core.utils import gen_output_data, gen_aggregate_output
 from core.qthelpers import create_action, add_actions, get_icon
@@ -224,6 +227,7 @@ class MainWindow(QMainWindow):
         self._table = OutTable(self)
         self._aggregate_output = AggregateOutputWidget(self)
         self._dataframe_widget = ExploreDataWidget(self)
+        self._inequality_widget = InequalityWidget(self)
         
     def populate_mainwidow(self):
         '''
@@ -235,9 +239,12 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.LeftDockWidgetArea, self._table)
         self.addDockWidget(Qt.LeftDockWidgetArea, self._aggregate_output)
         self.addDockWidget(Qt.LeftDockWidgetArea, self._dataframe_widget)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self._inequality_widget)
+        
         self.tabifyDockWidget(self._dataframe_widget, self._aggregate_output)
         self.tabifyDockWidget(self._aggregate_output, self._table)
         self.tabifyDockWidget(self._table, self._graph)
+        self.tabifyDockWidget(self._graph, self._inequality_widget)
         
     def global_callback(self):
         """Global callback"""
@@ -253,11 +260,17 @@ class MainWindow(QMainWindow):
             # liberate some memory before loading new data
             self.reset_aggregate()
             gc.collect()
+            
             fname = CONF.get('paths', 'survey_data/file')
-            self.survey = DataTable(InputTable, survey_data = fname)
+            country = CONF.get('simulation','country')
+            country_fname = path.join(country,'data','survey.h5')
+            if path.isfile(fname):
+                self.survey = DataTable(InputTable, survey_data = fname)
+                return True
+            elif path.isfile(country_fname):
+                self.survey = DataTable(InputTable, survey_data = country_fname)
 #            self.survey.inflate() #to be activated when data/inflate.csv is fixed
-#            self._dataframe_widget.set_dataframe(self.survey.table)
-            return True
+                return True
         except Exception, e:
             self.aggregate_enabled = False
             QMessageBox.warning(self, u"Impossible de lire les données", 
@@ -273,7 +286,7 @@ class MainWindow(QMainWindow):
         if val and survey_enabled:
             loaded = self.load_survey_data()
 
-        if loaded and country=='france':
+        if loaded:
             # Show widgets and enabled actions
             self.aggregate_enabled = True
             self._aggregate_output.setEnabled(True)
@@ -342,47 +355,56 @@ class MainWindow(QMainWindow):
                                  msg, 
                                  QMessageBox.Ok, QMessageBox.NoButton)
             return False
-        # Si oui, on lance le calcul
+        # If it is consistent starts the computation
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         self.statusbar.showMessage(u"Calcul en cours...")
         self.action_refresh_bareme.setEnabled(False)
         # set the table model to None before changing data
         self._table.clearModel()
-        
-        P_default = self._parametres.getParam(defaut = True)    
-        P_courant = self._parametres.getParam(defaut = False)
-        
+                
         input_table = DataTable(InputTable, scenario = self.scenario)
+        output, output_default = self.preproc(input_table)
 
-        population_courant = SystemSf(ModelSF, P_courant, P_default)
-        population_courant.set_inputs(input_table)
-        data_courant = gen_output_data(population_courant)
+        data = gen_output_data(output)
 
         if self.reforme:
-            population_default = SystemSf(ModelSF, P_default, P_default)
-            population_default.set_inputs(input_table)
-            data_default = gen_output_data(population_default)
-            data_courant.difference(data_default)
+            data_default = gen_output_data(output_default)
+            data.difference(data_default)
         else:
-            data_default = data_courant
-        self._table.updateTable(data_courant, reforme = self.reforme, mode = self.mode, dataDefault = data_default)
-        self._graph.updateGraph(data_courant, reforme = self.reforme, mode = self.mode, dataDefault = data_default)
+            data_default = data
+        self._table.updateTable(data, reforme = self.reforme, mode = self.mode, dataDefault = data_default)
+        self._graph.updateGraph(data, reforme = self.reforme, mode = self.mode, dataDefault = data_default)
 
         self.statusbar.showMessage(u"")
         QApplication.restoreOverrideCursor()
-    
-    def compute_aggregate(self):
-        P_default = self._parametres.getParam(defaut = True)    
-        P = self._parametres.getParam(defaut = False)
-        input_table = self.survey
 
+
+    def preproc(self, input_table):
+        '''
+        Prepare the output values according to the ModelSF definitions/Reform status/input_table
+        '''
+        P_default = self._parametres.getParam(defaut = True)    
+        P         = self._parametres.getParam(defaut = False)
         output = SystemSf(ModelSF, P, P_default)
         output.set_inputs(input_table)
-        output.calculate()
-
+                
         if self.reforme:
             output_default = SystemSf(ModelSF, P_default, P_default)
             output_default.set_inputs(input_table)
+        else:
+            output_default = output
+    
+        return output, output_default
+
+    def calculate_all(self):
+        '''
+        Computes all prestations
+        '''
+        input_table = self.survey
+        output, output_default = self.preproc(input_table)
+        
+        output.calculate()
+        if self.reforme:
             output_default.calculate()
         else:
             output_default = output
@@ -401,13 +423,9 @@ class MainWindow(QMainWindow):
         self.survey_outputs_default = None
         gc.collect()
 
-        self.survey_outputs, self.survey_outputs_default = self.compute_aggregate()
+        self.survey_outputs, self.survey_outputs_default = self.calculate_all()
 
-        # Populate dataframes in dataframe_widget
-        self._dataframe_widget.add_dataframe(self.survey.table, name = "input")
-        self._dataframe_widget.add_dataframe(self.survey_outputs.table, name = "output")
-        if self.reforme:
-            self._dataframe_widget.add_dataframe(self.survey_outputs.table, name = "output_default")
+        self.refresh_dataframes()
         
         # Compute aggregates
         data = gen_aggregate_output(self.survey_outputs)
@@ -420,6 +438,17 @@ class MainWindow(QMainWindow):
         
         self.statusbar.showMessage(u"")
         QApplication.restoreOverrideCursor()
+
+
+    def refresh_dataframes(self):
+        '''
+        Populates dataframes in dataframe_widget
+        '''
+        self._dataframe_widget.add_dataframe(self.survey.table, name = "input")
+        self._dataframe_widget.add_dataframe(self.survey_outputs.table, name = "output")
+        if self.reforme:
+            self._dataframe_widget.add_dataframe(self.survey_outputs.table, name = "output_default")
+
         
     
     def closeEvent(self, event):
@@ -504,5 +533,7 @@ class MainWindow(QMainWindow):
         self.statusbar.showMessage(u"Aggrégats calculés")
         self.emit(SIGNAL('aggregate_calculated()'))
         self.action_refresh_aggregate.setEnabled(False)
+        self._inequality_widget.set_data(self.survey_outputs)
+        self._inequality_widget.refresh()
             
         

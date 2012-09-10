@@ -279,13 +279,10 @@ class AggregateOutputWidget(QDockWidget):
         for dist_frame in dist_frame_dict.itervalues():
             if frame is None:
                 frame = dist_frame.copy()
-                print 'first frame'
             else:
                 dist_frame.pop('wprm')
                 frame = merge(frame, dist_frame, on=by_var)
-                print 'second frame'
-                print frame
-        
+                
         by_var_label = self.var2label[by_var]
         if by_var_label == by_var:
             by_var_label = by_var + str("XX") # TODO  problem with labels from Prestation
