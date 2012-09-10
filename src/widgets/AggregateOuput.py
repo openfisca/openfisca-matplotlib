@@ -20,6 +20,7 @@ This file is part of openFisca.
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from __future__ import division
 import numpy as np
 from pandas import DataFrame, read_csv, merge
 import os 
