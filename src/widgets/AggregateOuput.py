@@ -96,13 +96,16 @@ class AggregateOutputWidget(QDockWidget):
         verticalLayout.addWidget(self.distribution_view)
         verticalLayout.addLayout(varLayout)
         
+        
+#        self.cols = []
+        
         self.setWidget(self.dockWidgetContents)
 
         self.connect(self.add_btn, SIGNAL('clicked()'), self.add_var)
         self.connect(self.remove_btn, SIGNAL('clicked()'), self.remove_var)
 
         self.load_totals_from_file()
-        
+                
         # Initialize attributes
         self.parent = parent
         self.varlist = ['irpp', 'ppe', 'af', 'cf', 'ars', 'aeeh', 'asf', 'aspa', 'aah', 'caah', 'rsa', 'aefa', 'api', 'logt']
@@ -288,6 +291,9 @@ class AggregateOutputWidget(QDockWidget):
         if by_var_label == by_var:
             by_var_label = by_var + str("XX") # TODO  problem with labels from Prestation
         enum = self.var2enum[by_var]                
+        
+        frame = frame.reset_index(drop=True)
+        
         frame.insert(0,by_var_label,u"") 
         if enum is None:
             frame[by_var_label] = frame[by_var]
@@ -323,6 +329,56 @@ class AggregateOutputWidget(QDockWidget):
                         int(round(sum(beneficiaires*self.wght)/10**3))]
         return m_b
     
+    
+    def group_by2(self, varlist, category):
+        '''
+        Computes grouped aggregates
+        '''
+        datasets = {'data': self.data}
+        aggr_dict = {}
+    
+        if self.data_default is not None:
+            datasets['default'] = self.data_default
+            
+        cols = self.cols
+        # cols = []
+
+        for name, data in datasets.iteritems():
+            # Computes aggregates by category
+            keep = [category, 'wprm', 'champm'] + cols
+            temp_data = data[keep].copy()
+            temp_data['wprm'] = temp_data['wprm']*temp_data['champm']
+            keep.remove('champm')
+            del keep['champm']
+            temp = []
+            for var in varlist:
+                temp_data[var] = temp_data['wprm']*data[var]
+                temp.append(var)
+                keep.append(var)
+                    
+            from pandas import pivot_table
+            aggr_dict[name] = pivot_table(temp_data[keep], cols = cols,
+                                  rows = category, values=keep, aggfunc = np.sum)
+            
+            for cat, df in aggr_dict[name].iterrows():
+                for varname in varlist:
+                    if name=='default':
+                        label = varname + '__init'
+                        df[label] = df[varname]/df['wprm']
+                        del df[varname]
+                    else:
+                        df[varname] = df[varname]/df['wprm']
+            
+            print aggr_dict[name]      
+            aggr_dict[name].index.names[0] = 'variable'
+            aggr_dict[name] = aggr_dict[name].reset_index().unstack(cols.insert(0, 'variable'))
+
+            
+            print aggr_dict[name]
+            
+        return aggr_dict
+
+    
     def group_by(self, varlist, category):
         '''
         Computes grouped aggregates
@@ -334,13 +390,17 @@ class AggregateOutputWidget(QDockWidget):
 
         for name, data in datasets.iteritems():
             # Computes aggregates by category
-            keep = [category, 'wprm'] 
+            keep = [category, 'wprm', 'champm'] 
             temp_data = data[keep].copy()
+            temp_data['wprm'] = temp_data['wprm']*temp_data['champm']
+            keep.remove('champm')
+            del temp_data['champm']
             temp = []
             for var in varlist:
-                temp_data[var] = self.wght*data[var]
+                temp_data[var] = temp_data['wprm']*data[var]
                 temp.append(var)
                 keep.append(var)
+                
             
             grouped = temp_data[keep].groupby(category, as_index = False)
             aggr_dict[name] = grouped.aggregate(np.sum)
@@ -385,3 +445,5 @@ class AggregateOutputWidget(QDockWidget):
                     self.totals_df = DataFrame(data = {"var" : totals["var"],
                               "total" : totals[year]  } )
                     self.totals_df = self.totals_df.set_index("var")
+
+

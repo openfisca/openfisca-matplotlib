@@ -100,13 +100,13 @@ class ExploreDataWidget(QDockWidget):
 
     def add_dataframe(self, dataframe, name = None):
         '''
-        Adds a dataframe to the list of the available dataframe 
+        Adds a dataframe to the list o the available dataframe 
         '''
         if name == None:
             name = "dataframe" + len(self.dataframes.keys())
     
-        if not self.data:
-            self.dataframes = {}
+#        if not self.data:
+#            self.dataframes = {}
 
         self.dataframes[name] = dataframe
         self.datatables_choices.append((name, name))

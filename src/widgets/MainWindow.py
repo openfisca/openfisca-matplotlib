@@ -313,8 +313,10 @@ class MainWindow(QMainWindow):
         '''
         self.survey = None
         self.survey_outputs = None
+        self.survey_outputs_default = None
         self._dataframe_widget.clear()
         self._aggregate_output.clear()
+        gc.collect()
 
     def calibrate(self):
         '''
@@ -372,6 +374,7 @@ class MainWindow(QMainWindow):
             data.difference(data_default)
         else:
             data_default = data
+            
         self._table.updateTable(data, reforme = self.reforme, mode = self.mode, dataDefault = data_default)
         self._graph.updateGraph(data, reforme = self.reforme, mode = self.mode, dataDefault = data_default)
 
@@ -385,6 +388,7 @@ class MainWindow(QMainWindow):
         '''
         P_default = self._parametres.getParam(defaut = True)    
         P         = self._parametres.getParam(defaut = False)
+        
         output = SystemSf(ModelSF, P, P_default)
         output.set_inputs(input_table)
                 

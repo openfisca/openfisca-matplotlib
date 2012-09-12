@@ -31,6 +31,7 @@ from core.utils import lorenz, gini
 
 from widgets.matplotlibwidget import MatplotlibWidget
 from matplotlib.lines import Line2D
+from core.qthelpers import DataFrameViewWidget
 
 class InequalityWidget(QDockWidget):
     def __init__(self, parent = None):
@@ -41,16 +42,23 @@ class InequalityWidget(QDockWidget):
         self.setWindowTitle("Inequality")
         self.dockWidgetContents = QWidget()
         
+        widget_list = []
 
 
-        self.lorenzWidget = MatplotlibWidget(self, title='Courbe de Lorenz',
+        self.lorenzWidget = MatplotlibWidget(self.dockWidgetContents,
+                                              title='Courbe de Lorenz',
                                               xlabel='Population',
                                               ylabel='Variable',
                                               hold=True)
+        widget_list.append(self.lorenzWidget)
 
+        
+        self.ineqFrameWidget = DataFrameViewWidget(self.dockWidgetContents)
+        widget_list.append(self.ineqFrameWidget)
 
         verticalLayout = QVBoxLayout(self.dockWidgetContents)
-        verticalLayout.addWidget(self.lorenzWidget)
+        for widget in widget_list:
+            verticalLayout.addWidget(widget)
         self.setWidget(self.dockWidgetContents)
 
         # Initialize attributes
@@ -63,7 +71,10 @@ class InequalityWidget(QDockWidget):
         
 
     def refresh(self):
+        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         self.plot()
+        self.update_frame()
+        QApplication.restoreOverrideCursor()
 
 
     def plot(self):
@@ -71,6 +82,7 @@ class InequalityWidget(QDockWidget):
         Plots the Lorenz Curve
         '''        
         axes = self.lorenzWidget.axes
+        axes.clear()
         output = self.output
         
         idx_weight = {'ind': output._inputs.index['ind'],
@@ -109,9 +121,34 @@ class InequalityWidget(QDockWidget):
         if default is not None:
             self.data_default = default
         
+    def update_frame(self):
+        from core.utils import mark_weighted_percentiles
+        from pandas import Series
+
+        output = self.output
+        for varname, units in self.vars.iteritems():
+            for unit in units:
+                
+                idx =  output.index[unit]
+                vals  = output.get_value(varname, idx)
+                weights = output._inputs.get_value('wprm', idx)
+                champm = output._inputs.get_value('champm', idx)
+        
+            labels = range(1,11)
+            method = 2
+            decile, values = mark_weighted_percentiles(vals, labels, weights*champm, method, return_quantiles=True)
+            del decile
+
+        
+        df = DataFrame( {u'décile' : Series(labels[:-1]), varname : Series(values[1:-1]) })
+        print df
+        self.ineqFrameWidget.set_dataframe(df)
+        self.ineqFrameWidget.reset()
+        
     def update_view(self):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         self.plot()
+        self.update_frame()
         QApplication.restoreOverrideCursor()
         
     def calculated(self):
