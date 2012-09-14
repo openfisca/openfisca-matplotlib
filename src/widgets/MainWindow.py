@@ -303,6 +303,7 @@ class MainWindow(QMainWindow):
             self._aggregate_output.setEnabled(False)
             self._aggregate_output.hide()
             self._dataframe_widget.hide()
+            self._inequality_widget.hide()
             self.action_refresh_aggregate.setEnabled(False)
             self.action_calibrate.setEnabled(False)
             self.action_inflate.setEnabled(False)

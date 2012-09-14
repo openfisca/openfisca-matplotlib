@@ -130,18 +130,33 @@ class InequalityWidget(QDockWidget):
             for unit in units:
                 
                 idx =  output.index[unit]
-                vals  = output.get_value(varname, idx)
+                val  = output.get_value(varname, idx)
                 weights = output._inputs.get_value('wprm', idx)
                 champm = output._inputs.get_value('champm', idx)
-        
+
+            items = []
+            # Compute mean
+            moy = (weights*champm*val).sum()/(weights*champm).sum()
+            items.append( ("Moyenne",  [moy]))
+
+            # Compute deciles
             labels = range(1,11)
             method = 2
-            decile, values = mark_weighted_percentiles(vals, labels, weights*champm, method, return_quantiles=True)
+            decile, values = mark_weighted_percentiles(val, labels, weights*champm, method, return_quantiles=True)
+            
+            
+            labels = [ 'D'+str(d) for d in range(1,11)]
             del decile
-
+            for l, v in zip(labels[:-1],values[1:-1]):
+                items.append( (l, [v]))
         
-        df = DataFrame( {u'décile' : Series(labels[:-1]), varname : Series(values[1:-1]) })
-        print df
+            # Compute Gini
+            gini_coeff = gini(val, weights*champm)
+            items.append(("Indice de Gini", [gini_coeff]))
+
+            df = DataFrame.from_items(items, orient = 'index', columns = [varname])            
+            df = df.reset_index()
+            
         self.ineqFrameWidget.set_dataframe(df)
         self.ineqFrameWidget.reset()
         
