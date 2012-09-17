@@ -292,6 +292,7 @@ class MainWindow(QMainWindow):
             self._aggregate_output.setEnabled(True)
             self._aggregate_output.show()
             self._dataframe_widget.show()
+            self._inequality_widget.show()
             self.action_refresh_aggregate.setEnabled(True)
             self.action_calibrate.setEnabled(True)
             self.action_inflate.setEnabled(True)

@@ -49,7 +49,9 @@ class InequalityWidget(QDockWidget):
                                               title='Courbe de Lorenz',
                                               xlabel='Population',
                                               ylabel='Variable',
-                                              hold=True)
+                                              hold=True,
+                                              xlim = [0,1],
+                                              ylim = [0,1])
         widget_list.append(self.lorenzWidget)
 
         
@@ -67,7 +69,15 @@ class InequalityWidget(QDockWidget):
         self.data = DataFrame() 
         self.data_default = None
 
-        self.vars = {'nivvie' : ['ind', 'men']}
+
+        self.vars = {'nivvie_ini': ['men'],
+                     'nivvie_net':  ['men'],                    
+                     'nivvie' : ['men']}
+
+#        self.vars = {'nivvie_prim': ['ind', 'men'],
+#                     'nivvie_init': ['ind', 'men'],
+#                     'nivvie_net':  ['ind', 'men'],                    
+#                     'nivvie' : ['ind', 'men']}
         
 
     def refresh(self):
@@ -100,18 +110,16 @@ class InequalityWidget(QDockWidget):
                 idx =  output.index[unit]
                 values  = output.get_value(varname, idx)
                 
-                x, y = lorenz(values, weights[unit])         
-                gini_coeff = gini(values, weights[unit])
-                
-                label = varname + ' (' + unit + ') ' + '  Gini:' + str(gini_coeff)
+                x, y = lorenz(values, weights[unit])
+                label = varname + ' (' + unit + ') ' 
                 axes.plot(x,y, linewidth = 2, label = label)
-#                p.insert(0, Line2D([0,1],[.5,.5], color =  ))
-#                l.insert(0, label)
                 
         axes.plot(x,x, label ="")
 
         axes.legend(loc= 2, prop = {'size':'medium'})
-           
+        axes.set_xlim([0,1])
+        axes.set_ylim([0,1])   
+        
             
     def set_data(self, output, default=None):
         '''
@@ -126,6 +134,7 @@ class InequalityWidget(QDockWidget):
         from pandas import Series
 
         output = self.output
+        final_df = None
         for varname, units in self.vars.iteritems():
             for unit in units:
                 
@@ -156,8 +165,16 @@ class InequalityWidget(QDockWidget):
 
             df = DataFrame.from_items(items, orient = 'index', columns = [varname])            
             df = df.reset_index()
-            
-        self.ineqFrameWidget.set_dataframe(df)
+            if final_df is None:
+                final_df = df
+            else:
+                final_df = final_df.merge(df, on='index')
+        
+        final_df[u"Initial à net"] = (final_df['nivvie_net']-final_df['nivvie_ini'])/final_df['nivvie_ini']
+        final_df[u"Net à disponible"] = (final_df['nivvie']-final_df['nivvie_net'])/final_df['nivvie_net']
+        print final_df
+        final_df = final_df[['index','nivvie_ini', u"Initial à net", 'nivvie_net',u"Net à disponible",'nivvie']]
+        self.ineqFrameWidget.set_dataframe(final_df)
         self.ineqFrameWidget.reset()
         
     def update_view(self):
