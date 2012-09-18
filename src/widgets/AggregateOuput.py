@@ -108,7 +108,7 @@ class AggregateOutputWidget(QDockWidget):
                 
         # Initialize attributes
         self.parent = parent
-        self.varlist = ['irpp', 'ppe', 'af', 'cf', 'ars', 'aeeh', 'asf', 'aspa', 'aah', 'caah', 'rsa', 'aefa', 'api', 'logt']
+        self.varlist = ['cotsoc_noncontrib', 'csg', 'crds', 'irpp', 'ppe', 'af', 'cf', 'ars', 'aeeh', 'asf', 'aspa', 'aah', 'caah', 'rsa', 'aefa', 'api', 'logt']
          
         self.selected_vars = set(['revdisp', 'nivvie'])
         
@@ -323,6 +323,7 @@ class AggregateOutputWidget(QDockWidget):
             datasets['default'] = self.data_default
 
         for name, data in datasets.iteritems():
+            print var
             montants = data[var]
             beneficiaires = data[var].values != 0
             m_b[name] = [int(round(sum(montants*self.wght)/10**6)),
