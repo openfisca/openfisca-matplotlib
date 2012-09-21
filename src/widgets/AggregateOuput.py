@@ -323,7 +323,6 @@ class AggregateOutputWidget(QDockWidget):
             datasets['default'] = self.data_default
 
         for name, data in datasets.iteritems():
-            print var
             montants = data[var]
             beneficiaires = data[var].values != 0
             m_b[name] = [int(round(sum(montants*self.wght)/10**6)),
@@ -374,8 +373,6 @@ class AggregateOutputWidget(QDockWidget):
             aggr_dict[name].index.names[0] = 'variable'
             aggr_dict[name] = aggr_dict[name].reset_index().unstack(cols.insert(0, 'variable'))
 
-            
-            print aggr_dict[name]
             
         return aggr_dict
 

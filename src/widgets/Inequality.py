@@ -172,7 +172,6 @@ class InequalityWidget(QDockWidget):
         
         final_df[u"Initial à net"] = (final_df['nivvie_net']-final_df['nivvie_ini'])/final_df['nivvie_ini']
         final_df[u"Net à disponible"] = (final_df['nivvie']-final_df['nivvie_net'])/final_df['nivvie_net']
-        print final_df
         final_df = final_df[['index','nivvie_ini', u"Initial à net", 'nivvie_net',u"Net à disponible",'nivvie']]
         self.ineqFrameWidget.set_dataframe(final_df)
         self.ineqFrameWidget.reset()
