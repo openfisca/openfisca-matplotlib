@@ -44,18 +44,6 @@ from core.qthelpers import create_action, add_actions, get_icon
 import gc
 
 
-country = CONF.get('simulation', 'country')
-
-if country == 'france':
-    from france.data import InputTable
-    from france.model import ModelSF
-    from core.utils import Scenario
-    from france.widgets.Composition import ScenarioWidget
-elif country == 'tunisia':
-    from tunisia.data import InputTable
-    from tunisia.model import ModelSF
-    from tunisia.utils import Scenario
-    from tunisia.widgets.Composition import ScenarioWidget
 
 class MainWindow(QMainWindow):
     def __init__(self, parent = None):
@@ -97,6 +85,35 @@ class MainWindow(QMainWindow):
             # Execute here the actions to be performed only once after
             # each update (there is nothing there for now, but it could 
             # be useful some day...
+        
+        self.start()
+        
+    def start(self, restart = False):
+
+
+        country = CONF.get('simulation', 'country')
+        self.old_country = country
+        
+        if restart is True:
+            del InputTable, ModelSF, Scenario, ScenarioWidget 
+            self.reset_aggregate()
+            del self.scenario
+            
+            del (self._parametres, self._menage, self._graph, self._table, 
+                 self._aggregate_output, self._dataframe_widget, 
+                 self._inequality_widget)
+
+        if country == 'france':
+            from france.data import InputTable
+            from france.model import ModelSF
+            from core.utils import Scenario
+            from france.widgets.Composition import ScenarioWidget
+        elif country == 'tunisia':
+            from tunisia.data import InputTable
+            from tunisia.model import ModelSF
+            from tunisia.utils import Scenario
+            from tunisia.widgets.Composition import ScenarioWidget
+        global InputTable, ModelSF, Scenario, ScenarioWidget
         
         self.scenario = Scenario()
         # Preferences
@@ -493,6 +510,13 @@ class MainWindow(QMainWindow):
                           ''')
 
     def apply_settings(self):
+        country = CONF.get('simulation', 'country')
+
+   
+        if not self.old_country == country:
+            self.start(restart = True) 
+        
+        
         """Apply settings changed in 'Preferences' dialog box"""
         self.XAXIS = CONF.get('simulation', 'xaxis')
         if not self.XAXIS == self.oldXAXIS:
