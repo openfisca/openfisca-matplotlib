@@ -291,7 +291,7 @@ class MainWindow(QMainWindow):
         except Exception, e:
             self.aggregate_enabled = False
             QMessageBox.warning(self, u"Impossible de lire les données", 
-                                u"OpenFisca n'a pas réussi à lire les données d'enquête et passe en mode barème. L'erreur suivante a été renvoyé:\n%s\n\nVous pouvez charger des nouvelles données d'enquête dans Fichier>Paramètres>Chemins>Données d'enquête"%e)
+                                u"OpenFisca n'a pas réussi à lire les données d'enquête et passe en mode barème. L'erreur suivante a été renvoyée:\n%s\n\nVous pouvez charger des nouvelles données d'enquête dans Fichier>Paramètres>Chemins>Données d'enquête"%e)
             self.emit(SIGNAL('baremeOnly()'))
             return False
         finally:
