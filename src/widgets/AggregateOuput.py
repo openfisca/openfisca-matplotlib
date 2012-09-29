@@ -20,8 +20,9 @@ This file is part of openFisca.
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from __future__ import division
 import numpy as np
-from pandas import DataFrame, read_csv
+from pandas import DataFrame, read_csv, merge
 import os 
 from PyQt4.QtGui import (QWidget, QDockWidget, QLabel, QVBoxLayout, QHBoxLayout, QComboBox, QSortFilterProxyModel,
                          QSpacerItem, QSizePolicy, QApplication, QCursor, QPushButton, QInputDialog)
@@ -57,7 +58,7 @@ class AggregateOutputWidget(QDockWidget):
         self.setWindowTitle("Aggregate_Output")
         self.dockWidgetContents = QWidget()
         
-        agg_label = QLabel(u"Résultat aggrégé de la simulation", self.dockWidgetContents)
+        agg_label = QLabel(u"Résultats aggrégés de la simulation", self.dockWidgetContents)
 
         self.totals_df = None
         
@@ -95,21 +96,25 @@ class AggregateOutputWidget(QDockWidget):
         verticalLayout.addWidget(self.distribution_view)
         verticalLayout.addLayout(varLayout)
         
+        
+#        self.cols = []
+        
         self.setWidget(self.dockWidgetContents)
 
         self.connect(self.add_btn, SIGNAL('clicked()'), self.add_var)
         self.connect(self.remove_btn, SIGNAL('clicked()'), self.remove_var)
 
         self.load_totals_from_file()
-        
+                
         # Initialize attributes
         self.parent = parent
-        self.varlist = ['irpp', 'ppe', 'af', 'cf', 'ars', 'aeeh', 'asf', 'aspa', 'aah', 'caah', 'rsa', 'aefa', 'api', 'logt']
+        self.varlist = ['cotsoc_noncontrib', 'csg', 'crds', 'irpp', 'ppe', 'af', 'cf', 'ars', 'aeeh', 'asf', 'aspa', 'aah', 'caah', 'rsa', 'aefa', 'api', 'logt']
          
         self.selected_vars = set(['revdisp', 'nivvie'])
         
         
         self.data = DataFrame() # Pandas DataFrame
+        self.data_default = None
 
     @property
     def vars(self):
@@ -146,8 +151,6 @@ class AggregateOutputWidget(QDockWidget):
         else:
             return None 
 
-
-
     def dist_by_changed(self):    
         widget = self.distribution_combo.box
         if isinstance(widget, QComboBox):
@@ -156,8 +159,10 @@ class AggregateOutputWidget(QDockWidget):
             self.distribution_by_var = by_var                
             self.update_output(self.data)
     
-    def set_data(self, output_data):
+    def set_data(self, output_data, default=None):
         self.data = output_data
+        if default is not None:
+            self.data_default = default
         self.wght = self.data['wprm']
                  
     def set_distribution_choices(self, descriptions):
@@ -169,8 +174,6 @@ class AggregateOutputWidget(QDockWidget):
         self.disconnect(combobox, SIGNAL('currentIndexChanged(int)'), self.dist_by_changed)
          
         output_data_vars = set(self.data.columns)
-        
-        
         self.distribution_combo.box.clear()
         label2var = {}
         var2label = {}
@@ -181,8 +184,6 @@ class AggregateOutputWidget(QDockWidget):
                 varcol  = description.get_col(var)
                 if isinstance(varcol, EnumCol):
                     var2enum[var] = varcol.enum
-#                    if var == 'decile':
-#                        print varcol.__dict__
                         
                     if varcol.label:
                         label2var[varcol.label] = var
@@ -204,12 +205,10 @@ class AggregateOutputWidget(QDockWidget):
             index = combobox.findData(self.distribution_by_var)
             if index != -1:
                 combobox.setCurrentIndex(index)
-        
-        
         self.connect(self.distribution_combo.box, SIGNAL('currentIndexChanged(int)'), self.dist_by_changed)
         self.distribution_combo.box.model().sort(0)
 
-    def update_output(self, output_data, descriptions = None):
+    def update_output(self, output_data, descriptions = None, default = None):
         '''
         Update aggregate outputs and (re)set views # TODO we may split this for the two views 
         '''
@@ -217,87 +216,204 @@ class AggregateOutputWidget(QDockWidget):
 
         if output_data is None:
             return
-        self.set_data(output_data)        
+        
+        self.set_data(output_data, default)        
+        
         
         if descriptions is not None:  
             self.set_distribution_choices(descriptions)
             
         if not hasattr(self, 'distribution_by_var'):
-            self.distribution_by_var = 'typmen15'
+            self.distribution_by_var = 'typmen15'    #TODO remove from here
         
-        by_var = self.distribution_by_var
-        
+        self.update_aggregate_view()
+        self.update_distribution_view()
 
-        V = []
-        M = []
-        B = []
-        T = []            # Totals de l'année 
+        self.calculated()
+        QApplication.restoreOverrideCursor()
+
+
+    def update_aggregate_view(self):
+        '''
+        Update aggregate amounts view
+        '''
+        V,  T  = [],  []    
+        M = {'data': [], 'default': []}
+        B = {'data': [], 'default': []}
+        M_label = {'data': u"Dépense\n(millions d'€)", 
+                   'default': u"Dépense initiale\n(millions d'€)"}
+        B_label = {'data': u"Bénéficiaires\n(milliers de ménages)", 
+                   'default': u"Bénéficiaires initiaux\n(milliers de ménages)"}
+        
         for var in self.varlist:
-            montant, benef = self.get_aggregate(var)
+            # totals from current data and default data if exists
+            montant_benef = self.get_aggregate(var)
             V.append(var)
-            M.append(montant)
-            B.append(benef)
+            for dataname in montant_benef:
+                M[dataname].append( montant_benef[dataname][0] )
+                B[dataname].append( montant_benef[dataname][1] )
+            
+            # totals from administrative data
             if var in self.totals_df.index:
                 T.append(self.totals_df.get_value(var, "total"))
             else:
                 T.append("n.d.")
         
+        # build items list
+        items = [(u'Mesure', V)]
+        for dataname in M:
+            if M[dataname]:
+                items.append( (M_label[dataname], M[dataname]))
+                items.append(  (B_label[dataname], B[dataname]) )
         
-        items = [(u'Mesure', V), 
-                 (u"Dépense\n(millions d'€)", M), 
-                 (u"Bénéficiaires\n(milliers de ménages)", B)]
-        
-        if True:
-            items.append((u"Dépenses réelles\n(millions d'€)", T))
-        
+        items.append((u"Dépenses réelles\n(millions d'€)", T))
         aggr_frame = DataFrame.from_items(items)
         self.aggregate_view.set_dataframe(aggr_frame)
 
-        dist_frame = self.group_by(self.selected_vars, by_var)
+                
+    def update_distribution_view(self):
+        '''
+        Update distribution view
+        '''
+        by_var = self.distribution_by_var
+        dist_frame_dict = self.group_by(self.selected_vars, by_var)
+        
+        
+        frame = None
+        for dist_frame in dist_frame_dict.itervalues():
+            if frame is None:
+                frame = dist_frame.copy()
+            else:
+                dist_frame.pop('wprm')
+                frame = merge(frame, dist_frame, on=by_var)
+                
         by_var_label = self.var2label[by_var]
         if by_var_label == by_var:
             by_var_label = by_var + str("XX") # TODO  problem with labels from Prestation
+        enum = self.var2enum[by_var]                
         
-        dist_frame.insert(0,by_var_label,u"") 
-        enum = self.var2enum[by_var]
+        frame = frame.reset_index(drop=True)
+        
+        frame.insert(0,by_var_label,u"") 
         if enum is None:
-            dist_frame[by_var_label] = dist_frame[by_var]
+            frame[by_var_label] = frame[by_var]
         else:
-            dist_frame[by_var_label] = dist_frame[by_var].apply(lambda x: enum._vars[x])
+            frame[by_var_label] = frame[by_var].apply(lambda x: enum._vars[x])
+        
+        frame.pop(by_var)
             
-        dist_frame.pop(by_var)
-                
-        self.distribution_view.set_dataframe(dist_frame)
+                    
+        self.distribution_view.set_dataframe(frame)
         self.distribution_view.reset()
-        self.calculated()
-        QApplication.restoreOverrideCursor()
         
     def calculated(self):
+        '''
+        Emits signal indicating that aggregates are computed
+        '''
         self.emit(SIGNAL('calculated()'))
                 
     def get_aggregate(self, var):
         '''
-        returns aggregate spending, nb of beneficiaries
+        Returns aggregate spending, nb of beneficiaries
         '''
-        montants = self.data[var]
-        beneficiaires = self.data[var].values != 0
-        return int(round(sum(montants*self.wght)/10**6)), int(round(sum(beneficiaires*self.wght)/10**3))
+        datasets = {'data': self.data}
+        m_b = {}
+        
+        if self.data_default is not None:
+            datasets['default'] = self.data_default
+
+        for name, data in datasets.iteritems():
+            montants = data[var]
+            beneficiaires = data[var].values != 0
+            m_b[name] = [int(round(sum(montants*self.wght)/10**6)),
+                        int(round(sum(beneficiaires*self.wght)/10**3))]
+        return m_b
+    
+    
+    def group_by2(self, varlist, category):
+        '''
+        Computes grouped aggregates
+        '''
+        datasets = {'data': self.data}
+        aggr_dict = {}
+    
+        if self.data_default is not None:
+            datasets['default'] = self.data_default
+            
+        cols = self.cols
+        # cols = []
+
+        for name, data in datasets.iteritems():
+            # Computes aggregates by category
+            keep = [category, 'wprm', 'champm'] + cols
+            temp_data = data[keep].copy()
+            temp_data['wprm'] = temp_data['wprm']*temp_data['champm']
+            keep.remove('champm')
+            del keep['champm']
+            temp = []
+            for var in varlist:
+                temp_data[var] = temp_data['wprm']*data[var]
+                temp.append(var)
+                keep.append(var)
+                    
+            from pandas import pivot_table
+            aggr_dict[name] = pivot_table(temp_data[keep], cols = cols,
+                                  rows = category, values=keep, aggfunc = np.sum)
+            
+            for cat, df in aggr_dict[name].iterrows():
+                for varname in varlist:
+                    if name=='default':
+                        label = varname + '__init'
+                        df[label] = df[varname]/df['wprm']
+                        del df[varname]
+                    else:
+                        df[varname] = df[varname]/df['wprm']
+            
+            print aggr_dict[name]      
+            aggr_dict[name].index.names[0] = 'variable'
+            aggr_dict[name] = aggr_dict[name].reset_index().unstack(cols.insert(0, 'variable'))
+
+            
+        return aggr_dict
+
     
     def group_by(self, varlist, category):
-        keep = [category, 'wprm'] 
-        
-        temp_data = self.data[keep].copy()
-        temp = []
-        for var in varlist:
-            temp_data[var] = self.wght*self.data[var]
-            temp.append(var)
-            keep.append(var)
-        grouped = temp_data[keep].groupby(category, as_index = False)
-        aggr = grouped.aggregate(np.sum)
+        '''
+        Computes grouped aggregates
+        '''
+        datasets = {'data': self.data}
+        aggr_dict = {}
+        if self.data_default is not None:
+            datasets['default'] = self.data_default
 
-        for varname in temp:
-            aggr[varname] = aggr[varname]/aggr['wprm']
-        return aggr
+        for name, data in datasets.iteritems():
+            # Computes aggregates by category
+            keep = [category, 'wprm', 'champm'] 
+            temp_data = data[keep].copy()
+            temp_data['wprm'] = temp_data['wprm']*temp_data['champm']
+            keep.remove('champm')
+            del temp_data['champm']
+            temp = []
+            for var in varlist:
+                temp_data[var] = temp_data['wprm']*data[var]
+                temp.append(var)
+                keep.append(var)
+                
+            
+            grouped = temp_data[keep].groupby(category, as_index = False)
+            aggr_dict[name] = grouped.aggregate(np.sum)
+
+            # Normalizing to have the average
+            for varname in temp:
+                if name=='default':
+                    label = varname + '__init'
+                    aggr_dict[name][label] = aggr_dict[name][varname]/aggr_dict[name]['wprm']
+                    del aggr_dict[name][varname]
+                else:
+                    aggr_dict[name][varname] = aggr_dict[name][varname]/aggr_dict[name]['wprm']
+                              
+        return aggr_dict
+
 
     def clear(self):
         self.aggregate_view.clear()
@@ -327,5 +443,5 @@ class AggregateOutputWidget(QDockWidget):
                     self.totals_df = DataFrame(data = {"var" : totals["var"],
                               "total" : totals[year]  } )
                     self.totals_df = self.totals_df.set_index("var")
-            
-        print self.totals_df
+
+

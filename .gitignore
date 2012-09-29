@@ -7,3 +7,5 @@
 src/build
 src/main.cfg
 src/data/final.csv
+src/data/final2006.csv
+src/france/data/survey.h5

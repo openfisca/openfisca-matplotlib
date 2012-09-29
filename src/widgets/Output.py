@@ -219,10 +219,14 @@ class Graph(QDockWidget, Ui_Graph):
         self.mode = mode
         data['revdisp'].visible = 1
         if self.mode == 'bareme':
-            data['salsuperbrut'].setHidden()
-            data['salbrut'].setHidden()
-            data['chobrut'].setHidden()
-            data['rstbrut'].setHidden()
+            if 'salsuperbrut' in data:
+                data['salsuperbrut'].setHidden()
+            if 'salbrut' in data:
+                data['salbrut'].setHidden()
+            if 'chobrut' in data:
+                data['chobrut'].setHidden()
+            if 'rstbrut' in data:
+                data['rstbrut'].setHidden()
             if reforme:
                 data.hideAll()
         
@@ -435,14 +439,23 @@ def percentFormatter(x, pos=0):
 def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None):
     if dataDefault == None: dataDefault = data
     
-    if xaxis in ['salsuperbrut']:
-        RB = RevTot(dataDefault, 'superbrut')
-    elif xaxis in ['salbrut', 'chobrut', 'rstbrut']: 
-        RB = RevTot(dataDefault, 'brut')
-    elif xaxis in ['sal', 'cho', 'rst']:
-        RB = RevTot(dataDefault, 'imposable')
-    elif xaxis in ['salnet', 'chonet', 'rstnet']:
-        RB = RevTot(dataDefault, 'net')
+    country = CONF.get('simulation', 'country')
+    if country=='france':        
+        if xaxis in ['salsuperbrut']:
+            RB = RevTot(dataDefault, 'superbrut')
+        elif xaxis in ['salbrut', 'chobrut', 'rstbrut']: 
+            RB = RevTot(dataDefault, 'brut')
+        elif xaxis in ['sal', 'cho', 'rst']:
+            RB = RevTot(dataDefault, 'imposable')
+        elif xaxis in ['salnet', 'chonet', 'rstnet']:
+            RB = RevTot(dataDefault, 'net')
+    if country=='tunisia':
+        if xaxis in ['salsuperbrut']:
+            RB = RevTot(dataDefault, 'superbrut')
+        elif xaxis in ['salbrut', 'chobrut', 'rstbrut']: 
+            RB = RevTot(dataDefault, 'brut')
+        elif xaxis in ['sal', 'sali']:
+            RB = RevTot(dataDefault, 'net')
 
     xdata = dataDefault[xaxis]
     RD = dataDefault['revdisp'].vals
@@ -466,6 +479,9 @@ def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None):
     createLegend(ax)
         
 def createLegend(ax):
+    '''
+    Creates legend
+    '''
     p = []
     l = []
     for collec in ax.collections:
@@ -479,24 +495,52 @@ def createLegend(ax):
     ax.legend(p,l, loc= 2, prop = {'size':'medium'})
 
 def RevTot(data, typrev):
-    alim = data['alr'].vals + data['alv'].vals
-    penbrut = data['chobrut'].vals + data['rstbrut'].vals + alim
-    penimp  = data['cho'].vals + data['rst'].vals + alim
-    pennet  = data['chonet'].vals + data['rstnet'].vals + alim
-    capbrut = data['rev_cap_bar'].vals + data['rev_cap_lib'].vals + data['fon'].vals
-    capnet = capbrut + data['cotsoc_bar'].vals + data['cotsoc_lib'].vals
+    '''
+    Computes total revenues by type
+    '''
+    country = CONF.get('simulation', 'country')
+    if country=='france':
+        dct = {'superbrut' : ['superbrut', 'chobrut', 'rstbrut', 'alr', 'alv',
+                               'rev_cap_bar', 'rev_cap_lib', 'fon'],
+               'brut': ['salbrut', 'chobrut', 'rstbrut', 'alr', 'alv',
+                         'rev_cap_bar', 'rev_cap_lib', 'fon'],
+               'imposabe' : ['sali', 'cho', 'rst', 'alr', 'alv', 'rev_cap_bar',
+                              'rev_cap_lib', 'fon', 'cotsoc_bar', 'cotsoc_lib']}        
+#        alim = data['alr'].vals + data['alv'].vals
+#        penbrut = data['chobrut'].vals + data['rstbrut'].vals + alim
+#        penimp  = data['cho'].vals + data['rst'].vals + alim
+#        pennet  = data['chonet'].vals + data['rstnet'].vals + alim
+#        capbrut = data['rev_cap_bar'].vals + data['rev_cap_lib'].vals + data['fon'].vals
+#        capnet = capbrut + data['cotsoc_bar'].vals + data['cotsoc_lib'].vals
 
-    if   typrev == 'superbrut': 
-        out = data['salsuperbrut'].vals + penbrut + capbrut
-    elif typrev == 'brut':      
-        out = data['salbrut'].vals + penbrut + capbrut
-    elif typrev == 'imposable':
-        out = data['sal'].vals + penimp + capnet
-    elif typrev == 'net':       
-        out = data['salnet'].vals + pennet + capnet
-    else:
-        raise Exception("typrev should be in ('superbrut', 'brut', 'imposable', 'net'")
-    return out
+#        if   typrev == 'superbrut': 
+#            out = data['salsuperbrut'].vals + penbrut + capbrut
+#        elif typrev == 'brut':      
+#            out = data['salbrut'].vals + penbrut + capbrut
+#        elif typrev == 'imposable':
+#            out = data['sali'].vals + penimp + capnet
+#        elif typrev == 'net':       
+#            out = data['salnet'].vals + pennet + capnet
+    elif country=='tunisia':
+        dct = {'superbrut' : ['superbrut'],
+           'brut': ['salbrut'],
+           'net' : ['sali']}
+            
+        first = True
+        if typrev in dct:
+            for var in dct[typrev]:
+                if first:
+                    out = data[var]
+                    first = False
+                else:
+                    out += data[var]
+            return out 
+        else:
+            raise Exception("typrev should be in ('superbrut', 'brut', 'imposable', 'net'")
+        
+
+
+
 
 class OutTable(QDockWidget):
     def __init__(self, parent = None):
