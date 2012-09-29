@@ -501,7 +501,7 @@ def RevTot(data, typrev):
     '''
     country = CONF.get('simulation', 'country')
     if country=='france':
-        dct = {'superbrut' : ['superbrut', 'chobrut', 'rstbrut', 'alr', 'alv',
+        dct = {'superbrut' : ['salsuperbrut', 'chobrut', 'rstbrut', 'alr', 'alv',
                                'rev_cap_bar', 'rev_cap_lib', 'fon'],
                'brut': ['salbrut', 'chobrut', 'rstbrut', 'alr', 'alv',
                          'rev_cap_bar', 'rev_cap_lib', 'fon'],
