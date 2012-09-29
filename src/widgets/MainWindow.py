@@ -511,12 +511,8 @@ class MainWindow(QMainWindow):
 
     def apply_settings(self):
         country = CONF.get('simulation', 'country')
-
-   
         if not self.old_country == country:
             self.start(restart = True) 
-        
-        
         """Apply settings changed in 'Preferences' dialog box"""
         self.XAXIS = CONF.get('simulation', 'xaxis')
         if not self.XAXIS == self.oldXAXIS:
