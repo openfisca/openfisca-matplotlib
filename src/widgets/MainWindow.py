@@ -400,10 +400,10 @@ class MainWindow(QMainWindow):
                 
         input_table = DataTable(InputTable, scenario = self.scenario)
         output, output_default = self.preproc(input_table)
-
         data = gen_output_data(output)
-
+        
         if self.reforme:
+            output_default.reset()
             data_default = gen_output_data(output_default)
             data.difference(data_default)
         else:
@@ -443,6 +443,7 @@ class MainWindow(QMainWindow):
         
         output.calculate()
         if self.reforme:
+            output_default.reset()
             output_default.calculate()
         else:
             output_default = output
