@@ -440,6 +440,7 @@ def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None):
     if dataDefault == None: dataDefault = data
     
     country = CONF.get('simulation', 'country')
+    
     if country=='france':        
         if xaxis in ['salsuperbrut']:
             RB = RevTot(dataDefault, 'superbrut')
@@ -457,9 +458,9 @@ def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None):
         elif xaxis in ['sal', 'sali']:
             RB = RevTot(dataDefault, 'net')
 
+
     xdata = dataDefault[xaxis]
     RD = dataDefault['revdisp'].vals
-    
     div = RB*(RB != 0) + (RB == 0)
     taumoy = (1 - RD/div)*100
 
@@ -500,12 +501,14 @@ def RevTot(data, typrev):
     '''
     country = CONF.get('simulation', 'country')
     if country=='france':
-        dct = {'superbrut' : ['superbrut', 'chobrut', 'rstbrut', 'alr', 'alv',
+        dct = {'superbrut' : ['salsuperbrut', 'chobrut', 'rstbrut', 'alr', 'alv',
                                'rev_cap_bar', 'rev_cap_lib', 'fon'],
                'brut': ['salbrut', 'chobrut', 'rstbrut', 'alr', 'alv',
                          'rev_cap_bar', 'rev_cap_lib', 'fon'],
-               'imposabe' : ['sali', 'cho', 'rst', 'alr', 'alv', 'rev_cap_bar',
-                              'rev_cap_lib', 'fon', 'cotsoc_bar', 'cotsoc_lib']}        
+               'imposable' : ['sal', 'cho', 'rst', 'alr', 'alv', 'rev_cap_bar',
+                              'rev_cap_lib', 'fon', 'cotsoc_bar', 'cotsoc_lib'],
+               'net'      : ['salnet', 'chonet', 'rstnet', 'alr', 'alv', 'rev_cap_bar', 'rev_cap_lib', 'fon',
+                              'cotsoc_bar', 'cotsoc_lib']}        
 #        alim = data['alr'].vals + data['alv'].vals
 #        penbrut = data['chobrut'].vals + data['rstbrut'].vals + alim
 #        penimp  = data['cho'].vals + data['rst'].vals + alim
@@ -526,18 +529,18 @@ def RevTot(data, typrev):
            'brut': ['salbrut'],
            'net' : ['sali']}
             
-        first = True
-        if typrev in dct:
-            for var in dct[typrev]:
-                if first:
-                    out = data[var]
-                    first = False
-                else:
-                    out += data[var]
-            return out 
-        else:
-            raise Exception("typrev should be in ('superbrut', 'brut', 'imposable', 'net'")
-        
+    first = True
+    if typrev in dct:
+        for var in dct[typrev]:
+            if first:
+                out = data[var].vals
+                first = False
+            else:
+                out += data[var].vals
+        return out 
+    else:
+        raise Exception("typrev should be in ('superbrut', 'brut', 'imposable', 'net'")
+    
 
 
 

@@ -43,6 +43,20 @@ from core.utils import gen_output_data, gen_aggregate_output
 from core.qthelpers import create_action, add_actions, get_icon
 import gc
 
+#
+#        if country == 'france':
+from france.data import InputTable
+from france.model import ModelSF
+from core.utils import Scenario
+from france.widgets.Composition import ScenarioWidget
+#        elif country == 'tunisia':
+#            from tunisia.data import InputTable
+#            from tunisia.model import ModelSF
+#            from tunisia.utils import Scenario
+#            from tunisia.widgets.Composition import ScenarioWidget
+#        global InputTable, ModelSF, Scenario, ScenarioWidget
+
+
 
 
 class MainWindow(QMainWindow):
@@ -94,26 +108,26 @@ class MainWindow(QMainWindow):
         country = CONF.get('simulation', 'country')
         self.old_country = country
         
-        if restart is True:
-            del InputTable, ModelSF, Scenario, ScenarioWidget 
-            self.reset_aggregate()
-            del self.scenario
-            
-            del (self._parametres, self._menage, self._graph, self._table, 
-                 self._aggregate_output, self._dataframe_widget, 
-                 self._inequality_widget)
-
-        if country == 'france':
-            from france.data import InputTable
-            from france.model import ModelSF
-            from core.utils import Scenario
-            from france.widgets.Composition import ScenarioWidget
-        elif country == 'tunisia':
-            from tunisia.data import InputTable
-            from tunisia.model import ModelSF
-            from tunisia.utils import Scenario
-            from tunisia.widgets.Composition import ScenarioWidget
-        global InputTable, ModelSF, Scenario, ScenarioWidget
+#        if restart is True:
+#            del InputTable, ModelSF, Scenario, ScenarioWidget 
+#            self.reset_aggregate()
+#            del self.scenario
+#            
+#            del (self._parametres, self._menage, self._graph, self._table, 
+#                 self._aggregate_output, self._dataframe_widget, 
+#                 self._inequality_widget)
+#
+#        if country == 'france':
+#            from france.data import InputTable
+#            from france.model import ModelSF
+#            from core.utils import Scenario
+#            from france.widgets.Composition import ScenarioWidget
+#        elif country == 'tunisia':
+#            from tunisia.data import InputTable
+#            from tunisia.model import ModelSF
+#            from tunisia.utils import Scenario
+#            from tunisia.widgets.Composition import ScenarioWidget
+#        global InputTable, ModelSF, Scenario, ScenarioWidget
         
         self.scenario = Scenario()
         # Preferences
@@ -125,6 +139,7 @@ class MainWindow(QMainWindow):
         # Dockwidgets creation
         self.splash.showMessage("Creating widgets...", Qt.AlignBottom | Qt.AlignCenter | 
                                 Qt.AlignAbsolute, QColor(Qt.black))
+
 
         self.create_dockwidgets()
         self.populate_mainwidow()
@@ -385,10 +400,10 @@ class MainWindow(QMainWindow):
                 
         input_table = DataTable(InputTable, scenario = self.scenario)
         output, output_default = self.preproc(input_table)
-
         data = gen_output_data(output)
-
+        
         if self.reforme:
+            output_default.reset()
             data_default = gen_output_data(output_default)
             data.difference(data_default)
         else:
@@ -428,6 +443,7 @@ class MainWindow(QMainWindow):
         
         output.calculate()
         if self.reforme:
+            output_default.reset()
             output_default.calculate()
         else:
             output_default = output
@@ -511,12 +527,8 @@ class MainWindow(QMainWindow):
 
     def apply_settings(self):
         country = CONF.get('simulation', 'country')
-
-   
         if not self.old_country == country:
             self.start(restart = True) 
-        
-        
         """Apply settings changed in 'Preferences' dialog box"""
         self.XAXIS = CONF.get('simulation', 'xaxis')
         if not self.XAXIS == self.oldXAXIS:
@@ -549,10 +561,10 @@ class MainWindow(QMainWindow):
     
     def changed_param(self):
         self.statusbar.showMessage(u"Appuyez sur F9/F10 pour lancer la simulation")
+        self.action_refresh_bareme.setEnabled(True)
         if self.aggregate_enabled:
             self.action_refresh_aggregate.setEnabled(True)
-                
-        self.action_refresh_bareme.setEnabled(True)
+
             
     def changed_aggregate(self):
         self.statusbar.showMessage(u"Appuyez sur F10 pour lancer la simulation")
