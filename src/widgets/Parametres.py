@@ -84,12 +84,12 @@ class ParamWidget(QDockWidget, Ui_Parametres):
         fileName = QFileDialog.getSaveFileName(self,
                                                u"Enregistrer une réforme", default_fileName, u"Paramètres OpenFisca (*.ofp)")
         if fileName:
-            try:
+#            try:
                 self._rootNode.asXml(fileName)
-            except Exception, e:
-                QMessageBox.critical(
-                    self, "Erreur", u"Impossible d'enregistrer le fichier : " + str(e),
-                    QMessageBox.Ok, QMessageBox.NoButton)
+#            except Exception, e:
+#                QMessageBox.critical(
+#                    self, "Erreur", u"Impossible d'enregistrer le fichier : " + str(e),
+#                    QMessageBox.Ok, QMessageBox.NoButton)
 
 
     def loadXml(self):
