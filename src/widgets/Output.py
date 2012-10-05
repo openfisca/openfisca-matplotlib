@@ -260,20 +260,28 @@ class Graph(QDockWidget, Ui_Graph):
         self.hidelegend_btn.setEnabled(True)
         
         if xaxis == 'sal':
-            self.absBox.addItems([u'Salaire super brut', 
-                                  u'Salaire brut', 
-                                  u'Salaire imposable', 
+            self.absBox.addItems([u'Salaire super brut',
+                                  u'Salaire brut',
+                                  u'Salaire imposable',
                                   u'Salaire net'])
             self.absBox.setCurrentIndex(2)
         elif xaxis == 'cho':
-            self.absBox.addItems([u'Chômage brut', 
-                                  u'Chômage imposable', 
+            self.absBox.addItems([u'Chômage brut',
+                                  u'Chômage imposable',
                                   u'Chômage net'])
             self.absBox.setCurrentIndex(1)
         elif xaxis == 'rst':
-            self.absBox.addItems([u'Retraite brut', 
-                                  u'Retraite imposable', 
+            self.absBox.addItems([u'Retraite brut',
+                                  u'Retraite imposable',
                                   u'Retraite nette'])
+        elif xaxis == 'rst':
+            self.absBox.addItems([u'Retraite brut',
+                                  u'Retraite imposable',
+                                  u'Retraite nette'])
+        elif xaxis == 'cap':
+            self.absBox.addItems([u'Revenus du capital brut',
+                                  u'Revenus du capital net'])
+            
             self.absBox.setCurrentIndex(1)
         self.connect(self.absBox, SIGNAL('currentIndexChanged(int)'), self.xaxis_changed)
 
@@ -287,7 +295,9 @@ class Graph(QDockWidget, Ui_Graph):
                 u'Chômage net': 'chonet',
                 u'Retraite brut': 'rstbrut',
                 u'Retraite imposable' : 'rst',
-                u'Retraite nette': 'rstnet'}
+                u'Retraite nette': 'rstnet',
+                u'Revenus du capital bruts': 'rev_cap',
+                u'Revenus du capital nets':  'rev_cap_net'}  # TODO discriminate bewteen revenu de placement et revenu du patrimoine
         if self.mode == "bareme":
             self.xaxis = temp[unicode(self.absBox.currentText())]
             self.updateGraph2()
@@ -444,11 +454,11 @@ def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None):
     if country=='france':        
         if xaxis in ['salsuperbrut']:
             RB = RevTot(dataDefault, 'superbrut')
-        elif xaxis in ['salbrut', 'chobrut', 'rstbrut']: 
+        elif xaxis in ['salbrut', 'chobrut', 'rstbrut', 'rev_cap']: 
             RB = RevTot(dataDefault, 'brut')
         elif xaxis in ['sal', 'cho', 'rst']:
             RB = RevTot(dataDefault, 'imposable')
-        elif xaxis in ['salnet', 'chonet', 'rstnet']:
+        elif xaxis in ['salnet', 'chonet', 'rstnet', 'rev_cap_net']:
             RB = RevTot(dataDefault, 'net')
     if country=='tunisia':
         if xaxis in ['salsuperbrut']:
