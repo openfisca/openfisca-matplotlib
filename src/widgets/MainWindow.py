@@ -39,24 +39,17 @@ from widgets.Inflation import InflationWidget
 from widgets.ExploreData import ExploreDataWidget
 from widgets.Inequality import InequalityWidget
 from core.datatable import DataTable, SystemSf
-from core.utils import gen_output_data, gen_aggregate_output
+from core.utils import gen_output_data, gen_aggregate_output, of_class_import
 from core.qthelpers import create_action, add_actions, get_icon
 import gc
 
-#
-#        if country == 'france':
-from france.data import InputTable
-from france.model import ModelSF
-from core.utils import Scenario
-from france.widgets.Composition import ScenarioWidget
-#        elif country == 'tunisia':
-#            from tunisia.data import InputTable
-#            from tunisia.model import ModelSF
-#            from tunisia.utils import Scenario
-#            from tunisia.widgets.Composition import ScenarioWidget
-#        global InputTable, ModelSF, Scenario, ScenarioWidget
 
+country = CONF.get('simulation', 'country')
 
+InputTable = of_class_import(country, 'data', 'InputTable')
+ModelSF = of_class_import(country, 'model', 'ModelSF')
+Scenario = of_class_import(country, 'utils', 'Scenario')
+ScenarioWidget = of_class_import(country, 'widgets.Composition', 'ScenarioWidget')
 
 
 class MainWindow(QMainWindow):
@@ -117,17 +110,6 @@ class MainWindow(QMainWindow):
 #                 self._aggregate_output, self._dataframe_widget, 
 #                 self._inequality_widget)
 #
-#        if country == 'france':
-#            from france.data import InputTable
-#            from france.model import ModelSF
-#            from core.utils import Scenario
-#            from france.widgets.Composition import ScenarioWidget
-#        elif country == 'tunisia':
-#            from tunisia.data import InputTable
-#            from tunisia.model import ModelSF
-#            from tunisia.utils import Scenario
-#            from tunisia.widgets.Composition import ScenarioWidget
-#        global InputTable, ModelSF, Scenario, ScenarioWidget
         
         self.scenario = Scenario()
         # Preferences
