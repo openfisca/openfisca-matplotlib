@@ -229,11 +229,22 @@ class Graph(QDockWidget, Ui_Graph):
                 data['chobrut'].setHidden()
             if 'rstbrut' in data:
                 data['rstbrut'].setHidden()
+            
+            
             if reforme:
                 data.hideAll()
         
-        self.xaxis = CONF.get('simulation', 'xaxis')
-        self.populate_absBox(self.xaxis, self.mode)
+        xaxis = CONF.get('simulation', 'xaxis')
+        self.populate_absBox(xaxis, self.mode)
+        # TODO really dirty because we should change name of self.xaxis
+        
+        build_axes = of_import('utils','build_axes')
+        axes = build_axes()
+        for axe in axes:
+            if axe.name == xaxis:
+                axis = axe.typ_tot_default
+                break            
+        self.xaxis = axis
         self.updateGraph2()
         
     def updateGraph2(self):
@@ -261,31 +272,32 @@ class Graph(QDockWidget, Ui_Graph):
         self.absBox.setEnabled(True)
         self.hidelegend_btn.setEnabled(True)
         
-        XAXES = of_import('utils', 'XAXES')
-        for axis, vars in XAXES.iteritems():
-            if axis == xaxis:
-                self.absBox.addItems(vars[0])
-                self.absBox.setCurrentIndex(vars[1])            
+        
+        build_axes = of_import('utils','build_axes')
+        axes = build_axes()
+        for axe in axes:
+            if axe.name == xaxis:
+                typ_revs_labels = axe.typ_tot.values()
+                typ_revs = axe.typ_tot.keys()
+                self.absBox.addItems(typ_revs_labels) # TODO get label from description
+                self.absBox.setCurrentIndex(typ_revs.index(axe.typ_tot_default))            
                 self.connect(self.absBox, SIGNAL('currentIndexChanged(int)'), self.xaxis_changed)
                 return
 
+
     def xaxis_changed(self):
-        
-        temp = {u'Salaire super brut': 'salsuperbrut',
-                u'Salaire brut' : 'salbrut',
-                u'Salaire imposable': 'sal',
-                u'Salaire net': 'salnet',
-                u'Chômage brut' : 'chobrut',
-                u'Chômage imposable': 'cho',
-                u'Chômage net': 'chonet',
-                u'Retraite brut': 'rstbrut',
-                u'Retraite imposable' : 'rst',
-                u'Retraite nette': 'rstnet',
-                u'Revenus du capital bruts': 'rev_cap',
-                u'Revenus du capital nets':  'rev_cap_net'}  # TODO discriminate bewteen revenu de placement et revenu du patrimoine
+                        
+        build_axes = of_import('utils', 'build_axes')        
+        axes = build_axes()
+
         if self.mode == "bareme":
-            self.xaxis = temp[unicode(self.absBox.currentText())]
-            self.updateGraph2()
+            text =  self.absBox.currentText()
+            for axe in axes:
+                for key, label in axe.typ_tot.iteritems():
+                    if text == label:
+                        self.xaxis = key
+                        self.updateGraph2()
+                        return
             
     def save_figure(self, *args):
         filetypes = self.mplwidget.get_supported_filetypes_grouped()
@@ -385,7 +397,12 @@ def drawWaterfall(data, ax):
     ax.set_ylim((m, 1.05*M))
     
 def drawBareme(data, ax, xaxis, reforme = False, dataDefault = None, legend = True):
-    if dataDefault == None: dataDefault = data
+    '''
+    Draws bareme
+    '''
+    
+    if dataDefault == None: 
+        dataDefault = data
 
     ax.figure.subplots_adjust(bottom = 0.09, top = 0.95, left = 0.11, right = 0.95)
         
@@ -393,7 +410,6 @@ def drawBareme(data, ax, xaxis, reforme = False, dataDefault = None, legend = Tr
     else: prefix = ''
 
     ax.hold(True)
-
     xdata = dataDefault[xaxis]
     
     NMEN = len(xdata.vals)
@@ -432,15 +448,26 @@ def percentFormatter(x, pos=0):
     return '%1.0f%%' %(x)
 
 def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None):
-    if dataDefault == None: dataDefault = data
+    '''
+    Draws marginal and average tax rates
+    '''
     
-    REV_TYPE = of_import('utils', 'REV_TYPE')
-    
-    for typ_rev, vars in REV_TYPE.iteritems():
-        if xaxis in vars:
-            RB = RevTot(dataDefault, typ_rev)
+    if dataDefault is None: 
+        dataDefault = data
 
+    REV_TYPE = of_import('utils', 'REV_TYPE')
+    if xaxis == "rev_cap_brut":
+        typ_rev = 'superbrut'
+    elif xaxis == "rev_cap_net":
+        typ_rev = 'net'
+    else:
+        for typrev, vars in REV_TYPE.iteritems():
+            if xaxis in vars:
+                typ_rev = typrev
+        
+    RB = RevTot(dataDefault, typ_rev)
     xdata = dataDefault[xaxis]
+    
     RD = dataDefault['revdisp'].vals
     div = RB*(RB != 0) + (RB == 0)
     taumoy = (1 - RD/div)*100
@@ -456,7 +483,7 @@ def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None):
     
     ax.yaxis.set_major_formatter(FuncFormatter(percentFormatter))
     createLegend(ax)
-
+    
     
 def createLegend(ax):
     '''
@@ -481,15 +508,15 @@ def RevTot(data, typrev):
     REV_TYPE = of_import('utils', 'REV_TYPE')
     dct = REV_TYPE
     first = True
-    if typrev in dct:
+    try:
         for var in dct[typrev]:
             if first:
-                out = data[var].vals
+                out = data[var].vals.copy() # Copy is needed to avoid problems !!!!
                 first = False
             else:
                 out += data[var].vals
         return out 
-    else:
+    except:
         raise Exception("typrev should be one of the following: " + str(REV_TYPE.keys()))
     
 
@@ -519,12 +546,22 @@ class OutTable(QDockWidget):
         self.treeView.setModel(None)
 
     def updateTable(self, data, reforme, mode, dataDefault):
-        xaxis = CONF.get('simulation', 'xaxis')
+        '''
+        Updates table
+        '''
+
         if dataDefault is None:
             dataDefault = data
-        headers = dataDefault[xaxis]
-        print xaxis
-        print dataDefault
+
+        xaxis = CONF.get('simulation', 'xaxis')            
+        build_axes = of_import('utils','build_axes')
+        axes = build_axes()
+        for axe in axes:
+            if axe.name == xaxis:
+                xaxis_typ_tot = axe.typ_tot_default
+                break
+            
+        headers = dataDefault[xaxis_typ_tot]
         n = len(headers.vals)
         self.data = data
         self.outputModel = OutputModel(data, headers, n , self)
