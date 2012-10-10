@@ -39,24 +39,17 @@ from widgets.Inflation import InflationWidget
 from widgets.ExploreData import ExploreDataWidget
 from widgets.Inequality import InequalityWidget
 from core.datatable import DataTable, SystemSf
-from core.utils import gen_output_data, gen_aggregate_output
+from core.utils import gen_output_data, gen_aggregate_output, of_class_import
 from core.qthelpers import create_action, add_actions, get_icon
 import gc
 
-#
-#        if country == 'france':
-from france.data import InputTable
-from france.model import ModelSF
-from core.utils import Scenario
-from france.widgets.Composition import ScenarioWidget
-#        elif country == 'tunisia':
-#            from tunisia.data import InputTable
-#            from tunisia.model import ModelSF
-#            from tunisia.utils import Scenario
-#            from tunisia.widgets.Composition import ScenarioWidget
-#        global InputTable, ModelSF, Scenario, ScenarioWidget
 
+country = CONF.get('simulation', 'country')
 
+InputTable = of_class_import(country, 'data', 'InputTable')
+ModelSF = of_class_import(country, 'model', 'ModelSF')
+Scenario = of_class_import(country, 'utils', 'Scenario')
+ScenarioWidget = of_class_import(country, 'widgets.Composition', 'ScenarioWidget')
 
 
 class MainWindow(QMainWindow):
@@ -117,22 +110,10 @@ class MainWindow(QMainWindow):
 #                 self._aggregate_output, self._dataframe_widget, 
 #                 self._inequality_widget)
 #
-#        if country == 'france':
-#            from france.data import InputTable
-#            from france.model import ModelSF
-#            from core.utils import Scenario
-#            from france.widgets.Composition import ScenarioWidget
-#        elif country == 'tunisia':
-#            from tunisia.data import InputTable
-#            from tunisia.model import ModelSF
-#            from tunisia.utils import Scenario
-#            from tunisia.widgets.Composition import ScenarioWidget
-#        global InputTable, ModelSF, Scenario, ScenarioWidget
         
         self.scenario = Scenario()
         # Preferences
         self.general_prefs = [SimConfigPage, PathConfigPage, CalConfigPage]
-        self.oldXAXIS = 'sal'
         self.reforme = False
         self.apply_settings()
         
@@ -294,15 +275,10 @@ class MainWindow(QMainWindow):
             gc.collect()
             
             fname = CONF.get('paths', 'survey_data/file')
-            country = CONF.get('simulation','country')
-            country_fname = path.join(country,'data','survey.h5')
             if path.isfile(fname):
                 self.survey = DataTable(InputTable, survey_data = fname)
                 return True
-            elif path.isfile(country_fname):
-                self.survey = DataTable(InputTable, survey_data = country_fname)
 #            self.survey.inflate() #to be activated when data/inflate.csv is fixed
-                return True
         except Exception, e:
             self.aggregate_enabled = False
             QMessageBox.warning(self, u"Impossible de lire les données", 
@@ -531,8 +507,6 @@ class MainWindow(QMainWindow):
             self.start(restart = True) 
         """Apply settings changed in 'Preferences' dialog box"""
         self.XAXIS = CONF.get('simulation', 'xaxis')
-        if not self.XAXIS == self.oldXAXIS:
-            self.scenario.indiv[0][self.oldXAXIS + 'i']=0
         if self.isLoaded == True:
             self._parametres.initialize()
             self.refresh_bareme()

@@ -96,11 +96,11 @@ class CalibrationWidget(QDialog):
         rst_var_btn = self.add_toolbar_btn(tooltip = u"Retirer toutes les variables de calage",
                                         icon = "view-refresh.png")
 
-        calibrate_btn = self.add_toolbar_btn(tooltip = u"Lancer le calage",
+        self.calibrate_btn = self.add_toolbar_btn(tooltip = u"Lancer le calage",
                                              icon = "calculator_red.png")
-
+        self.calibrate_btn.setDisabled(True)
         
-        toolbar_btns = [save_btn, open_btn, add_var_btn, rmv_var_btn, rst_var_btn, calibrate_btn]
+        toolbar_btns = [save_btn, open_btn, add_var_btn, rmv_var_btn, rst_var_btn, self.calibrate_btn]
         toolbar_lyt = QHBoxLayout()
 
         for btn in toolbar_btns:
@@ -143,9 +143,11 @@ class CalibrationWidget(QDialog):
         self.connect(add_var_btn, SIGNAL('clicked()'), self.add_var)
         self.connect(rmv_var_btn, SIGNAL('clicked()'), self.rmv_var)
         self.connect(rst_var_btn, SIGNAL('clicked()'), self.rst_var)
-        self.connect(calibrate_btn, SIGNAL('clicked()'), self.calibrate)
+        self.connect(self.calibrate_btn, SIGNAL('clicked()'), self.calibrate)
         self.connect(button_box, SIGNAL('accepted()'), self.accept);
         self.connect(button_box, SIGNAL('rejected()'), self.reject);
+
+#        self.connect(self, SIGNAL('param_or_margins_changed()'), self)
 
 
         self.init_totalpop()
@@ -349,9 +351,12 @@ class CalibrationWidget(QDialog):
             self.pop_spinbox.setDisabled(True)
             self.pop_spinbox.spin.setDisabled(True)
             self.totalpop = None    
+        
+
         self.param_or_margins_changed()
 
     def param_or_margins_changed(self):
+        self.calibrate_btn.setEnabled(True)
         self.update_view()
         self.emit(SIGNAL('param_or_margins_changed()'))
         
@@ -535,29 +540,32 @@ class CalibrationWidget(QDialog):
         '''
         Calibrate accoding to margins found in frame
         '''
-        if self.frame is None:
+        if self.frame is None and self.totalpop is None:
             self.update_view()
             return
-        
+
+
         df = self.frame
         inputs = self.inputs
         margins = {}
-        df = df.reset_index(drop=True)
-        df = df.set_index(['var','mod'], inplace = True)        
-        for var, mod in df.index:
-            # Dealing with non categorical vars ...
-            if df.get_value((var,mod), u"modalités") == 'total':
-                margins[var] =  df.get_value((var,mod), 'cible')
-            #  ... and categorical vars
-            else:
-                if not margins.has_key(var):
-                    margins[var] = {}
-                margins[var][mod] =  df.get_value((var,mod), 'cible')
+        
+        if df is not None:
+            df = df.reset_index(drop=True)
+            df = df.set_index(['var','mod'], inplace = True)        
+            for var, mod in df.index:
+                # Dealing with non categorical vars ...
+                if df.get_value((var,mod), u"modalités") == 'total':
+                    margins[var] =  df.get_value((var,mod), 'cible')
+                #  ... and categorical vars
+                else:
+                    if not margins.has_key(var):
+                        margins[var] = {}
+                    margins[var][mod] =  df.get_value((var,mod), 'cible')
                 
         param = self.get_param()
+
         if self.totalpop is not None:
             margins['totalpop'] = self.totalpop
-
         adjusted_margins = self.update_weights(margins, param=param)
         
         if 'totalpop' in margins.keys():
@@ -584,9 +592,10 @@ class CalibrationWidget(QDialog):
                 df.set_value((var,0), u"cible ajustée", adjusted_margins[var])
                 df.set_value((var,0), u"marge", updated_margin)
         
-        self.frame = df.reset_index()
+        if self.frame is not None:
+            self.frame = df.reset_index()
         self.update_view()
-
+        self.calibrate_btn.setDisabled(True)
                     
     def plotWeightsRatios(self):
         ax = self.mplwidget.axes
@@ -603,7 +612,6 @@ class CalibrationWidget(QDialog):
         '''
         with open(filename) as f_tot:
             totals = read_csv(f_tot,index_col = (0,1))
-
         # if data for the configured year is not availbale leave margins empty
         if year not in totals:
             return
