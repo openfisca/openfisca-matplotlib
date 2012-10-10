@@ -275,15 +275,10 @@ class MainWindow(QMainWindow):
             gc.collect()
             
             fname = CONF.get('paths', 'survey_data/file')
-            country = CONF.get('simulation','country')
-            country_fname = path.join(country,'data','survey.h5')
             if path.isfile(fname):
                 self.survey = DataTable(InputTable, survey_data = fname)
                 return True
-            elif path.isfile(country_fname):
-                self.survey = DataTable(InputTable, survey_data = country_fname)
 #            self.survey.inflate() #to be activated when data/inflate.csv is fixed
-                return True
         except Exception, e:
             self.aggregate_enabled = False
             QMessageBox.warning(self, u"Impossible de lire les données", 

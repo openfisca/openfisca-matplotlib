@@ -29,8 +29,8 @@ from PyQt4.QtGui import (QLabel, QDialog, QHBoxLayout, QVBoxLayout, QPushButton,
                          QSpinBox, QDoubleSpinBox, QCheckBox, QInputDialog, QFileDialog, 
                          QMessageBox, QApplication, QCursor, QSpacerItem, QSizePolicy,
                          QDialogButtonBox)
-from numpy import logical_and, isnan
-from pandas import read_csv, DataFrame, concat
+from numpy import logical_and, unique
+from pandas import read_csv, DataFrame, concat, HDFStore
 from Config import CONF
 from core.qthelpers import DataFrameViewWidget, get_icon, _fromUtf8
 
@@ -85,6 +85,8 @@ class InflationWidget(QDialog):
         self.set_inputs(inputs)
         self.set_targets_from_file()
 
+        self.actualisation_coeffs = None
+        
     
     @property
     def frame_vars_list(self):
@@ -126,7 +128,7 @@ class InflationWidget(QDialog):
         '''
         self.inputs = inputs
         self.unit = 'ind'
-        self.weights = 1*self.inputs.get_value("wprm", inputs.index[self.unit])
+        self.weights = 1*self.inputs.get_value("wprm", inputs.index[self.unit]) # 1* to deal with pointer nature
 
     def set_targets_from_file(self, filename = None, year = None):
         '''
@@ -175,6 +177,64 @@ class InflationWidget(QDialog):
                 if x>0:
                     self.add_var2(varname, target=target, inflator = 1.0/x)
             self.inflated()
+
+
+    def build_actualisation_groups(self):
+        '''
+        Builds actualisation groups
+        '''
+        groups = dict()
+        data_dir = CONF.get('paths', 'data_dir')
+        fname = "actualisation_groups.h5"
+        filename = os.path.join(data_dir, fname)
+        store = HDFStore(filename)
+        df = store['actualisation']
+        coeff_list = sorted(unique(df['coeff'].dropna()))
+        for coeff in coeff_list:
+            groups[coeff] = list(df[ df['coeff']==coeff ]['var'])
+
+        self.actualisation_groups = groups
+            
+    def actualise_using_group(self):
+        '''
+        Actualises the parameters
+        '''
+        table = self.inputs.table
+
+        for coeff, varname in self.actualisation_groups.iteriterms():
+            if varname in table:
+                total = sum(table[varname]*table['wprm'])
+                target = coeff*total                    
+                self.add_var2(varname, target=target, inflator = coeff)
+        self.inflated()
+        
+        
+    
+# demo : coefficient démographique (tous les poids sont augmentés proportionnellement à ce coefficient)
+# sal : coefficient d'actualisation des salaires
+# ret : coefficient d'actualisation des pensions hors pensions alimentaires
+# pen : coefficient d'actualisation des pensions alimentaires
+# rto : coefficient d'actualisation des rentes viagères à titre onéreux
+# chd : coefficient d'actualisation des charges déductibles
+# red : coefficient d'actualisation des réductions et crédits d'impôts
+# rcm : coefficient d'actualisation des revenus de capitaux mobiliers
+# rcm_ci : coefficient d'actualisation des revenus de capitaux mobiliers (Crédits d'impôts)
+# fon : coefficient d'actualisation des revenus fonciers
+# fon_df : coefficient d'actualisation des revenus fonciers (déficits)
+# agr : coefficient d'actualisation des bénéfices agricoles
+# agr_df : coefficient d'actualisation des bénéfices agricoles (déficits)
+# bic : coefficient d'actualisation des bénéfices industriels et commerciaux
+# bic_df : coefficient d'actualisation des bénéfices industriels et commerciaux (déficits)
+# bic_ae : coefficient d'actualisation bénéfices industriels et commerciaux (auto-entrepreneurs)
+# bnc : coefficient d'actualisation des bénéfices non-commerciaux 
+# bnc_df : coefficient d'actualisation des bénéfices non-commerciaux (déficits)
+# bnc_ae : coefficient d'actualisation des bénéfices non-commerciaux (auto-entrepreneurs)
+# pv : coefficient d'actualisation des plus-values
+# mv : coefficient d'actualisation des moins-values
+# pvm : coefficient d'actualisation des plus-values mobilières
+        
+        
+        
 
     def add_var(self):
         '''
