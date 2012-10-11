@@ -224,7 +224,7 @@ class AggregateOutputWidget(QDockWidget):
             self.set_distribution_choices(descriptions)
             
         if not hasattr(self, 'distribution_by_var'):
-            self.distribution_by_var = 'typmen15'    #TODO remove from here
+            self.distribution_by_var = 'so'    #TODO remove from here
         
         self.update_aggregate_view()
         self.update_distribution_view()
