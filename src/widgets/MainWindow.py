@@ -39,17 +39,12 @@ from widgets.Inflation import InflationWidget
 from widgets.ExploreData import ExploreDataWidget
 from widgets.Inequality import InequalityWidget
 from core.datatable import DataTable, SystemSf
-from core.utils import gen_output_data, gen_aggregate_output, of_class_import
+from core.utils import gen_output_data, gen_aggregate_output, of_import
 from core.qthelpers import create_action, add_actions, get_icon
 import gc
 
 
-country = CONF.get('simulation', 'country')
 
-InputTable = of_class_import(country, 'data', 'InputTable')
-ModelSF = of_class_import(country, 'model', 'ModelSF')
-Scenario = of_class_import(country, 'utils', 'Scenario')
-ScenarioWidget = of_class_import(country, 'widgets.Composition', 'ScenarioWidget')
 
 
 class MainWindow(QMainWindow):
@@ -93,14 +88,28 @@ class MainWindow(QMainWindow):
             # each update (there is nothing there for now, but it could 
             # be useful some day...
         
+        self.InputTable = None
+        self.ModelSF = None
         self.start()
         
     def start(self, restart = False):
 
-
         country = CONF.get('simulation', 'country')
         self.old_country = country
         
+        if self.InputTable is not None:
+            del self.InputTable
+        
+        self.InputTable = of_import('data', 'InputTable')
+        
+        if self.ModelSF is not None:
+            del self.ModelSF
+        
+        self.ModelSF = of_import('model', 'ModelSF')
+        
+        Scenario = of_import('utils', 'Scenario')
+
+
 #        if restart is True:
 #            del InputTable, ModelSF, Scenario, ScenarioWidget 
 #            self.reset_aggregate()
@@ -235,6 +244,7 @@ class MainWindow(QMainWindow):
     def create_dockwidgets(self):
         # Création des dockwidgets
         self._parametres = ParamWidget(self)
+        ScenarioWidget = of_import('widgets.Composition', 'ScenarioWidget')
         self._menage = ScenarioWidget(self.scenario, self)
         self._graph = Graph(self)
         self._table = OutTable(self)
@@ -276,7 +286,7 @@ class MainWindow(QMainWindow):
             
             fname = CONF.get('paths', 'survey_data/file')
             if path.isfile(fname):
-                self.survey = DataTable(InputTable, survey_data = fname)
+                self.survey = DataTable(self.InputTable, survey_data = fname)
                 return True
 #            self.survey.inflate() #to be activated when data/inflate.csv is fixed
         except Exception, e:
@@ -374,7 +384,7 @@ class MainWindow(QMainWindow):
         # set the table model to None before changing data
         self._table.clearModel()
                 
-        input_table = DataTable(InputTable, scenario = self.scenario)
+        input_table = DataTable(self.InputTable, scenario = self.scenario)
         output, output_default = self.preproc(input_table)
         data = gen_output_data(output)
         
@@ -399,11 +409,11 @@ class MainWindow(QMainWindow):
         P_default = self._parametres.getParam(defaut = True)    
         P         = self._parametres.getParam(defaut = False)
         
-        output = SystemSf(ModelSF, P, P_default)
+        output = SystemSf(self.ModelSF, P, P_default)
         output.set_inputs(input_table)
                 
         if self.reforme:
-            output_default = SystemSf(ModelSF, P_default, P_default)
+            output_default = SystemSf(self.ModelSF, P_default, P_default)
             output_default.set_inputs(input_table)
         else:
             output_default = output
