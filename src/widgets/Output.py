@@ -406,8 +406,10 @@ def drawBareme(data, ax, xaxis, reforme = False, dataDefault = None, legend = Tr
 
     ax.figure.subplots_adjust(bottom = 0.09, top = 0.95, left = 0.11, right = 0.95)
         
-    if reforme: prefix = 'Variation '
-    else: prefix = ''
+    if reforme: 
+        prefix = 'Variation '
+    else: 
+        prefix = ''
 
     ax.hold(True)
     xdata = dataDefault[xaxis]
