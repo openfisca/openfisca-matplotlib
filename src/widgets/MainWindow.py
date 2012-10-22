@@ -105,8 +105,7 @@ class MainWindow(QMainWindow):
         if self.ModelSF is not None:
             del self.ModelSF
         
-        self.ModelSF = of_import('model', 'ModelSF')
-        
+        self.ModelSF = of_import('model', 'ModelSF')        
         Scenario = of_import('utils', 'Scenario')
 
 
@@ -245,7 +244,7 @@ class MainWindow(QMainWindow):
         # Création des dockwidgets
         self._parametres = ParamWidget(self)
         ScenarioWidget = of_import('widgets.Composition', 'ScenarioWidget')
-        self._menage = ScenarioWidget(self.scenario, self)
+        self._menage = ScenarioWidget(scenario = self.scenario, parent = self)
         self._graph = Graph(self)
         self._table = OutTable(self)
         self._aggregate_output = AggregateOutputWidget(self)
