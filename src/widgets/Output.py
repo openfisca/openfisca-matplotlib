@@ -227,7 +227,6 @@ class Graph(QDockWidget, Ui_Graph):
                 except:
                     pass
             
-            
             if reforme:
                 data.hideAll()
         
