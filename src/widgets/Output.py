@@ -221,8 +221,6 @@ class Graph(QDockWidget, Ui_Graph):
         self.mode = mode
         data['revdisp'].visible = 1
         if self.mode == 'bareme':    # TODO make this country-totals specific
-            print 'COUCOU'
-            print data
             for rev in ['salsuperbrut', 'salbrut', 'chobrut', 'rstbrut']:
                 try:
                     data[rev].setHidden()
