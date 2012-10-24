@@ -97,6 +97,7 @@ class MainWindow(QMainWindow):
         country = CONF.get('simulation', 'country')
         self.old_country = country
         
+        
         if self.InputTable is not None:
             del self.InputTable
         
@@ -109,21 +110,23 @@ class MainWindow(QMainWindow):
         Scenario = of_import('utils', 'Scenario')
 
 
-#        if restart is True:
+        if restart is True:
 #            del InputTable, ModelSF, Scenario, ScenarioWidget 
-#            self.reset_aggregate()
-#            del self.scenario
-#            
-#            del (self._parametres, self._menage, self._graph, self._table, 
-#                 self._aggregate_output, self._dataframe_widget, 
-#                 self._inequality_widget)
-#
+            self.reset_aggregate()
+            del self.scenario
+            
+            del (self._parametres, self._menage, self._graph, self._table, 
+                 self._aggregate_output, self._dataframe_widget, 
+                 self._inequality_widget)
+
         
         self.scenario = Scenario()
         # Preferences
         self.general_prefs = [SimConfigPage, PathConfigPage, CalConfigPage]
         self.reforme = False
-        self.apply_settings()
+        
+        if restart is False:
+            self.apply_settings()
         
         # Dockwidgets creation
         self.splash.showMessage("Creating widgets...", Qt.AlignBottom | Qt.AlignCenter | 
@@ -511,20 +514,34 @@ class MainWindow(QMainWindow):
                           ''')
 
     def apply_settings(self):
+        
         country = CONF.get('simulation', 'country')
-        if not self.old_country == country:
-            self.start(restart = True) 
-        """Apply settings changed in 'Preferences' dialog box"""
-        self.XAXIS = CONF.get('simulation', 'xaxis')
-        if self.isLoaded == True:
-            self._parametres.initialize()
-            self.refresh_bareme()
-        if self.calibration_enabled:
-            self.action_calibrate.setEnabled(True)
-        if self.inflation_enabled:
-            self.action_inflate.setEnabled(True)
-        if self.aggregate_enabled:
-            self.action_refresh_aggregate.setEnabled(True)
+        year = CONF.get('simulation', 'xaxis')
+        
+        restart = False
+        
+        if not self.old_country == country: 
+            restart = True
+        
+        if hasattr(self, "survey"):
+            if not self.survey.survey_year == year:
+                restart = True
+            
+        if True:
+#        if restart: 
+#            self.start(restart = True)         
+#        else:
+            """Apply settings changed in 'Preferences' dialog box"""
+            self.XAXIS = CONF.get('simulation', 'xaxis')
+            if self.isLoaded == True:
+                self._parametres.initialize()
+                self.refresh_bareme()
+            if self.calibration_enabled:
+                self.action_calibrate.setEnabled(True)
+            if self.inflation_enabled:
+                self.action_inflate.setEnabled(True)
+            if self.aggregate_enabled:
+                self.action_refresh_aggregate.setEnabled(True)
 
     def edit_preferences(self):
         """Edit OpenFisca preferences"""

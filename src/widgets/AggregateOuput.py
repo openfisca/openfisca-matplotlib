@@ -104,7 +104,7 @@ class AggregateOutputWidget(QDockWidget):
         self.connect(self.add_btn, SIGNAL('clicked()'), self.add_var)
         self.connect(self.remove_btn, SIGNAL('clicked()'), self.remove_var)
 
-        self.load_totals_from_file()
+        self.load_amounts_from_file()
                 
         # Initialize attributes
         self.parent = parent
@@ -255,7 +255,7 @@ class AggregateOutputWidget(QDockWidget):
             
             # totals from administrative data
             if var in self.totals_df.index:
-                T.append(self.totals_df.get_value(var, "total"))
+                T.append(self.totals_df.get_value(var, "amount"))
             else:
                 T.append("n.d.")
         
@@ -421,27 +421,19 @@ class AggregateOutputWidget(QDockWidget):
         self.data = None
         self.wght = None
             
-    def load_totals_from_file(self, filenames=None, year=None):
+    def load_amounts_from_file(self, filenames=None, year=None):
         '''
         Loads totals from files
         '''
+        from pandas import HDFStore
         if year is None:
-            year     = str(CONF.get('simulation','datesim').year)
+            year     = CONF.get('simulation','datesim').year
         if filenames is None:
             data_dir = CONF.get('paths', 'data_dir')
-            #fname    = CONF.get('calibration','inflation_filename')  # TODO
-            fname = "totals_pfam.csv"
-            filename = os.path.join(data_dir, fname)
-            filenames = [filename]
 
-        
-        for fname in filenames:
-            with open(fname) as f_tot:
-                totals = read_csv(f_tot)
-            if year in totals:
-                if self.totals_df is None:
-                    self.totals_df = DataFrame(data = {"var" : totals["var"],
-                              "total" : totals[year]  } )
-                    self.totals_df = self.totals_df.set_index("var")
+        filename = os.path.join(data_dir, "amounts.h5")
+        store = HDFStore(filename)
+        df = store['amounts']            
+        self.totals_df = DataFrame(data = { "amount" : df[year]  } )
 
 
