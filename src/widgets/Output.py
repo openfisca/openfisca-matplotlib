@@ -221,15 +221,11 @@ class Graph(QDockWidget, Ui_Graph):
         self.mode = mode
         data['revdisp'].visible = 1
         if self.mode == 'bareme':    # TODO make this country-totals specific
-            if 'salsuperbrut' in data:
-                data['salsuperbrut'].setHidden()
-            if 'salbrut' in data:
-                data['salbrut'].setHidden()
-            if 'chobrut' in data:
-                data['chobrut'].setHidden()
-            if 'rstbrut' in data:
-                data['rstbrut'].setHidden()
-            
+            for rev in ['salsuperbrut', 'salbrut', 'chobrut', 'rstbrut']:
+                try:
+                    data[rev].setHidden()
+                except:
+                    pass
             
             if reforme:
                 data.hideAll()
@@ -509,6 +505,7 @@ def RevTot(data, typrev):
     '''
     REV_TYPE = of_import('utils', 'REV_TYPE')
     dct = REV_TYPE
+
     first = True
     try:
         for var in dct[typrev]:
@@ -519,8 +516,8 @@ def RevTot(data, typrev):
                 out += data[var].vals
         return out 
     except:
-        raise Exception("typrev should be one of the following: " + str(REV_TYPE.keys()))
-    
+        raise Exception("typrev is %s but typrev should be one of the following: %s" %(str(typrev), str(REV_TYPE.keys())) )
+ 
 
 
 
