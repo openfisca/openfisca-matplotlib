@@ -51,6 +51,7 @@ encoding//src/views/ui_parametres.py=utf-8
 encoding//src/widgets/AggregateOuput.py=utf-8
 encoding//src/widgets/Calibration.py=utf-8
 encoding//src/widgets/Declaration.py=utf-8
+encoding//src/widgets/Distribution.py=utf-8
 encoding//src/widgets/ExploreData.py=utf-8
 encoding//src/widgets/Inequality.py=utf-8
 encoding//src/widgets/Inflation.py=utf-8
