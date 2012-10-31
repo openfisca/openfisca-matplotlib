@@ -21,14 +21,13 @@ This file is part of openFisca.
 """
 
 from __future__ import division
-import numpy as np
 from pandas import DataFrame
 import os 
-from PyQt4.QtGui import (QWidget, QDockWidget, QLabel, QVBoxLayout, QComboBox,
-                         QApplication, QCursor, QInputDialog)
+from PyQt4.QtGui import (QWidget, QDockWidget, QVBoxLayout, QComboBox,
+                         QApplication, QCursor, QInputDialog, QSizePolicy, QMenu)
 from PyQt4.QtCore import SIGNAL, Qt
 from Config import CONF
-from core.qthelpers import OfSs, DataFrameViewWidget
+from core.qthelpers import OfSs, DataFrameViewWidget, create_action, add_actions
 
 class DataFrameDock(QDockWidget):
     def __init__(self, parent = None):
@@ -56,26 +55,30 @@ class AggregateOutputWidget(QDockWidget):
         self.setWindowTitle(u"Aggrégats")
         self.dockWidgetContents = QWidget()
         
-        agg_label = QLabel(u"Résultats aggrégés de la simulation", self.dockWidgetContents)
-
-        self.totals_df = None
-        
         self.aggregate_view = DataFrameViewWidget(self.dockWidgetContents)
 
+        # Menu 
+#        menu_bar = QMenuBar()
 
+        self.select_menu = QMenu()
+        action_real    = create_action(self, u"Réel",       toggled = self.toggle_show_real)
+        action_diff    = create_action(self, u"Différence", toggled = self.toggle_show_diff)
+        self.action_default = create_action(self, u"Référence",  toggled = self.toggle_show_default)
+        self.actions = [action_real, action_diff]
+        
+        add_actions(self.select_menu, self.actions)
+        
+        headers = self.aggregate_view.horizontalHeader()
+        self.headers = headers
+        headers.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.connect(self.headers,SIGNAL('customContextMenuRequested(QPoint)'), self.ctx_select_menu)
         verticalLayout = QVBoxLayout(self.dockWidgetContents)
-        verticalLayout.addWidget(agg_label)
         verticalLayout.addWidget(self.aggregate_view)
-        
-        
-#        self.cols = []
-        
         self.setWidget(self.dockWidgetContents)
-
-
-        self.load_amounts_from_file()
-                
+        
         # Initialize attributes
+        self.aggr_default_frame = None
+        self.totals_df = None
         self.parent = parent
         self.varlist = ['cotsoc_noncontrib', 'csg', 'crds',
                         'irpp', 'ppe',
@@ -86,13 +89,45 @@ class AggregateOutputWidget(QDockWidget):
                         'rsa', 'rsa_act', 'aefa', 'api',
                         'logt']
          
-        self.selected_vars = set(['revdisp', 'nivvie'])
-        
-        
-        self.data = DataFrame() # Pandas DataFrame
+        self.data = DataFrame()
         self.data_default = None
+        self.load_amounts_from_file()
+        self.aggr_frame = None
+        action_real.toggle()
+        action_diff.toggle()
+        
+        
+
+    def ctx_select_menu(self, point):
+        self.select_menu.exec_( self.headers.mapToGlobal(point) )
+        
+
+    def toggle_show_default(self, boolean):
+        ''' 
+        Toggles reference values from administrative data
+        '''
+        self.show_default = boolean
+        if self.aggr_frame is not None:
+            self.update_view()
 
 
+    def toggle_show_real(self, boolean):
+        ''' 
+        Toggles reference values from administrative data
+        '''
+        self.show_real = boolean
+        if self.aggr_frame is not None:
+            self.update_view()
+            
+    def toggle_show_diff(self, boolean):
+        ''' 
+        Toggles reference values from administrative data
+        '''
+        self.show_diff = boolean
+        if boolean is True:
+            self.show_real = True 
+        if self.aggr_frame is not None:
+            self.update_view()
 
     @property
     def vars(self):
@@ -144,7 +179,7 @@ class AggregateOutputWidget(QDockWidget):
         self.wght = self.data['wprm']
                  
 
-    def update_output(self, output_data, default = None):
+    def update_output(self, output_data, descriptions = None, default = None):
         '''
         Update aggregate outputs and reset view
         '''
@@ -153,49 +188,157 @@ class AggregateOutputWidget(QDockWidget):
         if output_data is None:
             return
         
+        if descriptions is not None:
+            self.description = descriptions[1]
+        
+        if default is not None:
+            if self.action_default not in self.actions:
+                self.actions.append(self.action_default)
+                add_actions(self.select_menu, self.actions)
+            self.action_default.toggle()
+        else:
+            self.show_default = False 
+            if self.action_default in self.actions:
+                self.actions.remove(self.action_default)
+                add_actions(self.select_menu, self.actions)
+        
         self.set_data(output_data, default)        
-        self.update_aggregate_view()
+        self.compute_aggregates()
+        self.update_view()
         self.calculated()
         QApplication.restoreOverrideCursor()
 
 
-    def update_aggregate_view(self):
+    def compute_aggregates(self):
         '''
-        Update aggregate amounts view
+        Compute aggregate amounts
         '''
-        V,  T  = [],  []    
+        V  = []    
         M = {'data': [], 'default': []}
         B = {'data': [], 'default': []}
+        U = []
         M_label = {'data': u"Dépense\n(millions d'€)", 
                    'default': u"Dépense initiale\n(millions d'€)"}
-        B_label = {'data': u"Bénéficiaires\n(milliers de ménages)", 
-                   'default': u"Bénéficiaires initiaux\n(milliers de ménages)"}
+        B_label = {'data': u"Bénéficiaires\n(en milliers)", 
+                   'default': u"Bénéficiaires\ninitiaux\n(en milliers)"}
         
         for var in self.varlist:
             # totals from current data and default data if exists
             montant_benef = self.get_aggregate(var)
             V.append(var)
+                        
+            try:
+                varcol  = self.description.get_col(var)
+                unit = varcol._unit
+            except:
+                unit = 'NA'
+                 
+            U.append(unit)
             for dataname in montant_benef:
                 M[dataname].append( montant_benef[dataname][0] )
                 B[dataname].append( montant_benef[dataname][1] )
-            
-            # totals from administrative data
-            if var in self.totals_df.index:
-                T.append(self.totals_df.get_value(var, "amount"))
-            else:
-                T.append("n.d.")
         
         # build items list
         items = [(u'Mesure', V)]
+
         for dataname in M:
             if M[dataname]:
                 items.append( (M_label[dataname], M[dataname]))
                 items.append(  (B_label[dataname], B[dataname]) )
-        
-        items.append((u"Dépenses réelles\n(millions d'€)", T))
-        aggr_frame = DataFrame.from_items(items)
-        self.aggregate_view.set_dataframe(aggr_frame)
 
+        items.append( (u"Unité", U) )        
+        self.aggr_frame = DataFrame.from_items(items)
+
+    def add_real(self):
+        '''
+        Adds administrative data to dataframe
+        '''
+        if u"Dépenses\nréelles\n(millions d'€)" not in self.aggr_frame:
+            T = []
+            for var in self.varlist:
+                # totals from administrative data        
+                if var in self.totals_df.index:
+                    T.append(self.totals_df.get_value(var, "amount"))
+                else:
+                    T.append("n.d.")
+
+            self.aggr_frame[u"Dépenses\nréelles\n(millions d'€)"] = T
+        
+
+    def rmv_real(self):
+        '''
+        Removes administrative data from dataframe
+        '''
+        if u"Dépenses\nréelles\n(millions d'€)" in self.aggr_frame.columns:
+            self.aggr_frame = self.aggr_frame.drop([u"Dépenses\nréelles\n(millions d'€)"], axis =1)
+        self.rmv_diff()
+        
+    def add_diff(self):
+        '''
+        Computes and adds relative differences
+        '''
+        from numpy import nan         
+        if self.show_real:
+            dep = self.aggr_frame[u"Dépense\n(millions d'€)"]
+            ref_dep = self.aggr_frame[u"Dépenses\nréelles\n(millions d'€)"]
+            ref_dep2 = ref_dep.copy() 
+            ref_dep2[(ref_dep=="n.d.")] = nan   
+            self.aggr_frame[u"Différence\nrelative"] = (dep-ref_dep2)/abs(ref_dep2)
+        elif self.show_default:
+            dep = self.aggr_frame[u"Dépense\n(millions d'€)"]
+            ref_dep = self.aggr_frame[u"Dépense initiale\n(millions d'€)"]
+            self.aggr_frame[u"Différence\nrelative"] = (dep-ref_dep)/abs(ref_dep)
+            
+    def rmv_diff(self):
+        '''
+        Removes relative differences
+        '''
+        if u"Différence\nrelative" in self.aggr_frame.columns:
+            self.aggr_frame = self.aggr_frame.drop([u"Différence\nrelative"], axis =1)
+
+    def add_default(self):
+        '''
+        Adds default aggregates when in reform mode
+        '''
+        default_cols = [u"Dépense initiale\n(millions d'€)", u"Bénéficiaires\ninitiaux\n(en milliers)"]
+        if self.aggr_default_frame is not None:
+            self.aggr_frame[default_cols] = self.aggr_default_frame[default_cols] 
+        
+    def rmv_default(self):
+        '''
+        Removes default aggregates when in reform mode
+        '''
+        default_cols = [u"Dépense initiale\n(millions d'€)", u"Bénéficiaires\ninitiaux\n(en milliers)"]
+        if default_cols[0] in self.aggr_frame:
+            self.aggr_default_frame = self.aggr_frame[ default_cols ]
+            self.aggr_frame = self.aggr_frame.drop(default_cols, axis=1)
+        
+    def update_view(self):
+        '''
+        Update aggregate amounts view
+        '''
+        if self.show_real:
+            self.add_real()
+            if self.show_diff:
+                self.add_diff()
+            else:
+                self.rmv_diff()
+        else:
+            self.rmv_real()
+            
+            
+        if self.show_default:
+            self.add_default()
+            if self.show_diff:
+                self.add_diff()
+            else:
+                self.rmv_diff()
+        else:
+            self.rmv_default()
+            
+        self.aggregate_view.set_dataframe(self.aggr_frame)
+        self.aggregate_view.resizeColumnsToContents()
+        self.aggregate_view.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Expanding)
                 
     def calculated(self):
         '''
@@ -220,8 +363,9 @@ class AggregateOutputWidget(QDockWidget):
                         int(round(sum(beneficiaires*self.wght)/10**3))]
         return m_b
     
-
+    
     def clear(self):
+        self.aggr_default_frame = None
         self.aggregate_view.clear()
         self.data = None
         self.wght = None

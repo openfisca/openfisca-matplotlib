@@ -463,10 +463,10 @@ class MainWindow(QMainWindow):
         descr = [self.survey.description, self.survey_outputs.description]
         if self.reforme:
             data_default = gen_aggregate_output(self.survey_outputs_default)
-            self._aggregate_output_widget.update_output(data, default = data_default)
+            self._aggregate_output_widget.update_output(data, descriptions = descr, default = data_default)
             self._distribution_widget.update_output(data, descriptions = descr, default = data_default)
         else:
-            self._aggregate_output_widget.update_output(data)
+            self._aggregate_output_widget.update_output(data, descriptions = descr)
             self._distribution_widget.update_output(data, descriptions = descr)
         
         self.statusbar.showMessage(u"")
