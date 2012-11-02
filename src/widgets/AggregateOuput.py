@@ -23,7 +23,7 @@ This file is part of openFisca.
 from __future__ import division
 from pandas import DataFrame
 import os 
-from PyQt4.QtGui import (QWidget, QDockWidget, QVBoxLayout, QComboBox,
+from PyQt4.QtGui import (QWidget, QDockWidget, QVBoxLayout,
                          QApplication, QCursor, QInputDialog, QSizePolicy, QMenu)
 from PyQt4.QtCore import SIGNAL, Qt
 from Config import CONF
@@ -57,17 +57,7 @@ class AggregateOutputWidget(QDockWidget):
         
         self.aggregate_view = DataFrameViewWidget(self.dockWidgetContents)
 
-        # Menu 
-#        menu_bar = QMenuBar()
-
-        self.select_menu = QMenu()
-        action_real    = create_action(self, u"Réel",       toggled = self.toggle_show_real)
-        action_diff    = create_action(self, u"Différence", toggled = self.toggle_show_diff)
-        self.action_default = create_action(self, u"Référence",  toggled = self.toggle_show_default)
-        self.actions = [action_real, action_diff]
-        
-        add_actions(self.select_menu, self.actions)
-        
+        # Context Menu         
         headers = self.aggregate_view.horizontalHeader()
         self.headers = headers
         headers.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -77,8 +67,7 @@ class AggregateOutputWidget(QDockWidget):
         self.setWidget(self.dockWidgetContents)
         
         # Initialize attributes
-        self.aggr_default_frame = None
-        self.totals_df = None
+
         self.parent = parent
         self.varlist = ['cotsoc_noncontrib', 'csg', 'crds',
                         'irpp', 'ppe',
@@ -87,20 +76,34 @@ class AggregateOutputWidget(QDockWidget):
                         'ars', 'aeeh', 'asf', 'aspa',
                         'aah', 'caah', 
                         'rsa', 'rsa_act', 'aefa', 'api',
-                        'logt']
+                        'logt', 'alf', 'als', 'apl']
          
         self.data = DataFrame()
         self.data_default = None
-        self.load_amounts_from_file()
         self.aggr_frame = None
-        action_real.toggle()
-        action_diff.toggle()
+        self.aggr_default_frame = None
+        self.totals_df = None
+        self.load_amounts_from_file()
         
+        self.set_header_labels()
+
+
+    def set_header_labels(self):
+        '''
+        Sets headers labels
+        '''
         
+        self.dep_label           = u"Dépense\n(millions d'€)" 
+        self.benef_label         = u"Bénéficiaires\n(milliers)"
+        self.dep_default_label   = u"Dépense initiale\n(millions d'€)"
+        self.benef_default_label = u"Bénéficiaires\ninitiaux\n(milliers)"
+        self.dep_real_label      = u"Dépenses\nréelles\n(millions d'€)"
+        self.benef_real_label    = u"Bénéficiaires\nréels\n(milliers)"
+        self.dep_diff_label      = u"Diff.relative\nDépenses"
+        self.benef_diff_label    = u"Diff.relative\nBénéficiaires"
 
     def ctx_select_menu(self, point):
         self.select_menu.exec_( self.headers.mapToGlobal(point) )
-        
 
     def toggle_show_default(self, boolean):
         ''' 
@@ -164,13 +167,6 @@ class AggregateOutputWidget(QDockWidget):
         else:
             return None 
 
-    def dist_by_changed(self):    
-        widget = self.distribution_combo.box
-        if isinstance(widget, QComboBox):
-            data = widget.itemData(widget.currentIndex())
-            by_var = unicode(data.toString())
-            self.distribution_by_var = by_var                
-            self.update_output(self.data)
     
     def set_data(self, output_data, default=None):
         self.data = output_data
@@ -190,17 +186,28 @@ class AggregateOutputWidget(QDockWidget):
         
         if descriptions is not None:
             self.description = descriptions[1]
-        
-        if default is not None:
-            if self.action_default not in self.actions:
-                self.actions.append(self.action_default)
-                add_actions(self.select_menu, self.actions)
-            self.action_default.toggle()
+
+        self.select_menu = QMenu()
+        action_real    = create_action(self, u"Réel",       toggled = self.toggle_show_real)
+        action_diff    = create_action(self, u"Différence", toggled = self.toggle_show_diff)
+        action_default = create_action(self, u"Référence",  toggled = self.toggle_show_default)
+                
+        if default is None:
+            self.show_default = False
+            if self.totals_df is not None:
+                add_actions(self.select_menu, [action_real, action_diff])
+                action_diff.toggle()
+                action_real.toggle()
+            else: 
+                add_actions(self.select_menu, [])
+                self.show_real = False
+                self.show_diff = False
         else:
-            self.show_default = False 
-            if self.action_default in self.actions:
-                self.actions.remove(self.action_default)
-                add_actions(self.select_menu, self.actions)
+            self.show_real = False
+            add_actions(self.select_menu, [action_default, action_diff])
+            action_diff.toggle()
+            action_default.toggle() 
+            
         
         self.set_data(output_data, default)        
         self.compute_aggregates()
@@ -217,11 +224,12 @@ class AggregateOutputWidget(QDockWidget):
         M = {'data': [], 'default': []}
         B = {'data': [], 'default': []}
         U = []
-        M_label = {'data': u"Dépense\n(millions d'€)", 
-                   'default': u"Dépense initiale\n(millions d'€)"}
-        B_label = {'data': u"Bénéficiaires\n(en milliers)", 
-                   'default': u"Bénéficiaires\ninitiaux\n(en milliers)"}
-        
+
+        M_label = {'data': self.dep_label, 
+                   'default': self.dep_default_label}
+        B_label = {'data': self.benef_label, 
+                   'default': self.benef_default_label}
+
         for var in self.varlist:
             # totals from current data and default data if exists
             montant_benef = self.get_aggregate(var)
@@ -253,24 +261,26 @@ class AggregateOutputWidget(QDockWidget):
         '''
         Adds administrative data to dataframe
         '''
-        if u"Dépenses\nréelles\n(millions d'€)" not in self.aggr_frame:
-            T = []
+        if (self.dep_real_label not in self.aggr_frame) and (self.totals_df is not None) :
+            A, B = [], []
             for var in self.varlist:
                 # totals from administrative data        
                 if var in self.totals_df.index:
-                    T.append(self.totals_df.get_value(var, "amount"))
+                    A.append(self.totals_df.get_value(var, "amount"))
+                    B.append(self.totals_df.get_value(var, "benef"))
                 else:
-                    T.append("n.d.")
+                    A.append("n.d.")
+                    B.append("n.d.")
 
-            self.aggr_frame[u"Dépenses\nréelles\n(millions d'€)"] = T
-        
+            self.aggr_frame[self.dep_real_label] = A
+            self.aggr_frame[self.benef_real_label] = B
 
     def rmv_real(self):
         '''
         Removes administrative data from dataframe
         '''
-        if u"Dépenses\nréelles\n(millions d'€)" in self.aggr_frame.columns:
-            self.aggr_frame = self.aggr_frame.drop([u"Dépenses\nréelles\n(millions d'€)"], axis =1)
+        if self.dep_real_label in self.aggr_frame.columns:
+            self.aggr_frame = self.aggr_frame.drop([self.dep_real_label], axis =1)
         self.rmv_diff()
         
     def add_diff(self):
@@ -278,29 +288,35 @@ class AggregateOutputWidget(QDockWidget):
         Computes and adds relative differences
         '''
         from numpy import nan         
+        dep   = self.aggr_frame[self.dep_label]
+        benef = self.aggr_frame[self.benef_label]
         if self.show_real:
-            dep = self.aggr_frame[u"Dépense\n(millions d'€)"]
-            ref_dep = self.aggr_frame[u"Dépenses\nréelles\n(millions d'€)"]
-            ref_dep2 = ref_dep.copy() 
-            ref_dep2[(ref_dep=="n.d.")] = nan   
-            self.aggr_frame[u"Différence\nrelative"] = (dep-ref_dep2)/abs(ref_dep2)
+            ref_dep_label, ref_benef_label = self.dep_real_label, self.benef_real_label
         elif self.show_default:
-            dep = self.aggr_frame[u"Dépense\n(millions d'€)"]
-            ref_dep = self.aggr_frame[u"Dépense initiale\n(millions d'€)"]
-            self.aggr_frame[u"Différence\nrelative"] = (dep-ref_dep)/abs(ref_dep)
+            ref_dep_label, ref_benef_label = self.dep_default_label, self.benef_default_label
+            
+        ref_dep0 = self.aggr_frame[ref_dep_label]
+        ref_dep = ref_dep0.copy() 
+        ref_dep[(ref_dep=="n.d.")] = nan   
+        ref_benef0 = self.aggr_frame[ref_benef_label]
+        ref_benef = ref_benef0.copy() 
+        ref_benef[(ref_benef=="n.d.")] = nan
+                    
+        self.aggr_frame[self.dep_diff_label] = (dep-ref_dep)/abs(ref_dep)
+        self.aggr_frame[self.benef_diff_label] = (benef-ref_benef)/abs(ref_benef)
             
     def rmv_diff(self):
         '''
         Removes relative differences
         '''
-        if u"Différence\nrelative" in self.aggr_frame.columns:
-            self.aggr_frame = self.aggr_frame.drop([u"Différence\nrelative"], axis =1)
+        if self.dep_diff_label in self.aggr_frame.columns:
+            self.aggr_frame = self.aggr_frame.drop([self.dep_diff_label, self.benef_diff_label], axis =1)
 
     def add_default(self):
         '''
         Adds default aggregates when in reform mode
         '''
-        default_cols = [u"Dépense initiale\n(millions d'€)", u"Bénéficiaires\ninitiaux\n(en milliers)"]
+        default_cols = [self.dep_default_label, self.benef_default_label]
         if self.aggr_default_frame is not None:
             self.aggr_frame[default_cols] = self.aggr_default_frame[default_cols] 
         
@@ -308,7 +324,7 @@ class AggregateOutputWidget(QDockWidget):
         '''
         Removes default aggregates when in reform mode
         '''
-        default_cols = [u"Dépense initiale\n(millions d'€)", u"Bénéficiaires\ninitiaux\n(en milliers)"]
+        default_cols = [self.dep_default_label, self.benef_default_label]
         if default_cols[0] in self.aggr_frame:
             self.aggr_default_frame = self.aggr_frame[ default_cols ]
             self.aggr_frame = self.aggr_frame.drop(default_cols, axis=1)
@@ -319,22 +335,18 @@ class AggregateOutputWidget(QDockWidget):
         '''
         if self.show_real:
             self.add_real()
-            if self.show_diff:
-                self.add_diff()
-            else:
-                self.rmv_diff()
         else:
             self.rmv_real()
-            
-            
+             
         if self.show_default:
             self.add_default()
-            if self.show_diff:
-                self.add_diff()
-            else:
-                self.rmv_diff()
         else:
             self.rmv_default()
+            
+        if self.show_diff:
+            self.add_diff()
+        else:
+            self.rmv_diff()
             
         self.aggregate_view.set_dataframe(self.aggr_frame)
         self.aggregate_view.resizeColumnsToContents()
@@ -382,7 +394,14 @@ class AggregateOutputWidget(QDockWidget):
 
         filename = os.path.join(data_dir, "amounts.h5")
         store = HDFStore(filename)
-        df = store['amounts']            
-        self.totals_df = DataFrame(data = { "amount" : df[year]  } )
-
-
+        print store
+        df_a = store['amounts']
+        df_b = store['benef']
+        try:
+            self.totals_df = DataFrame(data = { "amount" : df_a[year]/10**6, "benef": df_b[year]/1000 } )
+            print self.totals_df.to_string()
+        except:
+#            raise Exception(" No administrative data available for year " + str(year))
+            print " No administrative data available for year " + str(year)
+            self.totals_df = None
+            pass
