@@ -414,7 +414,8 @@ def drawBareme(data, ax, xaxis, reforme = False, dataDefault = None, legend = Tr
     xlabel = xdata.desc
 
     ax.set_xlabel(xlabel)
-    ax.set_ylabel(prefix + u"Revenu disponible (€ par an)")
+    currency = of_import('utils', 'currency')
+    ax.set_ylabel(prefix + u"Revenu disponible (" + currency + " par an)")
     ax.set_xlim(np.amin(xdata.vals), np.amax(xdata.vals))
     if not reforme:
         ax.set_ylim(np.amin(xdata.vals), np.amax(xdata.vals))

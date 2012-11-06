@@ -249,14 +249,16 @@ class MainWindow(QMainWindow):
         self._graph = Graph(self)
         self._table = OutTable(self)
         
-        widget_class = [AggregateOutputWidget, DistributionWidget, ExploreDataWidget, InequalityWidget]
+        widget_classes = [AggregateOutputWidget, DistributionWidget, ExploreDataWidget, InequalityWidget]
+        agg_widget_classes = [AggregateOutputWidget, DistributionWidget, InequalityWidget, ExploreDataWidget]
 
         from core.utils import lower_and_underscore
         self.aggregate_widgets = []                
-        for widget_class in widget_class:
-            setattr(self, lower_and_underscore(widget_class.__name__), widget_class(self))
-            self.aggregate_widgets.append( getattr(self, lower_and_underscore(widget_class.__name__)))
-
+        for widget_class in widget_classes:
+            widget_name = lower_and_underscore(widget_class.__name__)
+            setattr(self, widget_name, widget_class(self))
+            if widget_class in agg_widget_classes:
+                self.aggregate_widgets.append( getattr(self, widget_name))
 
         
     def populate_mainwidow(self):
@@ -326,7 +328,7 @@ class MainWindow(QMainWindow):
 
     def switch_bareme_only(self):
             self.aggregate_enabled = False
-            self._aggregate_output.setEnabled(False)
+            self._aggregate_output_widget.setEnabled(False)
             for widget in self.aggregate_widgets:
                 widget.hide()
             self.action_refresh_aggregate.setEnabled(False)
