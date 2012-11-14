@@ -99,12 +99,12 @@ class MainWindow(QMainWindow):
         if self.InputTable is not None:
             del self.InputTable
         
-        self.InputTable = of_import('data', 'InputTable')
+        self.InputTable = of_import('model.data', 'InputTable')
         
         if self.ModelSF is not None:
             del self.ModelSF
         
-        self.ModelSF = of_import('model', 'ModelSF')        
+        self.ModelSF = of_import('model.model', 'ModelSF')        
         Scenario = of_import('utils', 'Scenario')
 
 
