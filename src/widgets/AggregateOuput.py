@@ -21,16 +21,14 @@ This file is part of openFisca.
 """
 
 from __future__ import division
-import numpy as np
-from pandas import DataFrame, read_csv, merge
+from pandas import DataFrame
 import os 
-from PyQt4.QtGui import (QWidget, QDockWidget, QLabel, QVBoxLayout, QHBoxLayout, QComboBox, QSortFilterProxyModel,
-                         QSpacerItem, QSizePolicy, QApplication, QCursor, QPushButton, QInputDialog)
+from PyQt4.QtGui import (QWidget, QDockWidget, QVBoxLayout,
+                         QApplication, QCursor, QInputDialog, QSizePolicy, QMenu)
 from PyQt4.QtCore import SIGNAL, Qt
+from numpy import nan         
 from Config import CONF
-from core.qthelpers import OfSs, DataFrameViewWidget
-from core.qthelpers import MyComboBox
-from core.columns import EnumCol, EnumPresta
+from core.qthelpers import OfSs, DataFrameViewWidget, create_action, add_actions
 
 class DataFrameDock(QDockWidget):
     def __init__(self, parent = None):
@@ -54,258 +52,319 @@ class AggregateOutputWidget(QDockWidget):
         super(AggregateOutputWidget, self).__init__(parent)
         self.setStyleSheet(OfSs.dock_style)
         # Create geometry
-        self.setObjectName("Aggregate_Output")
-        self.setWindowTitle("Aggregate_Output")
+        self.setObjectName(u"Aggrégats")
+        self.setWindowTitle(u"Aggrégats")
         self.dockWidgetContents = QWidget()
-        
-        agg_label = QLabel(u"Résultats aggrégés de la simulation", self.dockWidgetContents)
-
-        self.totals_df = None
         
         self.aggregate_view = DataFrameViewWidget(self.dockWidgetContents)
 
-        self.distribution_combo = MyComboBox(self.dockWidgetContents, u"Distribution de l'impact par")
-        self.distribution_combo.box.setSizeAdjustPolicy(self.distribution_combo.box.AdjustToContents)
-        self.distribution_combo.box.setDisabled(True)
-        
-        # To enable sorting of the combobox
-        # hints from here: http://www.qtcentre.org/threads/3741-How-to-sort-a-QComboBox-in-Qt4
-        #        and here: http://www.pyside.org/docs/pyside/PySide/QtGui/QSortFilterProxyModel.html      
-        proxy = QSortFilterProxyModel(self.distribution_combo.box)
-        proxy.setSourceModel(self.distribution_combo.box.model())
-        self.distribution_combo.box.model().setParent(proxy)
-        self.distribution_combo.box.setModel(proxy)
-        
-        spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-
-        distribLayout = QHBoxLayout()
-        distribLayout.addWidget(self.distribution_combo)
-        distribLayout.addItem(spacerItem)
-
-        self.distribution_view = DataFrameViewWidget(self.dockWidgetContents)
-        self.add_btn = QPushButton(u"Ajouter variable",self.dockWidgetContents)        
-        self.remove_btn = QPushButton(u"Retirer variable",self.dockWidgetContents)
-        varLayout = QHBoxLayout()
-        varLayout.addWidget(self.add_btn)
-        varLayout.addWidget(self.remove_btn)
-                
+        # Context Menu         
+        headers = self.aggregate_view.horizontalHeader()
+        self.headers = headers
+        headers.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.connect(self.headers,SIGNAL('customContextMenuRequested(QPoint)'), self.ctx_select_menu)
         verticalLayout = QVBoxLayout(self.dockWidgetContents)
-        verticalLayout.addWidget(agg_label)
         verticalLayout.addWidget(self.aggregate_view)
-        verticalLayout.addLayout(distribLayout)
-        verticalLayout.addWidget(self.distribution_view)
-        verticalLayout.addLayout(varLayout)
-        
-        
-#        self.cols = []
-        
         self.setWidget(self.dockWidgetContents)
-
-        self.connect(self.add_btn, SIGNAL('clicked()'), self.add_var)
-        self.connect(self.remove_btn, SIGNAL('clicked()'), self.remove_var)
-
-        self.load_amounts_from_file()
-                
+        
         # Initialize attributes
+
         self.parent = parent
-        self.varlist = ['cotsoc_noncontrib', 'csg', 'crds', 'irpp', 'ppe', 'af', 'cf', 'ars', 'aeeh', 'asf', 'aspa', 'aah', 'caah', 'rsa', 'aefa', 'api', 'logt']
+        self.varlist = ['cotsoc_noncontrib', 'csg', 'crds',
+                        'irpp', 'ppe',
+                        'af', 'af_base', 'af_majo','af_forf', 'cf',
+                        'paje_base', 'paje_nais', 'paje_colca', 'paje_clmg',
+                        'ars', 'aeeh', 'asf', 'aspa',
+                        'aah', 'caah', 
+                        'rsa', 'rsa_act', 'aefa', 'api',
+                        'logt', 'alf', 'als', 'apl']
          
-        self.selected_vars = set(['revdisp', 'nivvie'])
-        
-        
-        self.data = DataFrame() # Pandas DataFrame
+        self.data = DataFrame()
         self.data_default = None
+        self.aggr_frame = None
+        self.aggr_default_frame = None
+        self.totals_df = None
+        self.load_amounts_from_file()
+        
+        self.set_header_labels()
 
-    @property
-    def vars(self):
-        return set(self.data.columns)
 
-    def add_var(self):
-        var = self.ask()
-        if var is not None:
-            self.selected_vars.add(var)
-            self.update_output(self.data)
-        else:
-            return
-    
-    def remove_var(self):
-        var = self.ask(remove=True)
-        if var is not None:
-            self.selected_vars.remove(var)
-            self.update_output(self.data)
-        else:
-            return
+    def set_header_labels(self):
+        '''
+        Sets headers labels
+        '''
+        self.var_label           = u"Mesure"
+        self.unit_label          = u"Unité"
+        self.dep_label           = u"Dépense\n(millions d'€)" 
+        self.benef_label         = u"Bénéficiaires\n(milliers)"
+        self.dep_default_label   = u"Dépense initiale\n(millions d'€)"
+        self.benef_default_label = u"Bénéficiaires\ninitiaux\n(milliers)"
+        self.dep_real_label      = u"Dépenses\nréelles\n(millions d'€)"
+        self.benef_real_label    = u"Bénéficiaires\nréels\n(milliers)"
+        self.dep_diff_abs_label      = u"Diff. absolue\nDépenses\n(millions d'€) "
+        self.benef_diff_abs_label    = u"Diff absolue\nBénéficiaires\n(milliers)"
+        self.dep_diff_rel_label      = u"Diff. relative\nDépenses"
+        self.benef_diff_rel_label    = u"Diff. relative\nBénéficiaires"
 
-    def ask(self, remove=False):
-        if not remove:
-            label = "Ajouter une variable"
-            choices = self.vars - self.selected_vars
-        else:
-            choices =  self.selected_vars
-            label = "Retirer une variable"
+    def ctx_select_menu(self, point):
+        self.select_menu.exec_( self.headers.mapToGlobal(point) )
+
+    def toggle_show_default(self, boolean):
+        ''' 
+        Toggles reference values from administrative data
+        '''
+        self.show_default = boolean
+        self.update_view()
+
+    def toggle_show_real(self, boolean):
+        ''' 
+        Toggles reference values from administrative data
+        '''
+        self.show_real = boolean
+        self.update_view()
             
-        var, ok = QInputDialog.getItem(self, label , "Choisir la variable", 
-                                       sorted(list(choices)))
-        if ok and var in list(choices): 
-            return str(var)
-        else:
-            return None 
+    def toggle_show_diff_abs(self, boolean):
+        ''' 
+        Toggles differences 
+        '''
+        self.show_diff_abs = boolean
+        self.update_view()
 
-    def dist_by_changed(self):    
-        widget = self.distribution_combo.box
-        if isinstance(widget, QComboBox):
-            data = widget.itemData(widget.currentIndex())
-            by_var = unicode(data.toString())
-            self.distribution_by_var = by_var                
-            self.update_output(self.data)
-    
+    def toggle_show_diff_rel(self, boolean):
+        ''' 
+        Toggles differences 
+        '''
+        self.show_diff_rel = boolean
+        self.update_view()
+
+    def toggle_show_dep(self, boolean):
+        '''
+        Toggles to show amounts (dépenses) 
+        '''
+        self.show_dep = boolean
+        self.update_view()
+        
+    def toggle_show_benef(self, boolean):
+        '''
+        Toggles to show beneficiaries
+        ''' 
+        self.show_benef = boolean
+        self.update_view()
+        
     def set_data(self, output_data, default=None):
+        '''
+        Sets data and weight
+        '''
         self.data = output_data
         if default is not None:
             self.data_default = default
         self.wght = self.data['wprm']
                  
-    def set_distribution_choices(self, descriptions):
-        '''
-        Set the variables appearing in the ComboBox 
-        '''
-        combobox = self.distribution_combo.box
-        combobox.setEnabled(True)
-        self.disconnect(combobox, SIGNAL('currentIndexChanged(int)'), self.dist_by_changed)
-         
-        output_data_vars = set(self.data.columns)
-        self.distribution_combo.box.clear()
-        label2var = {}
-        var2label = {}
-        var2enum = {}
-        
-        for description in descriptions:    
-            for var in description.col_names:
-                varcol  = description.get_col(var)
-                if isinstance(varcol, EnumCol):
-                    var2enum[var] = varcol.enum
-                        
-                    if varcol.label:
-                        label2var[varcol.label] = var
-                        var2label[var]          = varcol.label
-                        
-                    else:
-                        label2var[var] = var
-                        var2label[var] = var
-                    
-                else:
-                    var2enum[var] = None
-
-        for var in set(label2var.values()).intersection(output_data_vars):
-            combobox.addItem(var2label[var], var )
-
-        self.var2label = var2label
-        self.var2enum  = var2enum
-        if hasattr(self, 'distribution_by_var'):
-            index = combobox.findData(self.distribution_by_var)
-            if index != -1:
-                combobox.setCurrentIndex(index)
-        self.connect(self.distribution_combo.box, SIGNAL('currentIndexChanged(int)'), self.dist_by_changed)
-        self.distribution_combo.box.model().sort(0)
-
     def update_output(self, output_data, descriptions = None, default = None):
         '''
-        Update aggregate outputs and (re)set views # TODO we may split this for the two views 
+        Update aggregate outputs and reset view
         '''
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
+        self.dont_update = True
         if output_data is None:
             return
         
-        self.set_data(output_data, default)        
-        
-        
-        if descriptions is not None:  
-            self.set_distribution_choices(descriptions)
-            
-        if not hasattr(self, 'distribution_by_var'):
-            self.distribution_by_var = 'so'    #TODO remove from here
-        
-        self.update_aggregate_view()
-        self.update_distribution_view()
+        if descriptions is not None:
+            self.description = descriptions[1]
 
+        self.select_menu = QMenu()
+        action_dep     = create_action(self, u"Dépenses",   toggled = self.toggle_show_dep)
+        action_benef     = create_action(self, u"Bénéficiaires", toggled = self.toggle_show_benef)
+        action_real    = create_action(self, u"Réel",       toggled = self.toggle_show_real)
+        action_diff_abs    = create_action(self, u"Diff. absolue", toggled = self.toggle_show_diff_abs)
+        action_diff_rel    = create_action(self, u"Diff. relative ", toggled = self.toggle_show_diff_rel)
+        action_default = create_action(self, u"Référence",  toggled = self.toggle_show_default)
+                
+        actions = [action_dep, action_benef]        
+        action_dep.toggle()
+        action_benef.toggle()
+                
+        if default is None:
+            self.show_default = False
+            if self.totals_df is not None:
+                actions.append(action_real)
+                actions.append(action_diff_abs)
+                actions.append(action_diff_rel)
+                action_real.toggle()
+                action_diff_abs.toggle()
+                action_diff_rel.toggle()
+            else: 
+                self.show_real = False
+                self.show_diff_abs = False
+                self.show_diff_rel = False
+
+        else:
+            self.show_real = False
+            actions.append(action_default)
+            actions.append(action_diff_abs)
+            actions.append(action_diff_rel)            
+            action_default.toggle() 
+            action_diff_abs.toggle()
+            action_diff_rel.toggle()
+            
+        add_actions(self.select_menu, actions)
+        self.set_data(output_data, default)        
+        self.compute_aggregates()
+        self.compute_real()
+        self.dont_update = False
+        self.update_view()
         self.calculated()
         QApplication.restoreOverrideCursor()
 
 
-    def update_aggregate_view(self):
+    def compute_aggregates(self):
         '''
-        Update aggregate amounts view
+        Compute aggregate amounts
         '''
-        V,  T  = [],  []    
+        V  = []    
         M = {'data': [], 'default': []}
         B = {'data': [], 'default': []}
-        M_label = {'data': u"Dépense\n(millions d'€)", 
-                   'default': u"Dépense initiale\n(millions d'€)"}
-        B_label = {'data': u"Bénéficiaires\n(milliers de ménages)", 
-                   'default': u"Bénéficiaires initiaux\n(milliers de ménages)"}
-        
+        U = []
+
+        M_label = {'data': self.dep_label, 
+                   'default': self.dep_default_label}
+        B_label = {'data': self.benef_label, 
+                   'default': self.benef_default_label}
+
+        label2var, var2label, var2enum = self.description.builds_dicts()
         for var in self.varlist:
-            # totals from current data and default data if exists
+            # amounts and beneficiaries from current data and default data if exists
             montant_benef = self.get_aggregate(var)
-            V.append(var)
+            V.append(var2label[var])
+                        
+            try:
+                varcol  = self.description.get_col(var)
+                unit = varcol._unit
+            except:
+                unit = 'NA'
+                 
+            U.append(unit)
             for dataname in montant_benef:
                 M[dataname].append( montant_benef[dataname][0] )
                 B[dataname].append( montant_benef[dataname][1] )
-            
-            # totals from administrative data
-            if var in self.totals_df.index:
-                T.append(self.totals_df.get_value(var, "amount"))
-            else:
-                T.append("n.d.")
         
         # build items list
-        items = [(u'Mesure', V)]
+        items = [(self.var_label, V)]
+
         for dataname in M:
             if M[dataname]:
                 items.append( (M_label[dataname], M[dataname]))
                 items.append(  (B_label[dataname], B[dataname]) )
+
+        items.append( (self.unit_label, U) )        
+        self.aggr_frame = DataFrame.from_items(items)
+
+    def compute_real(self):
+        '''
+        Adds administrative data to dataframe
+        '''
+        if self.totals_df is None:
+            return    
+        A, B = [], []
+        for var in self.varlist:
+            # totals from administrative data        
+            if var in self.totals_df.index:
+                A.append(self.totals_df.get_value(var, "amount"))
+                B.append(self.totals_df.get_value(var, "benef"))
+            else:
+                A.append(nan)
+                B.append(nan)
+        self.aggr_frame[self.dep_real_label] = A
+        self.aggr_frame[self.benef_real_label] = B
+
         
-        items.append((u"Dépenses réelles\n(millions d'€)", T))
-        aggr_frame = DataFrame.from_items(items)
-        self.aggregate_view.set_dataframe(aggr_frame)
+    def compute_diff(self):
+        '''
+        Computes and adds relative differences
+        '''
+        dep   = self.aggr_frame[self.dep_label]
+        benef = self.aggr_frame[self.benef_label]
+        
+        if self.show_default:
+            ref_dep_label, ref_benef_label = self.dep_default_label, self.benef_default_label
+            if ref_dep_label not in self.aggr_frame:
+                return
+        elif self.show_real:
+            ref_dep_label, ref_benef_label = self.dep_real_label, self.benef_real_label
+        else:
+            return
+        
+        ref_dep = self.aggr_frame[ref_dep_label]   
+        ref_benef = self.aggr_frame[ref_benef_label]
+                    
+        self.aggr_frame[self.dep_diff_rel_label] = (dep-ref_dep)/abs(ref_dep)
+        self.aggr_frame[self.benef_diff_rel_label] = (benef-ref_benef)/abs(ref_benef)
+        self.aggr_frame[self.dep_diff_abs_label] = (dep-ref_dep)
+        self.aggr_frame[self.benef_diff_abs_label] = (benef-ref_benef)
+        
+        
+    def add_default(self):
+        '''
+        Adds default aggregates when in reform mode
+        '''
+        default_cols = [self.dep_default_label, self.benef_default_label]
+        if self.aggr_default_frame is not None:
+            self.aggr_frame[default_cols] = self.aggr_default_frame[default_cols] 
+        
+        
+    def update_view(self):
+        '''
+        Update aggregate amounts view
+        '''
+        if self.aggr_frame is None:
+            return
+        
+        if self.dont_update:
+            return
+            
+        cols = [self.var_label, self.unit_label,
+                self.dep_label, self.dep_default_label, self.dep_real_label, 
+                self.dep_diff_abs_label, self.dep_diff_rel_label, 
+                self.benef_label, self.benef_default_label, self.benef_real_label,
+                self.benef_diff_abs_label, self.benef_diff_rel_label]
+        
+        if not self.show_real:
+            cols.remove(self.dep_real_label) 
+            cols.remove(self.benef_real_label)
+
+        if not self.show_default:
+            cols.remove(self.dep_default_label)
+            cols.remove(self.benef_default_label)
+            
+
+        remove_all_diffs =  not (self.show_real or self.show_default)
+        if not remove_all_diffs:
+            self.compute_diff()
+        
+        if (not self.show_diff_abs) or remove_all_diffs:
+            cols.remove(self.dep_diff_abs_label)
+            cols.remove(self.benef_diff_abs_label)    
+        
+        if (not self.show_diff_rel) or remove_all_diffs: 
+            cols.remove(self.dep_diff_rel_label)
+            cols.remove(self.benef_diff_rel_label)
+ 
+        if not self.show_dep:
+            for label in [self.dep_label, self.dep_real_label, self.dep_default_label, self.dep_diff_abs_label, self.dep_diff_rel_label]:
+                if label in cols:
+                    cols.remove(label)
+
+        if not self.show_benef:
+            for label in [self.benef_label, self.benef_real_label, self.benef_default_label, self.benef_diff_abs_label, self.benef_diff_rel_label]:
+                if label in cols:
+                    cols.remove(label)
+                
+        self.aggregate_view.set_dataframe(self.aggr_frame[cols])
+        self.aggregate_view.resizeColumnsToContents()
+        self.aggregate_view.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Expanding)
 
                 
-    def update_distribution_view(self):
-        '''
-        Update distribution view
-        '''
-        by_var = self.distribution_by_var
-        dist_frame_dict = self.group_by(self.selected_vars, by_var)
-        
-        
-        frame = None
-        for dist_frame in dist_frame_dict.itervalues():
-            if frame is None:
-                frame = dist_frame.copy()
-            else:
-                dist_frame.pop('wprm')
-                frame = merge(frame, dist_frame, on=by_var)
-                
-        by_var_label = self.var2label[by_var]
-        if by_var_label == by_var:
-            by_var_label = by_var + str("XX") # TODO  problem with labels from Prestation
-        enum = self.var2enum[by_var]                
-        
-        frame = frame.reset_index(drop=True)
-        
-        frame.insert(0,by_var_label,u"") 
-        if enum is None:
-            frame[by_var_label] = frame[by_var]
-        else:
-            frame[by_var_label] = frame[by_var].apply(lambda x: enum._vars[x])
-        
-        frame.pop(by_var)
-            
-                    
-        self.distribution_view.set_dataframe(frame)
-        self.distribution_view.reset()
-        
     def calculated(self):
         '''
         Emits signal indicating that aggregates are computed
@@ -330,94 +389,9 @@ class AggregateOutputWidget(QDockWidget):
         return m_b
     
     
-    def group_by2(self, varlist, category):
-        '''
-        Computes grouped aggregates
-        '''
-        datasets = {'data': self.data}
-        aggr_dict = {}
-    
-        if self.data_default is not None:
-            datasets['default'] = self.data_default
-            
-        cols = self.cols
-        # cols = []
-
-        for name, data in datasets.iteritems():
-            # Computes aggregates by category
-            keep = [category, 'wprm', 'champm'] + cols
-            temp_data = data[keep].copy()
-            temp_data['wprm'] = temp_data['wprm']*temp_data['champm']
-            keep.remove('champm')
-            del keep['champm']
-            temp = []
-            for var in varlist:
-                temp_data[var] = temp_data['wprm']*data[var]
-                temp.append(var)
-                keep.append(var)
-                    
-            from pandas import pivot_table
-            aggr_dict[name] = pivot_table(temp_data[keep], cols = cols,
-                                  rows = category, values=keep, aggfunc = np.sum)
-            
-            for cat, df in aggr_dict[name].iterrows():
-                for varname in varlist:
-                    if name=='default':
-                        label = varname + '__init'
-                        df[label] = df[varname]/df['wprm']
-                        del df[varname]
-                    else:
-                        df[varname] = df[varname]/df['wprm']
-            
-            print aggr_dict[name]      
-            aggr_dict[name].index.names[0] = 'variable'
-            aggr_dict[name] = aggr_dict[name].reset_index().unstack(cols.insert(0, 'variable'))
-
-            
-        return aggr_dict
-
-    
-    def group_by(self, varlist, category):
-        '''
-        Computes grouped aggregates
-        '''
-        datasets = {'data': self.data}
-        aggr_dict = {}
-        if self.data_default is not None:
-            datasets['default'] = self.data_default
-
-        for name, data in datasets.iteritems():
-            # Computes aggregates by category
-            keep = [category, 'wprm', 'champm'] 
-            temp_data = data[keep].copy()
-            temp_data['wprm'] = temp_data['wprm']*temp_data['champm']
-            keep.remove('champm')
-            del temp_data['champm']
-            temp = []
-            for var in varlist:
-                temp_data[var] = temp_data['wprm']*data[var]
-                temp.append(var)
-                keep.append(var)
-                
-            
-            grouped = temp_data[keep].groupby(category, as_index = False)
-            aggr_dict[name] = grouped.aggregate(np.sum)
-
-            # Normalizing to have the average
-            for varname in temp:
-                if name=='default':
-                    label = varname + '__init'
-                    aggr_dict[name][label] = aggr_dict[name][varname]/aggr_dict[name]['wprm']
-                    del aggr_dict[name][varname]
-                else:
-                    aggr_dict[name][varname] = aggr_dict[name][varname]/aggr_dict[name]['wprm']
-                              
-        return aggr_dict
-
-
     def clear(self):
+        self.aggr_default_frame = None
         self.aggregate_view.clear()
-        self.distribution_view.clear()
         self.data = None
         self.wght = None
             
@@ -431,9 +405,17 @@ class AggregateOutputWidget(QDockWidget):
         if filenames is None:
             data_dir = CONF.get('paths', 'data_dir')
 
-        filename = os.path.join(data_dir, "amounts.h5")
-        store = HDFStore(filename)
-        df = store['amounts']            
-        self.totals_df = DataFrame(data = { "amount" : df[year]  } )
+        try:
+            filename = os.path.join(data_dir, "amounts.h5")
+            store = HDFStore(filename)
+    
+            df_a = store['amounts']
+            df_b = store['benef']
 
-
+            self.totals_df = DataFrame(data = { "amount" : df_a[year]/10**6, "benef": df_b[year]/1000 } )
+            # print self.totals_df.to_string()
+        except:
+#            raise Exception(" No administrative data available for year " + str(year))
+            print " No administrative data available for year " + str(year)
+            self.totals_df = None
+            pass
