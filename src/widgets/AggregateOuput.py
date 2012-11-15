@@ -405,12 +405,13 @@ class AggregateOutputWidget(QDockWidget):
         if filenames is None:
             data_dir = CONF.get('paths', 'data_dir')
 
-        filename = os.path.join(data_dir, "amounts.h5")
-        store = HDFStore(filename)
-
-        df_a = store['amounts']
-        df_b = store['benef']
         try:
+            filename = os.path.join(data_dir, "amounts.h5")
+            store = HDFStore(filename)
+    
+            df_a = store['amounts']
+            df_b = store['benef']
+
             self.totals_df = DataFrame(data = { "amount" : df_a[year]/10**6, "benef": df_b[year]/1000 } )
             # print self.totals_df.to_string()
         except:
