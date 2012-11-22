@@ -413,9 +413,18 @@ class AggregateOutputWidget(QDockWidget):
             df_b = store['benef']
 
             self.totals_df = DataFrame(data = { "amount" : df_a[year]/10**6, "benef": df_b[year]/1000 } )
-            # print self.totals_df.to_string()
+            row = DataFrame({'amount': nan, 'benef': nan}, index = ['logt']) 
+            self.totals_df = self.totals_df.append(row)
+
+            # Add some aditionnals totals
+            for col in ['amount', 'benef']:
+                logt = 0
+                for var in ['apl', 'alf', 'als']:
+                    logt += self.totals_df.get_value(var, col)
+                self.totals_df.set_value('logt', col,  logt)
+
         except:
-#            raise Exception(" No administrative data available for year " + str(year))
+            raise Exception(" No administrative data available for year " + str(year))
             print " No administrative data available for year " + str(year)
             self.totals_df = None
-            pass
+            return

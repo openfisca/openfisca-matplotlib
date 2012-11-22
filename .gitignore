@@ -9,3 +9,9 @@ src/main.cfg
 src/data/final.csv
 src/data/final2006.csv
 src/france/data/survey.h5
+src/france/data/sources/final09.csv
+src/france/data/survey_old.h5
+src/france/data/survey.h5
+src/france/data/survey_old.h5
+src/france/data/survey.h5
+src/france/data/sources/final06.csv

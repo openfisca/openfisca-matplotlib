@@ -21,6 +21,7 @@ encoding//src/france/model/lgtm.py=utf-8
 encoding//src/france/model/mini.py=utf-8
 encoding//src/france/model/model.py=utf-8
 encoding//src/france/model/pfam.py=utf-8
+encoding//src/france/model/th.py=utf-8
 encoding//src/france/utils.py=utf-8
 encoding//src/france/widgets/Composition.py=utf-8
 encoding//src/france/widgets/InfoIndiv.py=utf-8
