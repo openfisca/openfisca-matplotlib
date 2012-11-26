@@ -434,7 +434,7 @@ class AggregateOutputWidget(QDockWidget):
                     
                 print self.totals_df.to_string()
         except:
-            raise Exception(" No administrative data available for year " + str(year))
+            #  raise Exception(" No administrative data available for year " + str(year))
             print " No administrative data available for year " + str(year)
             self.totals_df = None
             return
