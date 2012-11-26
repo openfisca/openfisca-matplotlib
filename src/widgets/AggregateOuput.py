@@ -406,7 +406,6 @@ class AggregateOutputWidget(QDockWidget):
             data_dir = CONF.get('paths', 'data_dir')
 
         try:
-        if True:
             filename = os.path.join(data_dir, "amounts.h5")
             store = HDFStore(filename)
     
