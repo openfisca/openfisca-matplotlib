@@ -29,38 +29,47 @@ from PyQt4.QtGui import (QLabel, QDialog, QHBoxLayout, QVBoxLayout, QPushButton,
                          QSpinBox, QDoubleSpinBox, QCheckBox, QInputDialog, QFileDialog, 
                          QMessageBox, QApplication, QCursor, QSpacerItem, QSizePolicy,
                          QDialogButtonBox)
-from numpy import logical_and, unique
-from pandas import read_csv, DataFrame, concat, HDFStore
+from numpy import logical_and, unique, NaN
+from pandas import  DataFrame, concat, HDFStore
 from Config import CONF
 from core.qthelpers import DataFrameViewWidget, get_icon, _fromUtf8
 
 
 
 class InflationWidget(QDialog):
-    def __init__(self,  inputs, parent = None):
+    def __init__(self,  inputs = None, parent = None):
         super(InflationWidget, self).__init__(parent)
 
-
-        self.targets_df = None
+        self.vars_df = None
         self.frame = None
 
-        self.setWindowTitle("Inflation")
-        self.setObjectName("Inflation")
+        self.setWindowTitle("Inflator")
+        self.setObjectName("Inflator")
         
         # Totals table view
         self.view = DataFrameViewWidget(self)
+        self.coeff_view = DataFrameViewWidget(self)
 
-        add_var_btn  = self.add_toolbar_btn(tooltip = u"Ajouter une variable de calage",
-                                        icon = "list-add.png")
-        rmv_var_btn = self.add_toolbar_btn(tooltip = u"Retirer une variable de calage",
-                                        icon = "list-remove.png")
+
+#        add_var_btn  = self.add_toolbar_btn(tooltip = u"Ajouter une variable de calage",
+#                                        icon = "list-add.png")
+#        rmv_var_btn = self.add_toolbar_btn(tooltip = u"Retirer une variable de calage",
+#                                        icon = "list-remove.png")
+        
+        self.set_inputs(inputs)
+        self.survey_year =  inputs.survey_year
+        self.datesim_year  = CONF.get('simulation','datesim').year
+
+        print " Inflate survey values for year " + str(self.survey_year) + " to year " + str(self.datesim_year)
+        label = QLabel(" Inflate survey values taken for year " + str(self.survey_year) + " to year " + str(self.datesim_year))
         rst_var_btn = self.add_toolbar_btn(tooltip = u"Retirer toutes les variables de calage",
                                         icon = "view-refresh.png")
         inflate_btn = self.add_toolbar_btn(tooltip = u"Inflater les variables",
                                              icon = "calculator_red.png")
 
         # TODO         save_btn, open_btn
-        toolbar_btns = [add_var_btn, rmv_var_btn, rst_var_btn, inflate_btn]
+#        toolbar_btns = [add_var_btn, rmv_var_btn, rst_var_btn, inflate_btn]
+        toolbar_btns = [rst_var_btn, inflate_btn]
         toolbar_lyt = QHBoxLayout()
 
         for btn in toolbar_btns:
@@ -68,24 +77,25 @@ class InflationWidget(QDialog):
 
         # Build layouts
         verticalLayout = QVBoxLayout(self)
-        verticalLayout.addLayout(toolbar_lyt)
         
+        verticalLayout.addLayout(toolbar_lyt)
+        verticalLayout.addWidget(label)
+        verticalLayout.addWidget(self.coeff_view)
         verticalLayout.addWidget(self.view)
         
         button_box = QDialogButtonBox(QDialogButtonBox.Cancel| QDialogButtonBox.Ok, parent = self)
         verticalLayout.addWidget(button_box)
 
-        self.connect(add_var_btn, SIGNAL('clicked()'), self.add_var)
-        self.connect(rmv_var_btn, SIGNAL('clicked()'), self.rmv_var)
+#        self.connect(add_var_btn, SIGNAL('clicked()'), self.add_var)
+#        self.connect(rmv_var_btn, SIGNAL('clicked()'), self.rmv_var)
         self.connect(rst_var_btn, SIGNAL('clicked()'), self.rst_var)
         self.connect(inflate_btn, SIGNAL('clicked()'), self.inflate)
         self.connect(button_box, SIGNAL('accepted()'), self.accept);
         self.connect(button_box, SIGNAL('rejected()'), self.reject);
 
-        self.set_inputs(inputs)
-        self.set_targets_from_file()
+        if inputs is not None:
+            self.set_targets_from_file()
 
-        self.actualisation_coeffs = None
         
     
     @property
@@ -105,8 +115,8 @@ class InflationWidget(QDialog):
         '''
         List of the variables appearing in the targets dataframe
         '''
-        if self.targets_df:
-            df = self.targets_df 
+        if self.vars_df:
+            df = self.vars_df 
             return list((df.index))
         else:
             return []
@@ -137,37 +147,100 @@ class InflationWidget(QDialog):
         
         if year is None:
             year     = str(CONF.get('simulation','datesim').year)
-        if filename is None:
-            fname = 'inflate.csv'
-            #fname    = CONF.get('calibration','inflation_filename')
-            data_dir = CONF.get('paths', 'data_dir')
-            filename = os.path.join(data_dir, fname)
-        with open(filename) as f_tot:
-            totals = read_csv(f_tot)
-        if year in totals:
-            if self.targets_df is None:
-                self.targets_df = DataFrame(data = {"var" : totals["var"],
-                              "cible" : totals[year]  } )
-                
-                condition = logical_and(self.targets_df["var"].isin(set(self.inputs.description.col_names)), 
-                                        (self.targets_df["cible"] > 0)) 
-                self.targets_df = self.targets_df[condition]
-                self.targets_df = self.targets_df.set_index("var")
-                df = self.targets_df
-                self.targets_df['total initial'] = 0
 
-            for varname in self.targets_df.index:
-                target = df.get_value(varname, "cible")
-                self.add_var2(varname, target=target)
+        if filename is None:    
+            fname = "actualisation_groups.h5"
+            data_dir = CONF.get('paths', 'data_dir')
+            filename = os.path.join(data_dir, fname)    
             
+        store = HDFStore(filename)
+            
+        # Builds openfisca variables from irpp declaration variables
+        df_c = store["corresp"]
+        of_vars = dict()
+        for col in df_c.columns:
+            of_vars[col] = list(unique(df_c[col]).dropna())
+            
+        df_a = store['amounts']
+        df_b = store['benef']
+        store.close()
+
+        df_a1 = DataFrame( {'amount' : df_a[year]})
+        
+        df_a = DataFrame( columns = ['amount'] )
+        
+        for of_var, declar_vars_list in of_vars.iteritems():
+            amount = 0
+            for case in declar_vars_list:
+                a = df_a1.get_value(case, 'amount')
+                if a is not NaN:
+                    amount += a 
+            df_a1 = df_a1.drop(declar_vars_list, axis = 0)
+            row = DataFrame(dict(amount = [amount]), index = [of_var] )
+            df_a = df_a.append(row)
+
+        df_a = df_a.append(df_a1)
+
+        self.vars_df = df_a
+        self.vars_df.index.names = ['var']
+        self.fill_vars()
+        self.fill_coeffs()
+
+    def fill_vars(self):
+        '''
+        Fill the variables dataframe
+        '''
+        label2var, var2label, var2enum = self.inputs.description.builds_dicts()
+
+
+        self.vars_df['variable'] = ""
+        self.vars_df['total initial'] = NaN
+             
+        for varname in self.vars_df.index:
+            if varname not in self.inputs.description.col_names: 
+                self.vars_df = self.vars_df.drop(varname)
+                continue
+            
+            w = self.weights
+            idx = self.inputs.index[self.unit]
+            value = self.inputs.get_value(varname, index = idx)
+                
+            label = var2label[varname]
+            self.vars_df.set_value(varname, 'variable', label)
+            self.vars_df.set_value(varname, 'total initial', (value*w).sum())
+            self.vars_df.set_value(varname, u'total inflaté', self.vars_df.get_value(varname, 'total initial'))
+        
+        
         self.inflation_targets_changed()
+
+
+    def fill_coeffs(self):
+        self.build_actualisation_groups()
+        
+        list_coeffs = list(self.coeffs_df.index)
+        list_coeffs.remove(u"demo")
+        demo = self.coeffs_df.get_value(u"demo", "value")
+        
+        
+        for coeff in list_coeffs:
+            if coeff not in self.actualisation_vars:
+                print coeff + ' not in actualisation vars, continuing'
+                continue
+            for varname in self.actualisation_vars[coeff]:
+                if varname not in self.inputs.description.col_names:
+                    continue
+                inflator = demo*self.coeffs_df.get_value(coeff, "value")
+                self.vars_df.set_value(varname, u'total inflaté', inflator*self.vars_df.get_value(varname, 'total initial'))
+                
+        self.update_view()
+            
 
     def inflate(self):
         '''
         Computest inflators for the displayed variables 
         '''
         table = self.inputs.table
-        df = self.targets_df
+        df = self.vars_df
         
         for varname in self.frame_vars_list:
             self.rmv_var(varname)
@@ -179,62 +252,42 @@ class InflationWidget(QDialog):
             self.inflated()
 
 
-    def build_actualisation_groups(self):
+    def build_actualisation_groups(self, filename = None):
         '''
         Builds actualisation groups
         '''
-        groups = dict()
-        data_dir = CONF.get('paths', 'data_dir')
-        fname = "actualisation_groups.h5"
-        filename = os.path.join(data_dir, fname)
+        if filename is None:
+            data_dir = CONF.get('paths', 'data_dir')
+            fname = "actualisation_groups.h5"
+            filename = os.path.join(data_dir, fname)
+        
         store = HDFStore(filename)
-        df = store['actualisation']
+        df = store['vars']
         coeff_list = sorted(unique(df['coeff'].dropna()))
+        
+        vars = dict()
         for coeff in coeff_list:
-            groups[coeff] = list(df[ df['coeff']==coeff ]['var'])
+            vars[coeff] = list(df[ df['coeff']==coeff ]['var'])
 
-        self.actualisation_groups = groups
-            
-    def actualise_using_group(self):
-        '''
-        Actualises the parameters
-        '''
-        table = self.inputs.table
+        self.actualisation_vars = vars
+        self.coeffs_df = store['names']
+        self.coeffs_df['coeff'] = self.coeffs_df['coeff'].str.replace(' ','') # remove spaces
+        
 
-        for coeff, varname in self.actualisation_groups.iteriterms():
-            if varname in table:
-                total = sum(table[varname]*table['wprm'])
-                target = coeff*total                    
-                self.add_var2(varname, target=target, inflator = coeff)
-        self.inflated()
         
+        yr = 1*self.survey_year
+        self.coeffs_df['value'] = 1
+        while yr < self.datesim_year:
+            if yr in self.coeffs_df.columns:
+                factor = self.coeffs_df[yr]
+            else:
+                factor =    1 
+            self.coeffs_df['value'] = self.coeffs_df['value']*factor
+            yr += 1
         
-    
-# demo : coefficient démographique (tous les poids sont augmentés proportionnellement à ce coefficient)
-# sal : coefficient d'actualisation des salaires
-# ret : coefficient d'actualisation des pensions hors pensions alimentaires
-# pen : coefficient d'actualisation des pensions alimentaires
-# rto : coefficient d'actualisation des rentes viagères à titre onéreux
-# chd : coefficient d'actualisation des charges déductibles
-# red : coefficient d'actualisation des réductions et crédits d'impôts
-# rcm : coefficient d'actualisation des revenus de capitaux mobiliers
-# rcm_ci : coefficient d'actualisation des revenus de capitaux mobiliers (Crédits d'impôts)
-# fon : coefficient d'actualisation des revenus fonciers
-# fon_df : coefficient d'actualisation des revenus fonciers (déficits)
-# agr : coefficient d'actualisation des bénéfices agricoles
-# agr_df : coefficient d'actualisation des bénéfices agricoles (déficits)
-# bic : coefficient d'actualisation des bénéfices industriels et commerciaux
-# bic_df : coefficient d'actualisation des bénéfices industriels et commerciaux (déficits)
-# bic_ae : coefficient d'actualisation bénéfices industriels et commerciaux (auto-entrepreneurs)
-# bnc : coefficient d'actualisation des bénéfices non-commerciaux 
-# bnc_df : coefficient d'actualisation des bénéfices non-commerciaux (déficits)
-# bnc_ae : coefficient d'actualisation des bénéfices non-commerciaux (auto-entrepreneurs)
-# pv : coefficient d'actualisation des plus-values
-# mv : coefficient d'actualisation des moins-values
-# pvm : coefficient d'actualisation des plus-values mobilières
-        
-        
-        
+        self.coeffs_df.set_index(['coeff'], inplace = True)
+        store.close()   
+           
 
     def add_var(self):
         '''
@@ -256,7 +309,7 @@ class InflationWidget(QDialog):
         if insertion:
             varname = varnames[varlabel]
             #varcol = self.inputs.description.get_col(varname) 
-            df = self.targets_df
+            df = self.vars_df
             target = df.get_value(varname, "cible")
             self.add_var2(varname, target = target)
             self.inflation_targets_changed() # targets_changed
@@ -277,7 +330,7 @@ class InflationWidget(QDialog):
         res['total initial'] = total
         
         if inflator is None:
-            self.targets_df.set_value(varname, 'total initial', total)
+            self.vars_df.set_value(varname, 'total initial', total)
             inflator = 1
         
         res['inflateur'] = 100*inflator
@@ -338,11 +391,27 @@ class InflationWidget(QDialog):
         Update the displayed dataframe view
         '''
         self.view.clear()
-        if self.frame is not None:
-            df = self.frame.reset_index(drop=True)
-            df_view = df[ ["var", "cible", "total initial", u"total inflaté", "inflateur", "variable"]]
+        if self.vars_df is not None:
+            df = self.vars_df.reset_index(drop=False)
+            df.rename(columns = {'amount' : u'sources administratives'}, inplace= True)
+            print df.to_string()
+            #df.rename  = ['var']
+#            df_view = df[ ["var", "cible", "total initial", u"total inflaté", "inflateur", "variable"]]
+            df_view = df
+            #df[ ["index", "amount", "total initial", u"total inflaté", "variable"]]
+
             self.view.set_dataframe(df_view)
         self.view.reset()
+                
+        self.coeff_view.clear()
+        
+        self.build_actualisation_groups()
+        if self.coeffs_df is not None:
+            df = self.coeffs_df.reset_index(drop=True)
+            self.coeff_view.set_dataframe(df)
+        self.coeff_view.reset()
+        
+        
 
     def get_name_label_dict(self, variables_list):
         '''
@@ -364,14 +433,34 @@ class InflationWidget(QDialog):
         '''
         Updates inputs variables and close dialog
         '''
-        for varname in self.frame_vars_list:
-            table = self.inputs.table
-            target = self.frame.get_value(varname, "cible") 
+#        for varname in self.frame_vars_list:
+#            table = self.inputs.table
+#            target = self.frame.get_value(varname, "cible") 
+#            if varname in table:
+                
+        df = self.coeffs_df
+        table = self.inputs.table
+        
+        for coeff, varname in self.actualisation_vars.iteritems():
+            inflator = df.get_value(coeff, "value") 
             if varname in table:
-                x = sum(table[varname]*table['wprm'])/target                   
-                if x>0:
-                    table[varname] = table[varname]/x
+                table[varname] = inflator*table[varname]
 
         self.parent().emit(SIGNAL('inflated()'))
 
         QDialog.accept(self)
+
+
+if __name__=='__main__':
+    import sys
+    import numpy as np
+
+    app = QApplication(sys.argv)
+    widget = InflationWidget()
+    widget.show()
+    filename = "../france/data/actualisation_groups.h5"
+#    widget.build_actualisation_groups(filename)
+    widget.set_targets_from_file(filename)
+    app.exec_()
+
+

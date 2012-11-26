@@ -523,7 +523,7 @@ class MainWindow(QMainWindow):
     def apply_settings(self):
         
         country = CONF.get('simulation', 'country')
-        year = CONF.get('simulation', 'xaxis')
+        year = CONF.get('simulation', 'datesim').year
         
         restart = False
         
@@ -531,7 +531,7 @@ class MainWindow(QMainWindow):
             restart = True
         
         if hasattr(self, "survey"):
-            if not self.survey.survey_year == year:
+            if self.survey is None or self.survey.survey_year == year:
                 restart = True
             
         if True:
