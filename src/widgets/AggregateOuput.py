@@ -405,7 +405,7 @@ class AggregateOutputWidget(QDockWidget):
         if filenames is None:
             data_dir = CONF.get('paths', 'data_dir')
 
-#        try:
+        try:
         if True:
             filename = os.path.join(data_dir, "amounts.h5")
             store = HDFStore(filename)
@@ -420,13 +420,22 @@ class AggregateOutputWidget(QDockWidget):
 
             # Add some aditionnals totals
             for col in ['amount', 'benef']:
+                
+                # Deals woth logt
                 logt = 0
                 for var in ['apl', 'alf', 'als']:
                     logt += self.totals_df.get_value(var, col)
                 self.totals_df.set_value('logt', col,  logt)
-
-#        except:
-#            raise Exception(" No administrative data available for year " + str(year))
-#            print " No administrative data available for year " + str(year)
-#            self.totals_df = None
-#            return
+                
+                # Deals wit irpp, csg, crds
+                for var in ['irpp', 'csg', 'crds']:
+                    if col in ['amount']:
+                        val = - self.totals_df.get_value(var, col)
+                        self.totals_df.set_value(var, col, val)
+                    
+                print self.totals_df.to_string()
+        except:
+            raise Exception(" No administrative data available for year " + str(year))
+            print " No administrative data available for year " + str(year)
+            self.totals_df = None
+            return
