@@ -56,6 +56,7 @@ class ParamWidget(QDockWidget, Ui_Parametres):
     
     def initialize(self):
         self._date = CONF.get('simulation', 'datesim')
+        self.label.setText(u"Date : %s" %( str(self._date)) )
         self._reader = XmlReader(self._file, self._date)
         self._rootNode = self._reader.tree
         self._rootNode.rmv_empty_code()

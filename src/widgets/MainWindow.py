@@ -142,7 +142,8 @@ class MainWindow(QMainWindow):
         # Menu Fichier
         self.file_menu = self.menuBar().addMenu("Fichier")
         action_export_png = create_action(self, 'Exporter le graphique', icon = 'document-save png.png', triggered = self._graph.save_figure)
-        action_export_csv = create_action(self, 'Exporter la table', icon = 'document-save csv.png', triggered = self._table.saveCsv)
+        action_export_csv = create_action(self, 'Exporter la table (cas type)', icon = 'document-save csv.png', triggered = self._table.save_table)
+        action_export_agg = create_action(self, u"Exporter la table (aggrégats)", icon = 'document-save csv.png', triggered = self._aggregate_output_widget.save_table)        
         action_pref = create_action(self, u'Préférences', QKeySequence.Preferences, icon = 'preferences-desktop.png', triggered = self.edit_preferences)
         action_quit = create_action(self, 'Quitter', QKeySequence.Quit, icon = 'process-stop.png',  triggered = SLOT('close()'))
         
@@ -192,8 +193,8 @@ class MainWindow(QMainWindow):
         
         # Toolbar
         self.main_toolbar = self.create_toolbar(u"Barre d'outil", 'main_toolbar')
-        toolbar_actions = [action_export_png, action_export_csv, None, self.action_refresh_bareme,
-                           self.action_refresh_aggregate, None, self.action_calibrate, None, self.action_inflate, None,
+        toolbar_actions = [self.action_refresh_bareme, action_export_png, action_export_csv, None, 
+                           self.action_refresh_aggregate, action_export_agg, None, self.action_calibrate, None, self.action_inflate, None,
                             action_bareme, action_cas_type, None, action_mode_reforme]
         add_actions(self.main_toolbar, toolbar_actions)
 
@@ -308,8 +309,16 @@ class MainWindow(QMainWindow):
         
     def enable_aggregate(self, val = True):
         survey_enabled = CONF.get('paths', 'survey_data/survey_enabled')
+        year = CONF.get('simulation','datesim').year
+        
         loaded = False
         if val and survey_enabled:
+#            if hasattr(self, "survey"):
+#                if self.survey.survey_year != year:
+#                    loaded = self.load_survey_data()
+#                elif self.survey is not None:
+#                    loaded = True
+#        else:
             loaded = self.load_survey_data()
 
         if loaded:
@@ -465,10 +474,10 @@ class MainWindow(QMainWindow):
         descr = [self.survey.description, self.survey_outputs.description]
         if self.reforme:
             data_default = gen_aggregate_output(self.survey_outputs_default)
-            self._aggregate_output_widget.update_output(data, descriptions = descr, default = data_default)
+            self._aggregate_output_widget.update_output(data, descriptions = descr, default = data_default, year = self.survey.survey_year)
             self._distribution_widget.update_output(data, descriptions = descr, default = data_default)
         else:
-            self._aggregate_output_widget.update_output(data, descriptions = descr)
+            self._aggregate_output_widget.update_output(data, descriptions = descr, year = self.survey.survey_year)
             self._distribution_widget.update_output(data, descriptions = descr)
         
         self.statusbar.showMessage(u"")
@@ -479,6 +488,7 @@ class MainWindow(QMainWindow):
         '''
         Populates dataframes in dataframe_widget
         '''
+        self._explore_data_widget.set_year(self.survey.survey_year)
         self._explore_data_widget.add_dataframe(self.survey.table, name = "input")
         self._explore_data_widget.add_dataframe(self.survey_outputs.table, name = "output")
         if self.reforme:
@@ -529,11 +539,12 @@ class MainWindow(QMainWindow):
         
         if not self.old_country == country: 
             restart = True
-        
-        if hasattr(self, "survey"):
-            if self.survey is None or self.survey.survey_year == year:
-                restart = True
             
+        if hasattr(self, "survey"):
+            if self.survey is None or self.survey.survey_year != year:
+                restart = True
+
+                    
         if True:
 #        if restart: 
 #            self.start(restart = True)         
@@ -542,7 +553,7 @@ class MainWindow(QMainWindow):
             self.XAXIS = CONF.get('simulation', 'xaxis')
             if self.isLoaded == True:
                 self._parametres.initialize()
-                self.refresh_bareme()
+                self.refresh_bareme()                
             if self.calibration_enabled:
                 self.action_calibrate.setEnabled(True)
             if self.inflation_enabled:

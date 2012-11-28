@@ -39,6 +39,8 @@ import codecs
 import cStringIO
 import locale
 import numpy as np
+from pandas import DataFrame, ExcelWriter
+
 from core.utils import of_import
 
 locale.setlocale(locale.LC_ALL, '')
@@ -574,35 +576,83 @@ class OutTable(QDockWidget):
         else:
             self.treeView.setColumnWidth(1,100)
 
-    def saveCsv(self):
-        output_dir = CONF.get('paths', 'output_dir')
-        user_path = os.path.join(output_dir, 'sans-titre.csv')
 
+    def create_dataframe(self):
+        '''
+        Formats data into a dataframe
+        '''
+        data_dict = dict()
+        index = [] 
+        for row in self.data:
+            if not row.desc in ('root'):
+                index.append(row.desc)
+                data_dict[row.desc] = row.vals
+                
+        df = DataFrame(data_dict).T
+        df = df.reindex(index)
+        return df
+
+    def create_description(self):
+        '''
+        Creates a description dataframe
+        '''
+        now = datetime.now()
+        descr =  [u'OpenFisca', 
+                         u'Calculé le %s à %s' % (now.strftime('%d-%m-%Y'), now.strftime('%H:%M')),
+                         u'Système socio-fiscal au %s' % CONF.get('simulation', 'datesim')]
+        return DataFrame(descr)
+
+    def saveCsv(self):
+        self.save_table( table_format = "csv")
+    
+    def save_table(self, table_format = None):
+        
+        if table_format is None:
+            table_format = CONF.get('paths', 'table')
+            
+        output_dir = CONF.get('paths', 'output_dir')
+        filename = 'sans-titre.' + table_format
+        user_path = os.path.join(output_dir, filename)
+
+        extension = table_format.upper() + "   (*." + table_format + ")"
         fname = QFileDialog.getSaveFileName(self,
-                                               u"Exporter la table", user_path, u"CSV (séparateur: point virgule) (*.csv)")
+                                               u"Exporter la table", user_path, extension)
         
         if fname:
             CONF.set('paths', 'output_dir', os.path.dirname(str(fname)))
             try:
-                now = datetime.now()
-                csvfile = open(fname, 'wb')
-                writer = UnicodeWriter(csvfile, dialect= csv.excel, delimiter=';')
-                writer.writerow([u'OpenFisca'])
-                writer.writerow([u'Calculé le %s à %s' % (now.strftime('%d-%m-%Y'), now.strftime('%H:%M'))])
-                writer.writerow([u'Système socio-fiscal au %s' % CONF.get('simulation', 'datesim')])
-                writer.writerow([])
+                if table_format == "xls":
+                    writer = ExcelWriter(str(fname))
+                    df = self.create_dataframe()
+                    descr = self.create_description()
+                    df.to_excel(writer, "table", index=True, header= False)
+                    descr.to_excel(writer, "description", index = False, header=False)
+                    writer.save()
+                elif table_format =="csv":
+                    # TODO: use DataFrame's ? 
+                    now = datetime.now()
+                    csvfile = open(fname, 'wb')
+                    writer = UnicodeWriter(csvfile, dialect= csv.excel, delimiter=';')
+                    
+                    for row in self.data:
+                        if not row.desc in ('root'):
+                            outlist = [row.desc]
+                            for val in row.vals:
+                                outlist.append(locale.str(val))
+                            writer.writerow(outlist)
+                            
+                    writer.writerow([u'OpenFisca'])
+                    writer.writerow([u'Calculé le %s à %s' % (now.strftime('%d-%m-%Y'), now.strftime('%H:%M'))])
+                    writer.writerow([u'Système socio-fiscal au %s' % CONF.get('simulation', 'datesim')])
+                    writer.writerow([])
+            
+                    csvfile.close()                
                 
-                for row in self.data:
-                    if not row.desc in ('root'):
-                        outlist = [row.desc]
-                        for val in row.vals:
-                            outlist.append(locale.str(val))
-                        writer.writerow(outlist)
-                csvfile.close()                
             except Exception, e:
                 QMessageBox.critical(
                     self, "Error saving file", str(e),
                     QMessageBox.Ok, QMessageBox.NoButton)
+
 
 class OutputModel(QAbstractItemModel):
     def __init__(self, root, headers, ncol, parent=None):
