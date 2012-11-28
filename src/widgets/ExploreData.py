@@ -38,7 +38,8 @@ class ExploreDataWidget(QDockWidget):
         self.setWindowTitle("ExploreData")
         self.dockWidgetContents = QWidget()
         
-        data_label = QLabel(u"Data", self.dockWidgetContents)
+
+        self.data_label = QLabel("Data", self.dockWidgetContents)
 
         self.add_btn = QPushButton(u"Ajouter variable",self.dockWidgetContents)        
         self.remove_btn = QPushButton(u"Retirer variable",self.dockWidgetContents)  
@@ -58,7 +59,7 @@ class ExploreDataWidget(QDockWidget):
         self.view = DataFrameViewWidget(self.dockWidgetContents)
 
         verticalLayout = QVBoxLayout(self.dockWidgetContents)
-        verticalLayout.addWidget(data_label)
+        verticalLayout.addWidget(self.data_label)
 
         verticalLayout.addLayout(horizontalLayout)
         verticalLayout.addWidget(self.view)
@@ -78,6 +79,13 @@ class ExploreDataWidget(QDockWidget):
         self.connect(self.datatable_combo.box, SIGNAL('currentIndexChanged(int)'), self.select_data)        
 
         self.update_btns()
+
+
+    def set_year(self, year):
+        '''
+        Sets year in label
+        '''
+        self.data_label.setText("Survey data from year " + str(year))
 
     def update_btns(self):
         if (self.vars - self.selected_vars):
@@ -188,7 +196,6 @@ class ExploreDataWidget(QDockWidget):
             return
         
         cols = self.selected_vars
-
         if self.view_data is None:
             self.view_data = self.data[list(cols)]
         
@@ -201,11 +208,6 @@ class ExploreDataWidget(QDockWidget):
     
         self.view.set_dataframe(df)
 
-#        by_var_label = self.var2label[by_var]
-#        dist_frame.insert(0,by_var_label,u"") 
-#        enum = self.var2enum[by_var]
-#        dist_frame[by_var_label] = dist_frame[by_var].apply(lambda x: enum._vars[x])
-#        dist_frame.pop(by_var)
         self.view.reset()
         self.update_btns()
         QApplication.restoreOverrideCursor()

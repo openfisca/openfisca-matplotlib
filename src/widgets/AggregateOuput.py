@@ -160,13 +160,16 @@ class AggregateOutputWidget(QDockWidget):
             self.data_default = default
         self.wght = self.data['wprm']
                  
-    def update_output(self, output_data, descriptions = None, default = None):
+    def update_output(self, output_data, descriptions = None, default = None, year = None):
         '''
         Update aggregate outputs and reset view
         '''
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
-        self.dont_update = True
+        if year is not None:
+            self.survey_year = year
+
+        self.do_not_update = True
         if output_data is None:
             return
         
@@ -212,7 +215,7 @@ class AggregateOutputWidget(QDockWidget):
         self.set_data(output_data, default)        
         self.compute_aggregates()
         self.compute_real()
-        self.dont_update = False
+        self.do_not_update = False
         self.update_view()
         self.calculated()
         QApplication.restoreOverrideCursor()
@@ -320,7 +323,7 @@ class AggregateOutputWidget(QDockWidget):
         if self.aggr_frame is None:
             return
         
-        if self.dont_update:
+        if self.do_not_update:
             return
             
         cols = [self.var_label, self.unit_label,
@@ -411,8 +414,6 @@ class AggregateOutputWidget(QDockWidget):
     
             df_a = store['amounts']
             df_b = store['benef']
-            print df_a.to_string()
-            print df_b.to_string()
             self.totals_df = DataFrame(data = { "amount" : df_a[year]/10**6, "benef": df_b[year]/1000 } )
             row = DataFrame({'amount': nan, 'benef': nan}, index = ['logt']) 
             self.totals_df = self.totals_df.append(row)
@@ -432,9 +433,61 @@ class AggregateOutputWidget(QDockWidget):
                         val = - self.totals_df.get_value(var, col)
                         self.totals_df.set_value(var, col, val)
                     
-                print self.totals_df.to_string()
         except:
             #  raise Exception(" No administrative data available for year " + str(year))
             print " No administrative data available for year " + str(year)
             self.totals_df = None
             return
+        
+        
+    def create_description(self):
+        '''
+        Creates a description dataframe
+        '''
+        from datetime import datetime
+        now = datetime.now()
+        descr =  [u'OpenFisca', 
+                         u'Calculé le %s à %s' % (now.strftime('%d-%m-%Y'), now.strftime('%H:%M')),
+                         u'Système socio-fiscal au %s' % CONF.get('simulation', 'datesim'),
+                         u"Données d'enquêtes de l'année %s" %str(self.survey_year) ]
+        return DataFrame(descr)
+
+        
+    def save_table(self, table_format = None):
+        '''
+        Saves the table to some format
+        '''    
+        from pandas import ExcelWriter
+        from PyQt4.QtGui import QFileDialog, QMessageBox
+        
+        if table_format is None:
+            table_format = CONF.get('paths', 'table')
+         
+        output_dir = CONF.get('paths', 'output_dir')
+        filename = 'sans-titre.' + table_format
+        user_path = os.path.join(output_dir, filename)
+
+        extension = table_format.upper() + "   (*." + table_format + ")"
+        fname = QFileDialog.getSaveFileName(self,
+                                               u"Exporter la table", user_path, extension)
+        
+        if fname:
+            CONF.set('paths', 'output_dir', os.path.dirname(str(fname)))
+            try:
+                df = self.aggregate_view.model().dataframe
+                if table_format == "xls":
+                    writer = ExcelWriter(str(fname))
+                    df.to_excel(writer, "aggregates", index= False, header= True)
+                    descr = self.create_description()
+                    descr.to_excel(writer, "description", index = False, header=False)
+                    writer.save()
+                elif table_format =="csv":
+                    df.to_csv(writer, "aggregates", index= False, header = True)
+                     
+                
+            except Exception, e:
+                QMessageBox.critical(
+                    self, "Error saving file", str(e),
+                    QMessageBox.Ok, QMessageBox.NoButton)
+
+            
