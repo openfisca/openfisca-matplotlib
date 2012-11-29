@@ -308,28 +308,37 @@ class MainWindow(QMainWindow):
             QApplication.restoreOverrideCursor()
         
     def enable_aggregate(self, val = True):
+        '''
+        Enables computation of aggregates
+        '''
         survey_enabled = CONF.get('paths', 'survey_data/survey_enabled')
-        year = CONF.get('simulation','datesim').year
         
         loaded = False
-        if val and survey_enabled:
-#            if hasattr(self, "survey"):
-#                if self.survey.survey_year != year:
-#                    loaded = self.load_survey_data()
-#                elif self.survey is not None:
-#                    loaded = True
-#        else:
-            loaded = self.load_survey_data()
+        reloaded = False        
+        if val and survey_enabled:        
+            if self.aggregate_enabled:
+                year = CONF.get('simulation','datesim').year    
+                if self.survey.survey_year != year:
+                    loaded = self.load_survey_data()
+                    reloaded = True
+                else:
+                    loaded = True
+            else:
+                loaded = self.load_survey_data()
 
         if loaded:
             # Show widgets and enabled actions
             self.aggregate_enabled = True
             self._aggregate_output_widget.setEnabled(True)
-            
-            for widget in self.aggregate_widgets:
-                widget.show()
+
+            if not reloaded:            
+                for widget in self.aggregate_widgets:
+                    widget.show()
             
             self.action_refresh_aggregate.setEnabled(True)
+            if reloaded:
+                self.refresh_aggregate()
+            
             self.action_calibrate.setEnabled(True)
             self.action_inflate.setEnabled(True)
         else:
@@ -396,7 +405,7 @@ class MainWindow(QMainWindow):
             return False
         # If it is consistent starts the computation
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-        self.statusbar.showMessage(u"Calcul en cours...")
+        self.statusbar.showMessage(u"Calcul (mode barème) en cours...")
         self.action_refresh_bareme.setEnabled(False)
         # set the table model to None before changing data
         self._table.clearModel()
@@ -539,12 +548,7 @@ class MainWindow(QMainWindow):
         
         if not self.old_country == country: 
             restart = True
-            
-        if hasattr(self, "survey"):
-            if self.survey is None or self.survey.survey_year != year:
-                restart = True
-
-                    
+                                
         if True:
 #        if restart: 
 #            self.start(restart = True)         
@@ -559,7 +563,7 @@ class MainWindow(QMainWindow):
             if self.inflation_enabled:
                 self.action_inflate.setEnabled(True)
             if self.aggregate_enabled:
-                self.action_refresh_aggregate.setEnabled(True)
+                self.enable_aggregate(True)
 
     def edit_preferences(self):
         """Edit OpenFisca preferences"""
