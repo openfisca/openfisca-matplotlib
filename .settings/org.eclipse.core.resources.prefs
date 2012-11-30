@@ -6,6 +6,7 @@ encoding//src/core/columns.py=utf-8
 encoding//src/core/datatable.py=utf-8
 encoding//src/core/description.py=utf-8
 encoding//src/core/qthelpers.py=utf-8
+encoding//src/core/simulation.py=utf-8
 encoding//src/core/utils.py=utf-8
 encoding//src/france/data/codeAplReader.py=utf-8
 encoding//src/france/model/calage.py=utf-8
