@@ -91,6 +91,16 @@ class DistributionWidget(QDockWidget):
         
         self.data = DataFrame() # Pandas DataFrame
         self.data_default = None
+        
+        # List of variable entering the level 0 (rows) index
+        self.row_index = None
+        
+        # Dict of variables in the level 1 (columns)
+        # exemple { revdisp : { data : [ 'current', 'default'], transform : ['mean', 'median'],  diff: ['absolute', 'relative', 'winners', 'loosers']
+        
+         
+        
+        
 
     @property
     def vars(self):
@@ -100,7 +110,7 @@ class DistributionWidget(QDockWidget):
         var = self.ask()
         if var is not None:
             self.selected_vars.add(var)
-            self.update_output(self.data)
+            self.update_view(self.data)
         else:
             return
     
@@ -108,7 +118,7 @@ class DistributionWidget(QDockWidget):
         var = self.ask(remove=True)
         if var is not None:
             self.selected_vars.remove(var)
-            self.update_output(self.data)
+            self.update_view(self.data)
         else:
             return
 
@@ -133,7 +143,7 @@ class DistributionWidget(QDockWidget):
             data = widget.itemData(widget.currentIndex())
             by_var = unicode(data.toString())
             self.distribution_by_var = by_var                
-            self.update_output(self.data)
+            self.update_view(self.data)
     
     def set_data(self, output_data, default=None):
         self.data = output_data
@@ -184,9 +194,9 @@ class DistributionWidget(QDockWidget):
         self.connect(self.distribution_combo.box, SIGNAL('currentIndexChanged(int)'), self.dist_by_changed)
         self.distribution_combo.box.model().sort(0)
 
-    def update_output(self, output_data, descriptions = None, default = None):
+    def update_view(self, output_data, descriptions = None, default = None):
         '''
-        Update aggregate outputs and (re)set views # TODO we may split this for the two views 
+        Update distribution view
         '''
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
 
@@ -199,19 +209,21 @@ class DistributionWidget(QDockWidget):
             
         if not hasattr(self, 'distribution_by_var'):
             self.distribution_by_var = 'so'    #TODO remove from here
-        self.update_distribution_view()
+        
+        frame = self.updated_frame()
+        self.distribution_view.set_dataframe(frame)
+        self.distribution_view.reset()
 
         self.calculated()
         QApplication.restoreOverrideCursor()
 
                 
-    def update_distribution_view(self):
+    def updated_frame(self):
         '''
-        Update distribution view
+        Updated frame
         '''
         by_var = self.distribution_by_var
         dist_frame_dict = self.group_by(self.selected_vars, by_var)
-        
         
         frame = None
         for dist_frame in dist_frame_dict.itervalues():
@@ -233,12 +245,9 @@ class DistributionWidget(QDockWidget):
             frame[by_var_label] = frame[by_var]
         else:
             frame[by_var_label] = frame[by_var].apply(lambda x: enum._vars[x])
-        
         frame.pop(by_var)
             
-                    
-        self.distribution_view.set_dataframe(frame)
-        self.distribution_view.reset()
+        return frame
         
     def calculated(self):
         '''

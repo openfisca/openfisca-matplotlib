@@ -93,7 +93,7 @@ for country in countries:
     param = find_data_files('./%s/param/' %country,
                                 '%s/param/' %country,
                                 ['param.xml'])
-    tuples_list.append(castypes[0])
+    tuples_list.append(param[0])
 
     reformes = find_data_files('./%s/reformes/' %country,
                                 '%s/reformes/' %country,
@@ -128,6 +128,7 @@ setup(windows=[{
                 }], 
       options={"py2exe" : {"includes" : ["sip", "encodings.*", "numpy.*"],
                            "dist_dir": dist_dir,
+                           "packages": ["france","tunisia"],
                            "bundle_files":3,
                            "dll_excludes": ["MSVCP90.dll"]
                            }}, 
