@@ -254,19 +254,27 @@ class Aggregates(object):
             self.totals_df = None
             return
         
-    def save_table(self, output_dir = None, filename = None, table_format = None):
+    def save_table(self, directory = None, filename = None, table_format = None):
         '''
         Saves the table to some format
         '''    
         now = datetime.now()
         if table_format is None:
-            table_format = 'xls'
-        if output_dir is None:
-            output_dir = "."
+            if filename is not None:
+                extension = filename[-4:]
+                if extension == '.xls':
+                    table_format = 'xls'
+                elif extension == '.csv':
+                    table_format = 'csv'
+            else:       
+                table_format = 'xls'
+        
+        if directory is None:
+            directory = "."
         if filename is None:
             filename = 'Aggregates_%s.%s' % (now.strftime('%d-%m-%Y'), table_format)
         
-        fname = os.path.join(output_dir, filename)
+        fname = os.path.join(directory, filename)
 
         try:
             df = self.aggr_frame

@@ -360,15 +360,12 @@ class MainWindow(QMainWindow):
 
     def modeBareme(self):
         self.mode = 'bareme'
-        nmen = CONF.get('simulation', 'nmen')
-        if nmen == 1: CONF.set('simulation', 'nmen', 101)
-        self.scenario_simulation.set_config(nmen = 101, mode = self.mode)
+        self.scenario_simulation.set_config(nmen = self.nmen, mode = self.mode)
         self.changed_bareme()
 
     def modeCasType(self):
         self.mode = 'castype'
         self.scenario_simulation.set_config(nmen = 1, mode = self.mode)
-        CONF.set('simulation', 'nmen', 1)
         self.changed_bareme()
 
     def refresh_bareme(self):
@@ -485,7 +482,7 @@ class MainWindow(QMainWindow):
         
         # Sceanrio settings   
         self.XAXIS = CONF.get('simulation', 'xaxis')
-        nmen = CONF.get('simulation', 'nmen')
+        self.nmen = CONF.get('simulation', 'nmen')
         maxrev = CONF.get('simulation', 'maxrev')
 
         if not bareme_only:
@@ -493,7 +490,7 @@ class MainWindow(QMainWindow):
             self.survey_simulation.set_param()
 
         self.scenario_simulation.set_config(year = year, country = country, xaxis = self.XAXIS, 
-                                            nemn = nmen, maxrev = maxrev, reforme = False, mode ='bareme')
+                                            nmen = self.nmen, maxrev = maxrev, reforme = False, mode ='bareme')
         self.scenario_simulation.set_param()
         
         """Apply settings changed in 'Preferences' dialog box"""

@@ -81,7 +81,6 @@ class OFPivotTable(object):
         self.set_data(data, data_default)        
         
         dist_frame_dict = self.group_by(vars, by_var)
-        print dist_frame_dict
         
         frame = None
         for dist_frame in dist_frame_dict.itervalues():
@@ -102,7 +101,6 @@ class OFPivotTable(object):
         
         for col in frame.columns:
             if col[-6:] == "__init":
-                print col, col[:-6]
                 frame.rename(columns = { col : self.simulation.var2label[col[:-6]] + " init."}, inplace = True) 
             else:
                 frame.rename(columns = { col : self.simulation.var2label[col] }, inplace = True)
