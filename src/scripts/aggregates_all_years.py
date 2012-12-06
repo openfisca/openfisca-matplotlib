@@ -22,6 +22,7 @@ This file is part of openFisca.
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
 from src.core.simulation import SurveySimulation 
+from src.plugins.survey.aggregates import Aggregates
 
 if __name__ == '__main__':
 
@@ -30,12 +31,19 @@ if __name__ == '__main__':
         
     yr = 2006
     country = 'france'
+    destination_dir = "c:/users/utilisateur/documents/"
 
     simu = SurveySimulation()
     simu.set_config( year = yr, country = country)
-    simu.initialize()
+    simu.set_param()
     simu.set_survey()
     res = simu.compute()
     print res
+    
+    agg = Aggregates()
+    agg.set_simulation(simu)
+    agg.compute()
+
+    agg.save_table(output_dir = destination_dir)
     
     
