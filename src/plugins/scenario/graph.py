@@ -254,6 +254,7 @@ class Graph(QDockWidget, Ui_Graph):
         self.updateGraph2()
         
     def updateGraph2(self):
+
         ax = self.mplwidget.axes
         ax.clear()
         
@@ -284,7 +285,7 @@ class Graph(QDockWidget, Ui_Graph):
         self.hidelegend_btn.setEnabled(True)
         
         
-        build_axes = of_import('utils','build_axes')
+        build_axes = of_import('utils','build_axes', country = self.simulation.country)
         axes = build_axes()
         for axe in axes:
             if axe.name == xaxis:
@@ -415,7 +416,7 @@ def drawBareme(data, ax, xaxis, reforme = False, dataDefault = None, legend = Tr
     '''
     
     if country == None:
-        country = 'france'
+        raise Exception('drawBareme: country must be defined')
         
     if dataDefault == None: 
         dataDefault = data
@@ -436,7 +437,7 @@ def drawBareme(data, ax, xaxis, reforme = False, dataDefault = None, legend = Tr
     xlabel = xdata.desc
 
     ax.set_xlabel(xlabel)
-    currency = of_import('utils', 'currency')
+    currency = of_import('utils', 'currency', country = country)
     ax.set_ylabel(prefix + u"Revenu disponible (" + currency + " par an)")
     ax.set_xlim(np.amin(xdata.vals), np.amax(xdata.vals))
     if not reforme:
@@ -468,18 +469,18 @@ def drawBareme(data, ax, xaxis, reforme = False, dataDefault = None, legend = Tr
 def percentFormatter(x, pos=0):
     return '%1.0f%%' %(x)
 
-def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None, country = None):
+def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None, legend = True, country = None):
     '''
     Draws marginal and average tax rates
     '''
     
     if country is None:
-        country = 'france'
+        raise Exception('drawTaux: country must be defined')
         
     if dataDefault is None: 
         dataDefault = data
 
-    REV_TYPE = of_import('utils', 'REV_TYPE')
+    REV_TYPE = of_import('utils', 'REV_TYPE', country = country)
     if xaxis == "rev_cap_brut":
         typ_rev = 'superbrut'
     elif xaxis == "rev_cap_net":
@@ -489,7 +490,7 @@ def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None, country = Non
             if xaxis in vars:
                 typ_rev = typrev
         
-    RB = RevTot(dataDefault, typ_rev)
+    RB = RevTot(dataDefault, typ_rev, country = country)
     xdata = dataDefault[xaxis]
     
     RD = dataDefault['revdisp'].vals
@@ -506,7 +507,8 @@ def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None, country = Non
     ax.set_ylim(0,100)
     
     ax.yaxis.set_major_formatter(FuncFormatter(percentFormatter))
-    createLegend(ax)
+    if legend:
+        createLegend(ax)
     
     
 def createLegend(ax):
@@ -525,11 +527,15 @@ def createLegend(ax):
             l.insert(0, line._label)
     ax.legend(p,l, loc= 2, prop = {'size':'medium'})
 
-def RevTot(data, typrev):
+def RevTot(data, typrev, country = None):
     '''
     Computes total revenues by type with definition is country specific
     '''
-    REV_TYPE = of_import('utils', 'REV_TYPE')
+    
+    if country is None:
+        raise Exception('RevTot: country must be set')
+        
+    REV_TYPE = of_import('utils', 'REV_TYPE', country = country)
     dct = REV_TYPE
 
     first = True
