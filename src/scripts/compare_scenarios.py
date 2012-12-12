@@ -32,7 +32,7 @@ from src.widgets.matplotlibwidget import MatplotlibWidget
 class ApplicationWindow(QMainWindow):
     def __init__(self):
         QMainWindow.__init__(self)
-        self.mplwidget = MatplotlibWidget(self, title='Example')
+        self.mplwidget = MatplotlibWidget(self)
         self.mplwidget.setFocus()
         self.setCentralWidget(self.mplwidget)
         
@@ -43,40 +43,55 @@ from datetime import datetime
 
 if __name__ == '__main__':
 
-    
-
-
-    yr = 2006
-    country = 'france'
-    destination_dir = "c:/users/utilisateur/documents/"
-    
-    fname = "Agg_%s.%s" %(str(yr), "xls")
-    simu = ScenarioSimulation()
-    simu.set_config(year = yr, country = country, nmen = 201, xaxis = 'sal', maxrev = 100000, reforme = False, mode ='bareme')
-    simu.set_param()
-    simu.scenario.addIndiv(1, datetime(1975,1,1).date(), 'conj', 'part')
-    simu.scenario.addIndiv(2, datetime(2000,1,1).date(), 'pac', 'enf')
-    simu.scenario.addIndiv(3, datetime(2000,1,1).date(), 'pac', 'enf')
-    simu.set_marginal_alternative_scenario()
-    simu.alternative_scenario.addIndiv(4, datetime(2000,1,1).date(), 'pac', 'enf')
-    
-    print simu.scenario
-    print simu.alternative_scenario
-    df =  simu.get_results_dataframe()
-    print df.columns
-    print df.to_string()
-#    
 
     app = QApplication(sys.argv)
-    win = ApplicationWindow()
+    win = ApplicationWindow()    
+
+    country = 'france'
+    destination_dir = "c:/users/utilisateur/documents/"    
+    yr = 2010
+
+    marginal = True
     
-    ax = win.mplwidget.axes
-     
-    simu.draw_bareme(ax) 
-    win.mplwidget.draw()
+    for n_enf_final in range(1,5):
+        if n_enf_final == 1:
+            title = str(n_enf_final) + ' enfant'
+            if marginal:
+                title = str(n_enf_final) + 'er enfant'
+        else:
+            title = str(n_enf_final) + ' enfants'
+            if marginal:
+                title = str(n_enf_final) + 'e enfant'
 
-    win.show()
-    sys.exit(app.exec_())    
-
+        win = ApplicationWindow()
+        ax = win.mplwidget.axes        
+        simu = ScenarioSimulation()
+        
+        simu.set_config(year = yr, country = country, nmen = 201, xaxis = 'sali', maxrev = 130000, reforme = False, mode ='bareme', same_rev_couple = True)
+        simu.set_param()
+        simu.scenario.addIndiv(1, datetime(1975,1,1).date(), 'conj', 'part') 
+        
+        if marginal is True:
+            for i in range(1,n_enf_final):
+                print 'adding %s kid(s)' %i
+                simu.scenario.addIndiv(1+i, datetime(2000,1,1).date(), 'pac', 'enf')
+            
+        simu.set_marginal_alternative_scenario()
+        for i in range(1,n_enf_final+1):
+            if (marginal is False) or (i == n_enf_final):
+                print 'adding %s kid(s)' %i
+                simu.alternative_scenario.addIndiv(1+i, datetime(2000,1,1).date(), 'pac', 'enf')
         
         
+        ax.set_title(title)
+        simu.draw_bareme(ax, legend = True, position = 4) 
+        win.resize(1400,700)
+        win.mplwidget.draw()
+        win.show()
+        
+        win.mplwidget.print_figure(destination_dir + title + '.png')
+        del ax, simu 
+    sys.exit(app.exec_())
+
+
+

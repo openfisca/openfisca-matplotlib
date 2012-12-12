@@ -25,9 +25,9 @@ import numpy as np
 from pandas import DataFrame, merge
 from PyQt4.QtGui import (QWidget, QDockWidget, QVBoxLayout, QHBoxLayout, QComboBox, QSortFilterProxyModel,
                          QSpacerItem, QSizePolicy, QApplication, QCursor, QPushButton, QInputDialog)
-from PyQt4.QtCore import SIGNAL, Qt
+from PyQt4.QtCore import SIGNAL, Qt, QSize
 from core.qthelpers import OfSs, DataFrameViewWidget
-from core.qthelpers import MyComboBox
+from core.qthelpers import MyComboBox, get_icon
 from core.simulation import SurveySimulation
 
 
@@ -224,26 +224,36 @@ class DistributionWidget(QDockWidget):
         
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
+        add_var_btn  = self.add_toolbar_btn(tooltip = u"Ajouter une variable de calage",
+                                        icon = "list-add.png")
+        
+        rmv_var_btn = self.add_toolbar_btn(tooltip = u"Retirer une variable de calage",
+                                        icon = "list-remove.png")
+
+        toolbar_btns = [add_var_btn, rmv_var_btn] #rst_var_btn
+        
+
         distribLayout = QHBoxLayout()
+        for btn in toolbar_btns:
+            distribLayout.addWidget(btn)
         distribLayout.addWidget(self.distribution_combo)
         distribLayout.addItem(spacerItem)
-
+        
         self.view = DataFrameViewWidget(self.dockWidgetContents)
-        self.add_btn = QPushButton(u"Ajouter variable",self.dockWidgetContents)        
-        self.remove_btn = QPushButton(u"Retirer variable",self.dockWidgetContents)
-        varLayout = QHBoxLayout()
-        varLayout.addWidget(self.add_btn)
-        varLayout.addWidget(self.remove_btn)
+
+
+
+        
                 
         verticalLayout = QVBoxLayout(self.dockWidgetContents)
         verticalLayout.addLayout(distribLayout)
         verticalLayout.addWidget(self.view)
-        verticalLayout.addLayout(varLayout)
-        
+                
         self.setWidget(self.dockWidgetContents)
 
-        self.connect(self.add_btn, SIGNAL('clicked()'), self.add_var)
-        self.connect(self.remove_btn, SIGNAL('clicked()'), self.remove_var)
+
+        self.connect(add_var_btn, SIGNAL('clicked()'), self.add_var)
+        self.connect(rmv_var_btn, SIGNAL('clicked()'), self.remove_var)
 
         # Initialize attributes
         self.parent = parent
@@ -252,7 +262,17 @@ class DistributionWidget(QDockWidget):
         self.selected_vars = None
         
         self.initialize()
-        
+
+    def add_toolbar_btn(self, tooltip = None, icon = None):
+        btn = QPushButton(self)
+        if tooltip:
+            btn.setToolTip(tooltip)
+        if icon:
+            icn = get_icon(icon)
+            btn.setIcon(icn)
+            btn.setIconSize(QSize(22, 22))
+        return btn
+
     def initialize(self):
         
         self.distribution_by_var = 'so'

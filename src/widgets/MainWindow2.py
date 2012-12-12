@@ -340,15 +340,15 @@ class MainWindow(QMainWindow):
         Launch Calibration widget
         '''
         # liberate some memory before loading new data
-        calibration = CalibrationWidget(inputs = self.simualtion_survey.survey, 
-                                        outputs = self.simualtion_survey.outputs, parent = self)
+        calibration = CalibrationWidget(inputs = self.survey_simulation.survey, 
+                                        outputs = self.survey_simulation.outputs, parent = self)
         calibration.exec_()
         
     def inflate(self):
         '''
         Launch Calibration widget
         '''
-        inflation = InflationWidget(inputs = self.simualtion_survey.survey, parent = self)
+        inflation = InflationWidget(inputs = self.survey_simulation.survey, parent = self)
         inflation.exec_()
                 
     def modeReforme(self, b):

@@ -349,7 +349,6 @@ def drawWaterfall(data, ax):
     barwidth = 0.8
     number = [0]
     patches = []
-
     codes  = []
     shortnames = []
 
@@ -376,11 +375,8 @@ def drawWaterfall(data, ax):
             codes.append(node.code)
             shortnames.append(node.shortname)
             number[0] += 1
-
     prv = 0
-    
     drawNode(data, prv)
-
     for patch in patches:
         ax.add_patch(patch)
     
@@ -406,43 +402,34 @@ def drawWaterfall(data, ax):
         else: col = 'red'
         ax.text(x + width/2, y + 1, val, horizontalalignment='center',
                  verticalalignment='bottom', color= col, weight = 'bold')
-    
     m, M = ax.get_ylim()
     ax.set_ylim((m, 1.05*M))
+    
     
 def drawBareme(data, ax, xaxis, reforme = False, dataDefault = None, legend = True , country = None):
     '''
     Draws bareme
     '''
-    
     if country == None:
         raise Exception('drawBareme: country must be defined')
         
     if dataDefault == None: 
         dataDefault = data
-
     ax.figure.subplots_adjust(bottom = 0.09, top = 0.95, left = 0.11, right = 0.95)
-        
     if reforme: 
         prefix = 'Variation '
     else: 
         prefix = ''
-
     ax.hold(True)
-    
-    
     xdata = dataDefault[xaxis]
-    
     NMEN = len(xdata.vals)
     xlabel = xdata.desc
-
     ax.set_xlabel(xlabel)
     currency = of_import('utils', 'currency', country = country)
     ax.set_ylabel(prefix + u"Revenu disponible (" + currency + " par an)")
     ax.set_xlim(np.amin(xdata.vals), np.amax(xdata.vals))
     if not reforme:
         ax.set_ylim(np.amin(xdata.vals), np.amax(xdata.vals))
-    
     ax.plot(xdata.vals, np.zeros(NMEN), color = 'black', label = 'xaxis')
     
     def drawNode(node, prv):
@@ -460,14 +447,113 @@ def drawBareme(data, ax, xaxis, reforme = False, dataDefault = None, legend = Tr
             prev += child.vals
 
     prv = np.zeros(NMEN)
-
     drawNode(data, prv)
-
     if legend:
         createLegend(ax)
 
+
+def drawBaremeCompareHouseholds(data, ax, xaxis, dataDefault = None, legend = True , country = None, position = 2):
+    '''
+    Draws bareme
+    '''
+    
+    if country == None:
+        raise Exception('drawBaremeCompareHouseHolds: country must be defined')
+        
+    if dataDefault == None: 
+        raise Exception('drawBaremeCompareHouseHolds: country must be defined')
+
+    ax.figure.subplots_adjust(bottom = 0.09, top = 0.95, left = 0.11, right = 0.95)
+    prefix = 'Variation '
+    ax.hold(True)
+    xdata = dataDefault[xaxis]
+    NMEN = len(xdata.vals)
+    xlabel = xdata.desc
+    ax.set_xlabel(xlabel)
+    currency = of_import('utils', 'currency', country = country)
+    ax.set_ylabel(prefix + u"Revenu disponible (" + currency + " par an)")
+    ax.set_xlim(np.amin(xdata.vals), np.amax(xdata.vals))
+    ax.plot(xdata.vals, np.zeros(NMEN), color = 'black', label = 'xaxis')
+    
+    code_list =  ['af', 'cf', 'ars', 'rsa', 'aefa', 'logt', 'irpp', 'ppe', 'revdisp']
+    
+
+    def drawNode(node, prv):
+
+        minimum = 0
+        maximum = 0
+        prev = prv + 0
+#        if np.any(node.vals != 0) and node.visible and node.code != 'root' and node.code in code_list:
+        if np.any(node.vals != 0) and node.code != 'root' and node.code in code_list:
+            node.visible = True
+            r,g,b = node.color
+            col = (r/255, g/255, b/255)
+            if node.typevar == 2:
+                a = ax.plot(xdata.vals, node.vals, color = col, linewidth = 2, label = prefix + node.desc)
+            else:
+                a = ax.fill_between(xdata.vals, prev + node.vals, prev, color = col, linewidth = 0.2, edgecolor = 'black', picker = True)
+                a.set_label(prefix + node.desc)
+        for child in node.children:
+            drawNode(child, prev)
+            prev += child.vals
+            minimum = min([np.amin(prev), minimum])
+            maximum = max([np.amax(prev), maximum])
+        return minimum, maximum*1.1
+
+    prv = np.zeros(NMEN)
+    minimum, maximum = drawNode(data, prv)
+    ax.set_ylim(minimum, maximum )
+
+    if legend:
+        createLegend(ax, position = position)
+
+
+def drawBaremeCompareHouseholds2(data, ax, xaxis, dataDefault = None, legend = True , country = None, position = 2):
+    '''
+    Draws bareme
+    '''
+    
+    if country == None:
+        raise Exception('drawBaremeCompareHouseHolds: country must be defined')
+        
+    if dataDefault == None: 
+        raise Exception('drawBaremeCompareHouseHolds: country must be defined')
+
+    ax.figure.subplots_adjust(bottom = 0.09, top = 0.95, left = 0.11, right = 0.95)
+    prefix = 'Variation '
+    ax.hold(True)
+    xdata = dataDefault[xaxis]
+    NMEN = len(xdata.vals)
+    xlabel = xdata.desc
+    ax.set_xlabel(xlabel)
+    currency = of_import('utils', 'currency', country = country)
+    ax.set_ylabel(prefix + u"Revenu disponible (" + currency + " par an)")
+    ax.set_xlim(np.amin(xdata.vals), np.amax(xdata.vals))
+    ax.plot(xdata.vals, np.zeros(NMEN), color = 'black', label = 'xaxis')
+
+    node_list =  ['af', 'cf', 'ars', 'rsa', 'aefa', 'logt', 'irpp', 'ppe', 'revdisp']
+
+    prv = np.zeros(NMEN)    
+    
+    for nod in node_list:
+        node = data[nod] 
+        prev = prv + 0
+        r,g,b = node.color
+        col = (r/255, g/255, b/255)
+        if node.typevar == 2:
+            a = ax.plot(xdata.vals, node.vals, color = col, linewidth = 2, label = prefix + node.desc)
+        else:
+            a = ax.fill_between(xdata.vals, prev + node.vals, prev, color = col, linewidth = 0.2, edgecolor = 'black', picker = True)
+            a.set_label(prefix + node.desc)
+        prv += node.vals
+
+
+    if legend:        
+        createLegend(ax, position = position)
+
 def percentFormatter(x, pos=0):
     return '%1.0f%%' %(x)
+
 
 def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None, legend = True, country = None):
     '''
@@ -511,7 +597,7 @@ def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None, legend = True
         createLegend(ax)
     
     
-def createLegend(ax):
+def createLegend(ax, position = 2):
     '''
     Creates legend
     '''
@@ -525,7 +611,7 @@ def createLegend(ax):
         if line._visible and (line._label != 'xaxis'):
             p.insert(0, Line2D([0,1],[.5,.5],color = line._color))
             l.insert(0, line._label)
-    ax.legend(p,l, loc= 2, prop = {'size':'medium'})
+    ax.legend(p,l, loc= position, prop = {'size':'medium'})
 
 def RevTot(data, typrev, country = None):
     '''
