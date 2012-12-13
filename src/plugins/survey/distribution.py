@@ -26,9 +26,9 @@ from pandas import DataFrame, merge
 from PyQt4.QtGui import (QWidget, QDockWidget, QVBoxLayout, QHBoxLayout, QComboBox, QSortFilterProxyModel,
                          QSpacerItem, QSizePolicy, QApplication, QCursor, QPushButton, QInputDialog)
 from PyQt4.QtCore import SIGNAL, Qt, QSize
-from core.qthelpers import OfSs, DataFrameViewWidget
-from core.qthelpers import MyComboBox, get_icon
-from core.simulation import SurveySimulation
+from src.core.qthelpers import OfSs, DataFrameViewWidget
+from src.core.qthelpers import MyComboBox, get_icon
+from src.core.simulation import SurveySimulation
 
 
 class OFPivotTable(object):
@@ -95,7 +95,6 @@ class OFPivotTable(object):
             by_var_label = by_var
 
         enum = self.simulation.var2enum[by_var]                
-        
         
         frame = frame.reset_index(drop=True)
         

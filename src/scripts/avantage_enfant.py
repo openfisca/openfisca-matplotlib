@@ -64,9 +64,9 @@ if __name__ == '__main__':
                 title = str(n_enf_final) + 'e enfant'
 
         win = ApplicationWindow()
-        ax = win.mplwidget.axes        
-        simu = ScenarioSimulation()
-        
+        ax = win.mplwidget.axes    
+            
+        simu = ScenarioSimulation()        
         simu.set_config(year = yr, country = country, nmen = 201, xaxis = 'sali', maxrev = 130000, reforme = False, mode ='bareme', same_rev_couple = True)
         simu.set_param()
         simu.scenario.addIndiv(1, datetime(1975,1,1).date(), 'conj', 'part') 

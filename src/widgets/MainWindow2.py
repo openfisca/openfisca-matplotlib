@@ -30,19 +30,19 @@ from PyQt4.QtGui import (QMainWindow, QWidget, QGridLayout, QMessageBox, QKeySeq
                          QApplication, QCursor, QPixmap, QSplashScreen, QColor,
                          QActionGroup, QStatusBar)
 
-from Config import CONF, VERSION, ConfigDialog, SimConfigPage, PathConfigPage, CalConfigPage
-from widgets.Parametres import ParamWidget
+from src.Config import CONF, VERSION, ConfigDialog, SimConfigPage, PathConfigPage, CalConfigPage
+from src.widgets.Parametres import ParamWidget
 from src.plugins.scenario.table import OutTable
 from src.plugins.scenario.graph import Graph
 from src.plugins.survey.aggregates import Aggregates, AggregateOutputWidget
 from src.plugins.survey.distribution import OFPivotTable, DistributionWidget
-from widgets.Calibration import CalibrationWidget
-from widgets.Inflation import InflationWidget
-from widgets.ExploreData import ExploreDataWidget
-from widgets.Inequality import InequalityWidget
-from core.utils import of_import
-from core.qthelpers import create_action, add_actions, get_icon
-from core.simulation import SurveySimulation, ScenarioSimulation
+from src.widgets.Calibration import CalibrationWidget
+from src.widgets.Inflation import InflationWidget
+from src.widgets.ExploreData import ExploreDataWidget
+from src.widgets.Inequality import InequalityWidget
+from src.core.utils import of_import
+from src.core.qthelpers import create_action, add_actions, get_icon
+from src.core.simulation import SurveySimulation, ScenarioSimulation
 import gc
 
 

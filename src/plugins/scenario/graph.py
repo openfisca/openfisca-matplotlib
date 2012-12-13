@@ -22,7 +22,7 @@ This file is part of openFisca.
 """
 
 from __future__ import division
-from Config import CONF
+from src.Config import CONF
 from PyQt4.QtCore import QAbstractItemModel, QModelIndex, Qt, QVariant, SIGNAL, \
     QSize
 from PyQt4.QtGui import QDockWidget, QFileDialog, QColor, QVBoxLayout, QDialog, \
@@ -30,12 +30,12 @@ from PyQt4.QtGui import QDockWidget, QFileDialog, QColor, QVBoxLayout, QDialog, 
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle, FancyArrow
 from matplotlib.ticker import FuncFormatter
-from views.ui_graph import Ui_Graph
+from src.views.ui_graph import Ui_Graph
 import os
 import locale
 import numpy as np
 
-from core.utils import of_import
+from src.core.utils import of_import
 
 locale.setlocale(locale.LC_ALL, '')
 

@@ -27,11 +27,11 @@ from PyQt4.QtGui import (QWidget, QDockWidget, QVBoxLayout,
                          QApplication, QCursor, QSizePolicy, QMenu)
 from PyQt4.QtCore import SIGNAL, Qt
 from numpy import nan         
-from Config import CONF
-from core.qthelpers import OfSs, DataFrameViewWidget, create_action, add_actions
+from src.Config import CONF
+from src.core.qthelpers import OfSs, DataFrameViewWidget, create_action, add_actions
 
 from src import SRC_PATH
-from core.simulation import SurveySimulation
+from src.core.simulation import SurveySimulation
 
 from datetime import datetime
 from pandas import ExcelWriter
@@ -87,7 +87,7 @@ class Aggregates(object):
         if isinstance(simulation, SurveySimulation):
             self.simulation = simulation
         else:
-            raise Exception('Aggreaates:  %s should be an instance of %s class'  %(simulation, SurveySimulation))
+            raise Exception('Aggregates:  %s should be an instance of %s class'  %(simulation, SurveySimulation))
           
     def set_data(self):
         """
