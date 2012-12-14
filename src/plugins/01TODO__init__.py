@@ -33,7 +33,7 @@ These plugins inherit the following classes
 
 from PyQt4.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
                                 QKeySequence, QMainWindow, QApplication)
-from PyQt4.QtCore import SIGNAL, Qt, QObject, Signal
+from PyQt4.QtCore import SIGNAL, Qt, QObject,  Signal
 
 # Local imports
 from spyderlib.utils.qthelpers import toggle_actions

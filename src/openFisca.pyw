@@ -23,7 +23,7 @@ This file is part of openFisca.
 """
 
 from PyQt4.QtGui import QApplication
-from widgets.MainWindow2 import MainWindow
+from src.widgets.MainWindow import MainWindow
 
 def main():
     import sys
