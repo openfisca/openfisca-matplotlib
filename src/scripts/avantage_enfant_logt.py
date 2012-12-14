@@ -21,28 +21,31 @@ This file is part of openFisca.
     You should have received a copy of the GNU General Public License
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
+
+
 from core.simulation import SurveySimulation 
 from src.plugins.survey.aggregates import Aggregates
 
 if __name__ == '__main__':
 
-    years = ['2006', '2007', '2008', '2009']
-    for yr in years:
-        country = 'france'
-        destination_dir = "c:/users/utilisateur/documents/"
-        fname = "Agg_%s.%s" %(str(yr), "xls")
-        simu = SurveySimulation()
-        simu.set_config(year = yr, country = country)
-        simu.set_param()
-        simu.set_survey()
-        simu.compute()
-        
-        agg = Aggregates()
-        agg.set_simulation(simu)
-        agg.compute()
-        agg.save_table(directory = destination_dir, filename = fname)
-        del simu
-        del agg
-        import gc
-        gc.collect()
+
+    yr = 2009
+    country = 'france'
+    destination_dir = "c:/users/utilisateur/documents/"
     
+    fname = "Avtg_Enf_Agg_%s.%s" %(str(yr), "xls")
+    simu = SurveySimulation()
+    simu.set_config(year = yr, country = country)
+    simu.set_param()
+    
+    simu.set_survey()
+    simu.compute()
+    
+    agg = Aggregates()
+    agg.set_simulation(simu)
+    agg.compute()
+    agg.save_table(directory = destination_dir, filename = fname)
+    del simu
+    del agg
+    import gc
+    gc.collect()
