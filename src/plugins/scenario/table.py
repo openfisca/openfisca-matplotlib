@@ -22,11 +22,11 @@ This file is part of openFisca.
 """
 
 from __future__ import division
-from Config import CONF
+from src.Config import CONF
 from PyQt4.QtCore import QAbstractItemModel, QModelIndex, Qt, QVariant
 from PyQt4.QtGui import QDockWidget, QFileDialog, QVBoxLayout, QMessageBox, QWidget, QAbstractItemView
 from datetime import datetime
-from core.qthelpers import OfTreeView
+from src.core.qthelpers import OfTreeView
 import csv
 import os
 import codecs
@@ -35,7 +35,7 @@ import locale
 import numpy as np
 from pandas import DataFrame, ExcelWriter
 
-from core.utils import of_import
+from src.core.utils import of_import
 
 locale.setlocale(locale.LC_ALL, '')
 
@@ -72,11 +72,8 @@ class OutTable(QDockWidget):
 
         if dataDefault is None:
             dataDefault = data
-            
-        reforme = simulation.reforme
+
         mode = simulation.mode
-        
-#        xaxis = CONF.get('simulation', 'xaxis')            
         xaxis = simulation.xaxis
         build_axes = of_import('utils','build_axes', simulation.country)
         axes = build_axes()

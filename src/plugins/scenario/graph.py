@@ -22,7 +22,7 @@ This file is part of openFisca.
 """
 
 from __future__ import division
-from src.Config import CONF
+from src.core.config import CONF
 from PyQt4.QtCore import QAbstractItemModel, QModelIndex, Qt, QVariant, SIGNAL, \
     QSize
 from PyQt4.QtGui import QDockWidget, QFileDialog, QColor, QVBoxLayout, QDialog, \

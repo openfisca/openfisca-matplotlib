@@ -1,0 +1,20 @@
+Traceback (most recent call last):
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1880, in main
+    mainwindow = run_spyder(app, options)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1788, in run_spyder
+    main.setup()
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 837, in setup
+    "Ctrl+Shift+Alt+F%d" % index)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1614, in register_shortcut
+    self.apply_shortcuts()
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1621, in apply_shortcuts
+    keyseq = QKeySequence( get_shortcut(context, name, default) )
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\core\config.py", line 466, in get_shortcut
+    return CONF.get('shortcuts', '%s/%s' % (context, name), default=default)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\core\userconfig.py", line 259, in get
+    self.set(section, option, default)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\core\userconfig.py", line 339, in set
+    self.__save()
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\core\userconfig.py", line 168, in __save
+    conf_file = file(self.filename(),'w')
+IOError: [Errno 22] invalid mode ('w') or filename: u'C:\\Users\\Utilisateur\\.openfiscaTODO\\.openfisca.ini'

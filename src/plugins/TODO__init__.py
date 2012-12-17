@@ -33,7 +33,8 @@ These plugins inherit the following classes
 
 from PyQt4.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
                                 QKeySequence, QMainWindow, QApplication)
-from PyQt4.QtCore import SIGNAL, Qt, QObject,  Signal
+from PyQt4.QtCore import SIGNAL, Qt, QObject
+from PyQt4.QtCore import pyqtSignal as Signal
 
 # Local imports
 from spyderlib.utils.qthelpers import toggle_actions
@@ -84,8 +85,11 @@ class OFPluginMixin(object):
                QDockWidget.DockWidgetMovable
     DISABLE_ACTIONS_WHEN_HIDDEN = True
     sig_option_changed = None
+
     def __init__(self, main):
-        """Bind widget to a QMainWindow instance"""
+        """
+        Bind widget to a QMainWindow instance
+        """
         super(OFPluginMixin, self).__init__()
         assert self.CONF_SECTION is not None
         self.main = main
@@ -97,7 +101,9 @@ class OFPluginMixin(object):
         self.isvisible = False
         
     def initialize_plugin(self):
-        """Initialize plugin: connect signals, setup actions, ..."""
+        """
+        Initialize plugin: connect signals, setup actions, ...
+        """
         self.plugin_actions = self.get_plugin_actions()
         QObject.connect(self, SIGNAL('show_message(QString,int)'),
                         self.show_message)
@@ -118,7 +124,9 @@ class OFPluginMixin(object):
             layout.setContentsMargins(*self.default_margins)
             
     def __update_plugin_title(self):
-        """Update plugin title, i.e. dockwidget or mainwindow title"""
+        """
+        Update plugin title, i.e. dockwidget or mainwindow title
+        """
         if self.dockwidget is not None:
             win = self.dockwidget
         elif self.mainwindow is not None:
@@ -128,7 +136,9 @@ class OFPluginMixin(object):
         win.setWindowTitle(self.get_plugin_title())
         
     def create_dockwidget(self):
-        """Add to parent QMainWindow as a dock widget"""
+        """
+        Add to parent QMainWindow as a dock widget
+        """
 
         # This is not clear yet why the following do not work...
         # (see Issue #880)
@@ -189,14 +199,18 @@ class OFPluginMixin(object):
             self.register_shortcut(qshortcut, context, name, default)
     
     def switch_to_plugin(self):
-        """Switch to plugin
-        This method is called when pressing plugin's shortcut key"""
+        """
+        Switch to plugin
+        This method is called when pressing plugin's shortcut key
+        """
         if not self.ismaximized:
             self.dockwidget.show()
         self.visibility_changed(True)
 
     def visibility_changed(self, enable):
-        """DockWidget visibility has changed"""
+        """
+        DockWidget visibility has changed
+        """
         if enable:
             self.dockwidget.raise_()
             widget = self.get_focus_widget()
@@ -218,19 +232,27 @@ class OFPluginMixin(object):
         CONF.set(self.CONF_SECTION, str(option), value)
 
     def get_option(self, option, default=NoDefault):
-        """Get a plugin option from configuration file"""
+        """
+        Get a plugin option from configuration file
+        """
         return CONF.get(self.CONF_SECTION, option, default)
     
     def get_plugin_font(self, option=None):
-        """Return plugin font option"""
+        """
+        Return plugin font option
+        """
         return get_font(self.CONF_SECTION, option)
     
     def set_plugin_font(self, font, option=None):
-        """Set plugin font option"""
+        """
+        Set plugin font option
+        """
         set_font(font, self.CONF_SECTION, option)
         
     def show_message(self, message, timeout=0):
-        """Show message in main window's status bar"""
+        """
+        Show message in main window's status bar
+        """
         self.main.statusBar().showMessage(message, timeout)
 
     def starting_long_process(self, message):

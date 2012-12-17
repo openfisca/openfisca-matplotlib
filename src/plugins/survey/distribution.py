@@ -23,13 +23,14 @@ This file is part of openFisca.
 from __future__ import division
 import numpy as np
 from pandas import DataFrame, merge
-from PyQt4.QtGui import (QWidget, QDockWidget, QVBoxLayout, QHBoxLayout, QComboBox, QSortFilterProxyModel,
+from PyQt4.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QSortFilterProxyModel,
                          QSpacerItem, QSizePolicy, QApplication, QCursor, QPushButton, QInputDialog)
 from PyQt4.QtCore import SIGNAL, Qt, QSize
 from src.core.qthelpers import OfSs, DataFrameViewWidget
 from src.core.qthelpers import MyComboBox, get_icon
 from src.core.simulation import SurveySimulation
 
+from src.plugins.TODO__init__ import OFPluginWidget
 
 class OFPivotTable(object):
     def __init__(self):
@@ -199,8 +200,16 @@ class OFPivotTable(object):
         self.wght = None
 
 
+# TODO class DistributionConfigPage(PluginConfigPage):
     
-class DistributionWidget(QDockWidget):
+class DistributionWidget(OFPluginWidget):
+    """
+    Distribution Widget
+    """
+    CONF_SECTION = 'distribution'
+#    CONFIGWIDGET_CLASS = DistributionConfigPage
+    
+    
     def __init__(self, parent = None):
         super(DistributionWidget, self).__init__(parent)
         self.setStyleSheet(OfSs.dock_style)
@@ -240,15 +249,11 @@ class DistributionWidget(QDockWidget):
         
         self.view = DataFrameViewWidget(self.dockWidgetContents)
 
-
-
-        
-                
         verticalLayout = QVBoxLayout(self.dockWidgetContents)
         verticalLayout.addLayout(distribLayout)
         verticalLayout.addWidget(self.view)
                 
-        self.setWidget(self.dockWidgetContents)
+        #self.setWidget(self.dockWidgetContents)
 
 
         self.connect(add_var_btn, SIGNAL('clicked()'), self.add_var)
@@ -260,6 +265,7 @@ class DistributionWidget(QDockWidget):
         self.distribution_by_var = None
         self.selected_vars = None
         
+        self.setLayout(verticalLayout)
         self.initialize()
 
     def add_toolbar_btn(self, tooltip = None, icon = None):
@@ -349,6 +355,33 @@ class DistributionWidget(QDockWidget):
         self.connect(self.distribution_combo.box, SIGNAL('currentIndexChanged(int)'), self.dist_by_changed)
         self.distribution_combo.box.model().sort(0)
 
+
+
+    def calculated(self):
+        '''
+        Emits signal indicating that aggregates are computed
+        '''
+        self.emit(SIGNAL('calculated()'))
+
+
+    def get_plugin_title(self):
+        """
+        Return plugin title
+        Note: after some thinking, it appears that using a method
+        is more flexible here than using a class attribute
+        """
+        return "Distribution"
+
+    
+    def get_plugin_icon(self):
+        """
+        Return plugin icon (QIcon instance)
+        Note: this is required for plugins creating a main window
+              (see SpyderPluginMixin.create_mainwindow)
+              and for configuration dialog widgets creation
+        """
+        return get_icon('qt.png')
+    
     def refresh_plugin(self):
         '''
         Update distribution view
@@ -356,17 +389,27 @@ class DistributionWidget(QDockWidget):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         
         by_var = self.distribution_by_var
-        selection = self.selected_vars 
-        frame = self.of_pivot_table.get_table(by = by_var, vars = selection)
-        
-        self.view.set_dataframe(frame)
+        selection = self.selected_vars
+        if self.of_pivot_table is not None:
+            frame = self.of_pivot_table.get_table(by = by_var, vars = selection)
+            self.view.set_dataframe(frame)
         self.view.reset()
         self.calculated()
 
-        QApplication.restoreOverrideCursor()
+        QApplication.restoreOverrideCursor()        
+    
+    def get_plugin_actions(self):
+        """
+        Return a list of actions related to plugin
+        Note: these actions will be enabled when plugin's dockwidget is visible
+              and they will be disabled when it's hidden
+        """
+        raise NotImplementedError
+    
+    def register_plugin(self):
+        """
+        Register plugin in OpenFisca's main window
+        """
+        self.main.add_dockwidget(self)
 
-    def calculated(self):
-        '''
-        Emits signal indicating that aggregates are computed
-        '''
-        self.emit(SIGNAL('calculated()'))
+
