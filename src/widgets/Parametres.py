@@ -23,11 +23,11 @@ This file is part of openFisca.
 
 from PyQt4.QtGui import QDockWidget, QFileDialog, QMessageBox
 from PyQt4.QtCore import SIGNAL
-from views.ui_parametres import Ui_Parametres
-from parametres.paramData import XmlReader, Tree2Object
-from parametres.paramModel import PrestationModel
-from parametres.Delegate import CustomDelegate, ValueColumnDelegate
-from Config import CONF
+from src.views.ui_parametres import Ui_Parametres
+from src.parametres.paramData import XmlReader, Tree2Object
+from src.parametres.paramModel import PrestationModel
+from src.parametres.Delegate import CustomDelegate, ValueColumnDelegate
+from src.Config import CONF
 import os
 
 class ParamWidget(QDockWidget, Ui_Parametres):
