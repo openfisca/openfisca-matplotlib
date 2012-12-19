@@ -104,7 +104,8 @@ class OFPivotTable(object):
             else:
                 frame.rename(columns = { col : self.simulation.var2label[col] }, inplace = True)
         
-        frame[by_var_label] = frame[by_var_label].apply(lambda x: enum._vars[x])
+        if enum is not None:
+            frame[by_var_label] = frame[by_var_label].apply(lambda x: enum._vars[x])
                
         return frame
      
