@@ -1,0 +1,26 @@
+<RCC>
+  <qresource>
+    <file>images/legende.png</file>
+    <file>images/OpenFisca22.png</file>
+    <file>images/bareme22.png</file>
+    <file>images/castype22.png</file>
+    <file>images/home.png</file>
+    <file>images/document-save png.png</file>
+    <file>images/comparison22.png</file>
+    <file>images/document-save csv.png</file>
+    <file>images/preferences-desktop.png</file>
+    <file>images/people.png</file>
+    <file>images/process-stop.png</file>
+    <file>images/list-add.png</file>
+    <file>images/document-open.png</file>
+    <file>images/document-save.png</file>
+    <file>images/view-refresh.png</file>
+    <file>images/list-remove.png</file>
+    <file>images/logo1.png</file>
+    <file>images/splash.png</file>
+    <file>images/scale22.png</file>
+    <file>images/calculator_red.png</file>
+    <file>images/calculator_green.png</file>
+    <file>images/calculator_blue.png</file>
+  </qresource>
+</RCC>

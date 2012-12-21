@@ -20,68 +20,25 @@ This file is part of openFisca.
     You should have received a copy of the GNU General Public License
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
-
-from os import path
 from PyQt4.QtGui import (QWidget, QDockWidget, QLabel, QVBoxLayout, QHBoxLayout, QPushButton,
                          QSpacerItem, QSizePolicy, QApplication, QCursor, QInputDialog)
 from PyQt4.QtCore import SIGNAL, Qt, QVariant
-
+from core.qthelpers import OfSs, DataFrameViewWidget
 from pandas import DataFrame
-from src.core.qthelpers import OfSs, DataFrameViewWidget
-from src.core.qthelpers import MyComboBox
-from src.core.columns import EnumCol
+from core.qthelpers import MyComboBox
+from core.columns import EnumCol
 
 
-from src.qt.QtGui import QGroupBox, QVBoxLayout
-from src.core.config import CONF, get_icon
-from src.plugins.__init__ import OpenfiscaPluginWidget, PluginConfigPage
-
-from src.core.utils_old import of_import
-from src.core.baseconfig import get_translation
-
-_ = get_translation('survey_explorer', 'src.plugins.survey')
-
-
-class SurveyExplorerConfigPage(PluginConfigPage):
-    def __init__(self, plugin, parent):
-        PluginConfigPage.__init__(self, plugin, parent)
-        self.get_name = lambda: _("Survey data explorer")
-        
-    def setup_page(self):
-
-        # TODO: redo completely
-        legend_group = QGroupBox(_("Export"))
-        choices = [('cvs', 'csv'),
-                   ('xls', 'xls'),]
-        table_format = self.create_combobox(_('Table export format'), choices, 'format')
-        
-        #xaxis  
-        
-        layout = QVBoxLayout()
-        layout.addWidget(table_format)
-        legend_group.setLayout(layout)
-        
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(legend_group)
-        vlayout.addStretch(1)
-        self.setLayout(vlayout)
-
-
-class SurveyExplorerWidget(OpenfiscaPluginWidget):    
-    """
-    Survey data explorer Widget
-    """
-    CONF_SECTION = 'survey'
-    CONFIGWIDGET_CLASS = SurveyExplorerConfigPage
-
+class ExploreDataWidget(QDockWidget):
     def __init__(self, parent = None):
-        super(SurveyExplorerWidget, self).__init__(parent)
+        super(ExploreDataWidget, self).__init__(parent)
         self.setStyleSheet(OfSs.dock_style)
         # Create geometry
         self.setObjectName("ExploreData")
         self.setWindowTitle("ExploreData")
         self.dockWidgetContents = QWidget()
         
+
         self.data_label = QLabel("Data", self.dockWidgetContents)
 
         self.add_btn = QPushButton(u"Ajouter variable",self.dockWidgetContents)        
@@ -106,7 +63,7 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
 
         verticalLayout.addLayout(horizontalLayout)
         verticalLayout.addWidget(self.view)
-        self.setLayout(verticalLayout)
+        self.setWidget(self.dockWidgetContents)
 
         # Initialize attributes
         self.parent = parent
@@ -117,44 +74,19 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         self.dataframes = {}
         self.vars = set()
 
-        self.initialize()
-
         self.connect(self.add_btn, SIGNAL('clicked()'), self.add_var)
         self.connect(self.remove_btn, SIGNAL('clicked()'), self.remove_var)
         self.connect(self.datatable_combo.box, SIGNAL('currentIndexChanged(int)'), self.select_data)        
+
         self.update_btns()
 
-        
-    def initialize(self):
-        """
-        Initialize widget
-        """
-        pass
 
-    def set_simulation(self, survey_simulation):
-        """
-        Set survey_simulation
-        """
-        country = CONF.get('parameters', 'country')
-        datesim = CONF.get('parameters', 'datesim')
-        reforme = CONF.get('survey', 'reforme')
-        year = datesim.year
-        survey_simulation.set_config(year = year, country = country, reforme = reforme)
-        self.survey_simulation = survey_simulation
+    def set_year(self, year):
+        '''
+        Sets year in label
+        '''
+        self.data_label.setText("Survey data from year " + str(year))
 
-    def load_from_file(self):        
-        fname = CONF.get('survey', 'data_file')
-        if path.isfile(fname):
-            self.survey_simulation.set_survey(filename = fname)
-            
-            year = self.survey_simulation.survey.survey_year
-            # Sets year in label
-            print 'laod from file :', year
-            self.data_label.setText("Survey data from year " + str(year))
-            self.add_dataframe(self.survey_simulation.survey.table, name = "input")
-            self.update_view()
-            return True
-                
     def update_btns(self):
         if (self.vars - self.selected_vars):
             self.add_btn.setEnabled(True)
@@ -289,56 +221,3 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         self.datatables_choices = []
         self.dataframes = {}
         self.update_btns()
-        
-        
-    #------ OpenfiscaPluginMixin API ---------------------------------------------
-    #------ OpenfiscaPluginWidget API ---------------------------------------------
-
-    def get_plugin_title(self):
-        """
-        Return plugin title
-        Note: after some thinking, it appears that using a method
-        is more flexible here than using a class attribute
-        """
-        return "Survey Explorer"
-
-    
-    def get_plugin_icon(self):
-        """
-        Return plugin icon (QIcon instance)
-        Note: this is required for plugins creating a main window
-              (see SpyderPluginMixin.create_mainwindow)
-              and for configuration dialog widgets creation
-        """
-        return get_icon('OpenFisca22.png')
-            
-    def get_plugin_actions(self):
-        """
-        Return a list of actions related to plugin
-        Note: these actions will be enabled when plugin's dockwidget is visible
-              and they will be disabled when it's hidden
-        """
-        raise NotImplementedError
-    
-    def register_plugin(self):
-        """
-        Register plugin in OpenFisca's main window
-        """
-        self.main.add_dockwidget(self)
-
-
-    def refresh_plugin(self):
-        '''
-        Update Scenario Table
-        '''
-        pass
-    
-    def closing_plugin(self, cancelable=False):
-        """
-        Perform actions before parent main window is closed
-        Return True or False whether the plugin may be closed immediately or not
-        Note: returned value is ignored if *cancelable* is False
-        """
-        return True
-
-        

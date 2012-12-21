@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1861, in main
+    mainwindow = run_spyder(app, options)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1769, in run_spyder
+    main.setup()
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 632, in setup
+    self.distribution.register_plugin()
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\plugins\survey\distribution.py", line 414, in register_plugin
+    self.main.add_dockwidget(self)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\of_test.py", line 1212, in add_dockwidget
+    dockwidget, location = child.create_dockwidget()
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\plugins\TODO__init__.py", line 161, in create_dockwidget
+    short = self.get_option("shortcut", None)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\plugins\TODO__init__.py", line 238, in get_option
+    return CONF.get(self.CONF_SECTION, option, default)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\core\userconfig.py", line 257, in get
+    self.set(section, option, default)
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\core\userconfig.py", line 337, in set
+    self.__save()
+  File "C:\Users\Utilisateur\My Documents\Aptana Studio 3 Workspace\openfisca\src\core\userconfig.py", line 166, in __save
+    conf_file = file(self.filename(),'w')
+IOError: [Errno 22] invalid mode ('w') or filename: u'C:\\Users\\Utilisateur\\.openfiscaTODO\\.openfisca.ini'
