@@ -22,23 +22,20 @@ This file is part of openFisca.
 """
 
 from os import path
-from PyQt4.QtGui import (QWidget, QDockWidget, QLabel, QVBoxLayout, QHBoxLayout, QPushButton,
-                         QSpacerItem, QSizePolicy, QApplication, QCursor, QInputDialog)
-from PyQt4.QtCore import SIGNAL, Qt, QVariant
-
 from pandas import DataFrame
+
+from src.qt.QtGui import (QWidget, QLabel, QVBoxLayout, QHBoxLayout, QPushButton,
+                         QSpacerItem, QSizePolicy, QApplication, QCursor, QInputDialog, QGroupBox)
+from src.qt.QtCore import SIGNAL, Qt, QVariant
+
+
 from src.core.qthelpers import OfSs, DataFrameViewWidget
 from src.core.qthelpers import MyComboBox
 from src.core.columns import EnumCol
 
-
-from src.qt.QtGui import QGroupBox, QVBoxLayout
 from src.core.config import CONF, get_icon
 from src.plugins.__init__ import OpenfiscaPluginWidget, PluginConfigPage
-
-from src.core.utils_old import of_import
 from src.core.baseconfig import get_translation
-
 _ = get_translation('survey_explorer', 'src.plugins.survey')
 
 
@@ -73,6 +70,7 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
     """
     CONF_SECTION = 'survey'
     CONFIGWIDGET_CLASS = SurveyExplorerConfigPage
+    DISABLE_ACTIONS_WHEN_HIDDEN = False
 
     def __init__(self, parent = None):
         super(SurveyExplorerWidget, self).__init__(parent)
@@ -131,7 +129,7 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         """
         pass
 
-    def set_simulation(self, survey_simulation):
+    def set_simulation(self, simulation):
         """
         Set survey_simulation
         """
@@ -139,19 +137,19 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         datesim = CONF.get('parameters', 'datesim')
         reforme = CONF.get('survey', 'reforme')
         year = datesim.year
-        survey_simulation.set_config(year = year, country = country, reforme = reforme)
-        self.survey_simulation = survey_simulation
+        simulation.set_config(year = year, country = country, reforme = reforme)
+        self.simulation = simulation
 
     def load_from_file(self):        
         fname = CONF.get('survey', 'data_file')
         if path.isfile(fname):
-            self.survey_simulation.set_survey(filename = fname)
+            self.simulation.set_survey(filename = fname)
             
-            year = self.survey_simulation.survey.survey_year
+            year = self.simulation.survey.survey_year
             # Sets year in label
             print 'laod from file :', year
             self.data_label.setText("Survey data from year " + str(year))
-            self.add_dataframe(self.survey_simulation.survey.table, name = "input")
+            self.add_dataframe(self.simulation.survey.table, name = "input")
             self.update_view()
             return True
                 

@@ -584,11 +584,11 @@ class AggregatesWidget(OpenfiscaPluginWidget):
         '''
         Update aggregate outputs and refresh view
         '''
-        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-
+        if not hasattr(self.aggregates, 'simulation'):
+            return
         if self.aggregates.simulation.outputs is None:
             return
-        
+        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         self.survey_year = self.aggregates.simulation.survey.survey_year
         self.description = self.aggregates.simulation.outputs.description
 

@@ -219,8 +219,8 @@ class OpenfiscaPluginMixin(object):
         visible = self.dockwidget.isVisible() or self.ismaximized
         if self.DISABLE_ACTIONS_WHEN_HIDDEN:
             toggle_actions(self.plugin_actions, visible)
-#        if visible:
-#            self.refresh_plugin() #XXX Is it a good idea?
+        if visible:
+            self.refresh_plugin() #XXX Is it a good idea?
         self.isvisible = enable and visible
 
     def set_option(self, option, value):

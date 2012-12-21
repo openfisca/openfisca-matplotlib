@@ -21,7 +21,7 @@ This file is part of openFisca.
     You should have received a copy of the GNU General Public License
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
-from core.simulation import SurveySimulation 
+from src.core.simulation import SurveySimulation 
 from src.plugins.survey.aggregates import Aggregates
 
 if __name__ == '__main__':
