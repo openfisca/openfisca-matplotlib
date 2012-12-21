@@ -12,7 +12,7 @@ import os.path as osp
 from src.core.baseconfig import _
 from src.core.config import (get_icon, CONF, CUSTOM_COLOR_SCHEME_NAME,
                               set_default_color_scheme, COLOR_SCHEME_NAMES)
-from src.core.qthelpers_new import get_std_icon
+from src.core.utils.qthelpers import get_std_icon
 from src.core.userconfig import NoDefault
 from spyderlib.widgets.colors import ColorLayout
 

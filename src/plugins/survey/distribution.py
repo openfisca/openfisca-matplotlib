@@ -211,7 +211,7 @@ class OFPivotTable(object):
 class DistributionConfigPage(PluginConfigPage):
     def __init__(self, plugin, parent):
         PluginConfigPage.__init__(self, plugin, parent)
-        self.get_name = lambda: _("Distribution") # TODO: _
+        self.get_name = lambda: _("Distribution")
         
     def setup_page(self):
         variables_group = QGroupBox(_("Distribution"))

@@ -23,21 +23,23 @@ This file is part of openFisca.
 from __future__ import division
 from pandas import DataFrame
 import os 
-from PyQt4.QtGui import (QWidget, QDockWidget, QVBoxLayout,
-                         QApplication, QCursor, QSizePolicy, QMenu)
-from PyQt4.QtCore import SIGNAL, Qt
 from numpy import nan         
+from datetime import datetime
+from pandas import ExcelWriter
+
+
+from src.qt.QtGui import (QWidget, QVBoxLayout,
+                         QApplication, QCursor, QSizePolicy, QMenu,
+                         QGroupBox, QFileDialog, QMessageBox)
+from src.qt.QtCore import SIGNAL, Qt
+
 from src.core.config import CONF, get_icon
 from src.core.qthelpers import OfSs, DataFrameViewWidget, create_action, add_actions
 
 from src import SRC_PATH
 from src.core.simulation import SurveySimulation
 
-from datetime import datetime
-from pandas import ExcelWriter
-
-from spyderlib.qt.QtGui import QGroupBox
-from src.plugins.__init__ import OpenfiscaPluginWidget, PluginConfigPage
+from src.plugins import OpenfiscaPluginWidget, PluginConfigPage
 from src.core.baseconfig import get_translation
 _ = get_translation("aggregates", dirname="src.plugins.survey")
 
@@ -316,7 +318,7 @@ class Aggregates(object):
 class AggregatesConfigPage(PluginConfigPage):
     def __init__(self, plugin, parent):
         PluginConfigPage.__init__(self, plugin, parent)
-        self.get_name = lambda: ("Aggregates") # TODO: _
+        self.get_name = lambda: _("Aggregates")
         
     def setup_page(self):
 
@@ -511,8 +513,8 @@ class AggregatesWidget(OpenfiscaPluginWidget):
         '''
         Saves the table to some format
         '''    
-        from pandas import ExcelWriter
-        from PyQt4.QtGui import QFileDialog, QMessageBox
+
+
         
         if table_format is None:
             table_format = CONF.get('paths', 'table')

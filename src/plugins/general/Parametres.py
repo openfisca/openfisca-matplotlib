@@ -29,7 +29,7 @@ from src.parametres.paramModel import PrestationModel
 from src.parametres.Delegate import CustomDelegate, ValueColumnDelegate
 from src.core.config import CONF
 from src.core.baseconfig import get_translation
-from src.core.qthelpers_new import get_icon
+from src.core.utils.qthelpers import get_icon
 import os
 _ = get_translation('parameters', 'src.plugins.general')
 
