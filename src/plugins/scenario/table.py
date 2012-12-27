@@ -35,50 +35,26 @@ import locale
 import numpy as np
 from pandas import DataFrame, ExcelWriter
 
-from src.qt.QtGui import QGroupBox, QVBoxLayout
-from src.core.config import CONF, get_icon
-from src.plugins.__init__ import OpenfiscaPluginWidget, PluginConfigPage
+from src.qt.QtGui import  QVBoxLayout
+from src.core.config import get_icon
+from src.plugins.__init__ import OpenfiscaPluginWidget
 
 from src.core.utils_old import of_import
 from src.core.baseconfig import get_translation
 locale.setlocale(locale.LC_ALL, '')
-_ = get_translation('table', 'src.plugins.scenario')
-
-class ScenarioTableConfigPage(PluginConfigPage):
-    def __init__(self, plugin, parent):
-        PluginConfigPage.__init__(self, plugin, parent)
-        self.get_name = lambda: _("Table")
-        
-    def setup_page(self):
-
-        legend_group = QGroupBox(_("Export"))
-        choices = [('cvs', 'csv'),
-                   ('xls', 'xls'),]
-        table_format = self.create_combobox(_('Table export format'), choices, 'format')
-        
-        #xaxis  
-        
-        layout = QVBoxLayout()
-        layout.addWidget(table_format)
-        legend_group.setLayout(layout)
-        
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(legend_group)
-        vlayout.addStretch(1)
-        self.setLayout(vlayout)
+_ = get_translation('src')
 
 
 class ScenarioTableWidget(OpenfiscaPluginWidget):    
     """
     Scenario Table Widget
     """
-    CONF_SECTION = 'scenario/table'
-    CONFIGWIDGET_CLASS = ScenarioTableConfigPage
+    CONF_SECTION = 'composition'
 
     def __init__(self, parent = None):
         super(ScenarioTableWidget, self).__init__(parent)
-        self.setObjectName("Table")
-        self.setWindowTitle("Table")
+        self.setObjectName(_("Table"))
+        self.setWindowTitle(_("Table"))
         self.dockWidgetContents = QWidget(self)
         self.verticalLayout = QVBoxLayout(self.dockWidgetContents)
         self.treeView = OfTreeView(self.dockWidgetContents)
@@ -93,26 +69,28 @@ class ScenarioTableWidget(OpenfiscaPluginWidget):
         self.verticalLayout.addWidget(self.treeView)
         self.setLayout(self.verticalLayout)
 
-        self.table_format = CONF.get('paths', 'table')
-        self.output_dir = CONF.get('paths', 'output_dir')
+        self.table_format = self.get_option('table/format')
+        self.output_dir = self.get_option('table/export_dir')
 
 
     #------ Public API ---------------------------------------------
     def clearModel(self):
         self.treeView.setModel(None)
 
-    def updateTable(self, data, simulation, dataDefault):
+    def updateTable(self, simulation):
         '''
         Updates table
         '''
-
+        data = simulation.data
+        dataDefault = simulation.data_default
+        
         if dataDefault is None:
             dataDefault = data
 
         mode = simulation.mode
         xaxis = simulation.xaxis
         build_axes = of_import('utils','build_axes', simulation.country)
-        axes = build_axes()
+        axes = build_axes(simulation.country)
         for axe in axes:
             if axe.name == xaxis:
                 xaxis_typ_tot = axe.typ_tot_default
@@ -167,11 +145,11 @@ class ScenarioTableWidget(OpenfiscaPluginWidget):
 
         extension = table_format.upper() + "   (*." + table_format + ")"
         fname = QFileDialog.getSaveFileName(self,
-                                               u"Exporter la table", user_path, extension)
+                                               _("Save table"), user_path, extension)
         
         if fname:
             self.output_dir = os.path.dirname(str(fname))
-            CONF.set('paths', 'output_dir', self.output_dir)
+            self.set_option('table/export_dir', self.output_dir)
             try:
                 if table_format == "xls":
                     writer = ExcelWriter(str(fname))
@@ -193,9 +171,9 @@ class ScenarioTableWidget(OpenfiscaPluginWidget):
                                 outlist.append(locale.str(val))
                             writer.writerow(outlist)
                             
-                    writer.writerow([u'OpenFisca'])
-                    writer.writerow([u'Calculé le %s à %s' % (now.strftime('%d-%m-%Y'), now.strftime('%H:%M'))])
-                    writer.writerow([u'Système socio-fiscal au %s' % str(self.simulation.datesim)])
+                    writer.writerow(['OpenFisca'])
+                    writer.writerow([_('Computed on %s at %s') % (now.strftime('%d-%m-%Y'), now.strftime('%H:%M'))])
+                    writer.writerow([_('Socio-fiscal legislation of date %s') % str(self.simulation.datesim)])
                     writer.writerow([])
             
                     csvfile.close()                
@@ -241,12 +219,14 @@ class ScenarioTableWidget(OpenfiscaPluginWidget):
         """
         self.main.add_dockwidget(self)
 
-
     def refresh_plugin(self):
         '''
         Update Scenario Table
         '''
-        pass
+        # set the table model to None before changing data
+        if self.main.scenario_simulation.data is not None:
+            self.clearModel()
+            self.updateTable(self.main.scenario_simulation)
     
     def closing_plugin(self, cancelable=False):
         """

@@ -22,16 +22,17 @@ This file is part of openFisca.
 """
 
 from __future__ import division
-from src.core.config import CONF
-from PyQt4.QtCore import QAbstractItemModel, QModelIndex, Qt, QVariant, SIGNAL, \
-    QSize
-from PyQt4.QtGui import QDockWidget, QFileDialog, QColor, QVBoxLayout, QDialog, \
-    QMessageBox, QTreeView, QIcon, QPixmap, QHBoxLayout, QPushButton
+
+from PyQt4.QtCore import (QAbstractItemModel, QModelIndex, Qt, QVariant, 
+                          SIGNAL, QSize)
+from PyQt4.QtGui import (QFileDialog, QColor, QVBoxLayout, QDialog, 
+                         QMessageBox, QTreeView, QIcon, QPixmap, QHBoxLayout, 
+                         QPushButton)
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle, FancyArrow
 from matplotlib.ticker import FuncFormatter
 from src.views.ui_graph import Ui_Graph
-from src.core.config import get_icon
+from src.core.config import get_icon, CONF
 import os
 import locale
 import numpy as np
@@ -39,10 +40,10 @@ import numpy as np
 from src.core.utils_old import of_import
 
 from src.core.baseconfig import get_translation
-from spyderlib.qt.QtGui import QGroupBox, QVBoxLayout
-from src.plugins.__init__ import OpenfiscaPluginWidget, PluginConfigPage
-_ = get_translation('graph', 'src.plugins.scenario')
+from src.plugins.__init__ import OpenfiscaPluginWidget
+_ = get_translation('src')
 
+from src.france import REVENUES_CATEGORIES
 
 locale.setlocale(locale.LC_ALL, '')
 
@@ -71,7 +72,7 @@ class GraphFormater(QDialog):
         self.connect(allBtn, SIGNAL('clicked()'), self.checkAll)
         self.connect(noneBtn, SIGNAL('clicked()'), self.checkNone)
 
-        self.output_dir = CONF.get('paths', 'output_dir')
+#        self.output_dir = CONF.get('composition', 'graph/export_dir')
 
 
     def checkAll(self):
@@ -180,51 +181,11 @@ class DataModel(QAbstractItemModel):
                 return node            
         return self._rootNode
 
-
-class ScenarioGraphConfigPage(PluginConfigPage):
-    def __init__(self, plugin, parent):
-        PluginConfigPage.__init__(self, plugin, parent)
-        self.get_name = lambda: ("Graph") # TODO: _
-
-    def setup_page(self):
-
-        legend_group = QGroupBox(("Legend")) # TODO: _
-
-        legend_enable  = self.create_checkbox('Insert legend', 'legend/enable')
-        
-        choices = [( _('upper right'), 1),
-                   (_('upper left'), 2),
-                   (_('lower left'), 3),
-                   (_('lower right'), 4),
-                   (_('right'), 5),
-                   (_('center left'), 6),
-                   (_('center right'), 7),
-                   (_('lower center'), 8),
-                   (_('upper center'), 9),
-                   (_('center'), 10 )]
-        legend_location = self.create_combobox( _('Legend location'), choices, 'legend/location')
-        
-        #xaxis  
-        
-        layout = QVBoxLayout()
-        layout.addWidget(legend_enable)
-        layout.addWidget(legend_location)
-        legend_group.setLayout(layout)
-        
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(legend_group)
-        vlayout.addStretch(1)
-        self.setLayout(vlayout)
-
-
-
-
 class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):    
     """
     Scenario Graph Widget
     """
-    CONF_SECTION = 'scenario/graph'
-    CONFIGWIDGET_CLASS = ScenarioGraphConfigPage
+    CONF_SECTION = 'composition'
     
     def __init__(self, parent = None):
         super(ScenarioGraphWidget, self).__init__(parent)
@@ -275,11 +236,13 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
         label = event.artist._label
         self.setToolTip(label)
 
-    def updateGraph(self, data, simulation, dataDefault = None):
+    def updateGraph(self, simulation):
         """
-        
+        Update the graph according to simulation
         """
         self.simulation = simulation
+        data = simulation.data
+        dataDefault = simulation.data_default
         reforme = simulation.reforme
         mode = simulation.mode
         xaxis = simulation.scenario.xaxis
@@ -300,7 +263,7 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
         self.populate_absBox(xaxis, mode)
         
         build_axes = of_import('utils','build_axes', country = self.simulation.country)
-        axes = build_axes()
+        axes = build_axes(self.simulation.country)
         
         for axe in axes:
             if axe.name == xaxis:
@@ -339,10 +302,9 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
         self.taux_btn.setEnabled(True)
         self.absBox.setEnabled(True)
         self.hidelegend_btn.setEnabled(True)
-        
-        
+            
         build_axes = of_import('utils','build_axes', country = self.simulation.country)
-        axes = build_axes()
+        axes = build_axes(self.simulation.country)
         for axe in axes:
             if axe.name == xaxis:
                 typ_revs_labels = axe.typ_tot.values()
@@ -357,7 +319,7 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
         
         country = self.simulation.country                
         build_axes = of_import('utils', 'build_axes', country = country)        
-        axes = build_axes()
+        axes = build_axes(country = country)
         mode = self.simulation.mode
         
         if mode == "bareme":
@@ -391,7 +353,7 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
         
         if fname:
             self.output_dir = os.path.dirname(str(fname))
-            CONF.set('paths', 'output_dir', self.output_dir)
+            self.set_option('graph/export_dir', self.output_dir)
             try:
                 self.mplwidget.print_figure( unicode(fname) )
             except Exception, e:
@@ -409,7 +371,7 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
         Note: after some thinking, it appears that using a method
         is more flexible here than using a class attribute
         """
-        return "Graph"
+        return _("Test case graphic")
 
     
     def get_plugin_icon(self):
@@ -440,7 +402,8 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
         '''
         Update Graph
         '''
-        pass
+        if self.main.scenario_simulation.data is not None:
+            self.updateGraph(self.main.scenario_simulation)
     
     def closing_plugin(self, cancelable=False):
         """
@@ -449,15 +412,6 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
         Note: returned value is ignored if *cancelable* is False
         """
         return True
-
-
-
-
-
-
-
-
-
 
 
 
@@ -544,7 +498,7 @@ def drawBareme(data, ax, xaxis, reforme = False, dataDefault = None, legend = Tr
     NMEN = len(xdata.vals)
     xlabel = xdata.desc
     ax.set_xlabel(xlabel)
-    currency = of_import('utils', 'currency', country = country)
+    currency = of_import(None, 'CURRENCY', country = country)
     ax.set_ylabel(prefix + u"Revenu disponible (" + currency + " par an)")
     ax.set_xlim(np.amin(xdata.vals), np.amax(xdata.vals))
     if not reforme:
@@ -685,13 +639,13 @@ def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None, legend = True
     if dataDefault is None: 
         dataDefault = data
 
-    REV_TYPE = of_import('utils', 'REV_TYPE', country = country)
+    
     if xaxis == "rev_cap_brut":
         typ_rev = 'superbrut'
     elif xaxis == "rev_cap_net":
         typ_rev = 'net'
     else:
-        for typrev, vars in REV_TYPE.iteritems():
+        for typrev, vars in REVENUES_CATEGORIES.iteritems():
             if xaxis in vars:
                 typ_rev = typrev
         
@@ -739,18 +693,16 @@ def RevTot(data, typrev, country = None):
     
     if country is None:
         raise Exception('RevTot: country must be set')
-        
-    REV_TYPE = of_import('utils', 'REV_TYPE', country = country)
-    dct = REV_TYPE
-
+    
+    dct = REVENUES_CATEGORIES
     first = True
     try:
         for var in dct[typrev]:
             if first:
-                out = data[var].vals.copy() # Copy is needed to avoid pointers problems (do not remove this line)!!!!
+                out = data[var].vals.copy() # WARNING: Copy is needed to avoid pointers problems (do not remove this line)!!!!
                 first = False
             else:
                 out += data[var].vals
         return out 
     except:
-        raise Exception("typrev is %s but typrev should be one of the following: %s" %(str(typrev), str(REV_TYPE.keys())) )
+        raise Exception("typrev is %s but typrev should be one of the following: %s" %(str(typrev), str(dct.keys())) )

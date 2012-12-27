@@ -20,21 +20,17 @@ This file is part of openFisca.
     You should have received a copy of the GNU General Public License
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
-from PyQt4.QtGui import (QWidget, QDockWidget, QLabel, QVBoxLayout, QHBoxLayout, QPushButton,
-                         QSpacerItem, QSizePolicy, QApplication, QCursor, QInputDialog, QComboBox)
-from PyQt4.QtCore import SIGNAL, Qt, QVariant
+from PyQt4.QtGui import (QWidget, QApplication, QCursor)
+from PyQt4.QtCore import SIGNAL, Qt
 from pandas import DataFrame
 
 from src.core.qthelpers import OfSs
-from src.core.qthelpers import MyComboBox
 from src.core.utils_old import lorenz, gini
 
 from src.widgets.matplotlibwidget import MatplotlibWidget
 from matplotlib.lines import Line2D
 
-
 from src.core.qthelpers import DataFrameViewWidget
-
 
 from spyderlib.qt.QtGui import QGroupBox, QVBoxLayout
 from src.plugins.__init__ import OpenfiscaPluginWidget, PluginConfigPage
@@ -47,14 +43,13 @@ _ = get_translation('inequality', 'src.plugins.survey')
 class InequalityConfigPage(PluginConfigPage):
     def __init__(self, plugin, parent):
         PluginConfigPage.__init__(self, plugin, parent)
-        self.get_name = lambda: _("Table")
+        self.get_name = lambda: _("Inequality")
         
     def setup_page(self):
 
-        group = QGroupBox(_(""))
+        group = QGroupBox(_("Lorenz curve"))
         
         #xaxis  
-        
         
         vlayout = QVBoxLayout()
         vlayout.addWidget(group)
@@ -74,23 +69,19 @@ class InequalityWidget(OpenfiscaPluginWidget):
         super(InequalityWidget, self).__init__(parent)
         self.setStyleSheet(OfSs.dock_style)
         # Create geometry
-        self.setObjectName("Inequality")
-        self.setWindowTitle("Inequality")
         self.dockWidgetContents = QWidget()
         
         widget_list = []
 
 
         self.lorenzWidget = MatplotlibWidget(self.dockWidgetContents,
-                                              title='Courbe de Lorenz',
-                                              xlabel='Population',
-                                              ylabel='Variable',
+                                              title= _("Lorenz curve"), # 'Courbe de Lorenz',
+                                              xlabel= _('Population'), 
+                                              ylabel= _('Variable'),
                                               hold=True,
                                               xlim = [0,1],
                                               ylim = [0,1])
         widget_list.append(self.lorenzWidget)
-
-        
         self.ineqFrameWidget = DataFrameViewWidget(self.dockWidgetContents)
         widget_list.append(self.ineqFrameWidget)
 
@@ -104,8 +95,6 @@ class InequalityWidget(OpenfiscaPluginWidget):
 
         self.data = DataFrame() 
         self.data_default = None
-
-
         self.vars = {'nivvie_ini': ['men'],
                      'nivvie_net':  ['men'],                    
                      'nivvie' : ['men']}
@@ -117,12 +106,6 @@ class InequalityWidget(OpenfiscaPluginWidget):
         
 
     #------ Public API ---------------------------------------------
-
-    def refresh(self):
-        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-        self.plot()
-        self.update_frame()
-        QApplication.restoreOverrideCursor()
 
 
     def plot(self):
@@ -168,8 +151,6 @@ class InequalityWidget(OpenfiscaPluginWidget):
             self.data_default = default
         
     def update_frame(self):
-        
-
         output = self.output
         final_df = None
         for varname, units in self.vars.iteritems():
@@ -196,7 +177,7 @@ class InequalityWidget(OpenfiscaPluginWidget):
         
             # Compute Gini
             gini_coeff = gini(val, weights*champm)
-            items.append(("Indice de Gini", [gini_coeff]))
+            items.append( ( _("Gini index"), [gini_coeff]))
 
             df = DataFrame.from_items(items, orient = 'index', columns = [varname])            
             df = df.reset_index()
@@ -229,14 +210,13 @@ class InequalityWidget(OpenfiscaPluginWidget):
         Note: after some thinking, it appears that using a method
         is more flexible here than using a class attribute
         """
-        return "Inequality"
+        return _("Inequality")
 
     
     def get_plugin_icon(self):
         """
         Return plugin icon (QIcon instance)
         Note: this is required for plugins creating a main window
-              (see SpyderPluginMixin.create_mainwindow)
               and for configuration dialog widgets creation
         """
         return get_icon('OpenFisca22.png')
@@ -260,7 +240,9 @@ class InequalityWidget(OpenfiscaPluginWidget):
         '''
         Update Inequality Table
         '''
-        pass
+        self.set_data(self.main.survey_simulation.outputs)
+        self.plot()
+        self.update_frame()
     
     def closing_plugin(self, cancelable=False):
         """

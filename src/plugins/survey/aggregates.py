@@ -41,7 +41,7 @@ from src.core.simulation import SurveySimulation
 
 from src.plugins import OpenfiscaPluginWidget, PluginConfigPage
 from src.core.baseconfig import get_translation
-_ = get_translation("aggregates", dirname="src.plugins.survey")
+_ = get_translation("src")
 
     
 class Aggregates(object):
@@ -214,8 +214,6 @@ class Aggregates(object):
         self.aggr_frame[self.dep_diff_abs_label] = (dep-ref_dep)
         self.aggr_frame[self.benef_diff_abs_label] = (benef-ref_benef)
         
-        
-
     def load_amounts_from_file(self, filename = None, year = None):
         '''
         Loads totals from files
@@ -322,8 +320,17 @@ class AggregatesConfigPage(PluginConfigPage):
         
     def setup_page(self):
 
-        variables_group = QGroupBox(_("Columns"))
- 
+        export_group = QGroupBox(_("Export"))
+        export_dir = self.create_browsedir(_("Export directory"), "table/export_dir")
+        choices = [('cvs', 'csv'),
+                   ('xls', 'xls'),]
+        table_format = self.create_combobox(_('Table export format'), choices, 'table/format') 
+        export_layout = QVBoxLayout()
+        export_layout.addWidget(export_dir)
+        export_layout.addWidget(table_format)
+        export_group.setLayout(export_layout)
+
+        variables_group = QGroupBox(_("Columns")) 
         show_dep = self.create_checkbox(_("Display expenses"),
                                         'show_dep')
         show_benef = self.create_checkbox(_("Display beneficiaries"),
@@ -346,12 +353,11 @@ class AggregatesConfigPage(PluginConfigPage):
         variables_group.setLayout(variables_layout)
         
         vlayout = QVBoxLayout()
+        vlayout.addWidget(export_group)
         vlayout.addWidget(variables_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
 
-
-        
 class AggregatesWidget(OpenfiscaPluginWidget):
     """
     Aggregates Widget
@@ -446,9 +452,6 @@ class AggregatesWidget(OpenfiscaPluginWidget):
         self.show_benef = boolean
         self.update_view()
         
-                 
-
-
         
     def update_view(self):
         '''
@@ -511,24 +514,22 @@ class AggregatesWidget(OpenfiscaPluginWidget):
         
     def save_table(self, table_format = None):
         '''
-        Saves the table to some format
-        '''    
-
-
-        
+        Saves the table to the designated format
+        '''
         if table_format is None:
-            table_format = CONF.get('paths', 'table')
+            table_format = self.get_option('table/format')
          
-        output_dir = CONF.get('paths', 'output_dir')
+        output_dir = self.get_option('table/export_dir')
         filename = 'sans-titre.' + table_format
         user_path = os.path.join(output_dir, filename)
 
         extension = table_format.upper() + "   (*." + table_format + ")"
         fname = QFileDialog.getSaveFileName(self,
-                                               u"Exporter la table", user_path, extension)
+                                               _("Save table"), #"Exporter la table", 
+                                               user_path, extension)
         
         if fname:
-            CONF.set('paths', 'output_dir', os.path.dirname(str(fname)))
+            self.set_option('table/export_dir', os.path.dirname(str(fname)))
             try:
                 df = self.view.model().dataframe
                 if table_format == "xls":
@@ -586,11 +587,14 @@ class AggregatesWidget(OpenfiscaPluginWidget):
         '''
         Update aggregate outputs and refresh view
         '''
-        if not hasattr(self.aggregates, 'simulation'):
-            return
-        if self.aggregates.simulation.outputs is None:
-            return
+        
+        simulation = self.main.survey_simulation
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+        agg = Aggregates()
+        agg.set_simulation(simulation)
+        agg.compute()
+        
+        self.aggregates = agg
         self.survey_year = self.aggregates.simulation.survey.survey_year
         self.description = self.aggregates.simulation.outputs.description
 

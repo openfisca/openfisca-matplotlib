@@ -25,7 +25,8 @@ from os import path
 from pandas import DataFrame
 
 from src.qt.QtGui import (QWidget, QLabel, QVBoxLayout, QHBoxLayout, QPushButton,
-                         QSpacerItem, QSizePolicy, QApplication, QCursor, QInputDialog, QGroupBox)
+                         QSpacerItem, QSizePolicy, QApplication, QCursor, QInputDialog, 
+                         QGroupBox, QButtonGroup)
 from src.qt.QtCore import SIGNAL, Qt, QVariant
 
 
@@ -36,7 +37,7 @@ from src.core.columns import EnumCol
 from src.core.config import CONF, get_icon
 from src.plugins.__init__ import OpenfiscaPluginWidget, PluginConfigPage
 from src.core.baseconfig import get_translation
-_ = get_translation('survey_explorer', 'src.plugins.survey')
+_ = get_translation('src')
 
 
 class SurveyExplorerConfigPage(PluginConfigPage):
@@ -45,21 +46,50 @@ class SurveyExplorerConfigPage(PluginConfigPage):
         self.get_name = lambda: _("Survey data explorer")
         
     def setup_page(self):
+        '''
+        Setup the page of the survey widget
+        '''
 
-        # TODO: redo completely
-        legend_group = QGroupBox(_("Export"))
-        choices = [('cvs', 'csv'),
-                   ('xls', 'xls'),]
-        table_format = self.create_combobox(_('Table export format'), choices, 'format')
+        survey_group = QGroupBox(_("Survey data")) # "Données d'enquête" 
+        survey_bg = QButtonGroup(self)
+        survey_label = QLabel(_("Location of survey data for microsimulation")) # u"Emplacement des données d'enquête pour la microsimulation")
+
+        bareme_only_radio = self.create_radiobutton(_("Test case only"),  #u"Mode barème uniquement",
+                                                    'survey_data/bareme_only', False,
+                                                    u"Mode barème uniquement",
+                                button_group = survey_bg)
+        survey_radio = self.create_radiobutton(_("The following file"),  # le fichier suivant",
+                                               'enable', True,
+                                               _("Survey data file for micrsosimulation"), # "Fichier de données pour la microsimulation",
+                                               button_group=survey_bg)
+        survey_file = self.create_browsefile("", 'data_file',
+                                             filters='*.h5')
         
-        #xaxis  
-        
+        self.connect(bareme_only_radio, SIGNAL("toggled(bool)"),
+                     survey_file.setDisabled)
+        self.connect(survey_radio, SIGNAL("toggled(bool)"),
+                     survey_file.setEnabled)
+        survey_file_layout = QHBoxLayout()
+        survey_file_layout.addWidget(survey_radio)
+        survey_file_layout.addWidget(survey_file)
+
+        survey_layout = QVBoxLayout()
+        survey_layout.addWidget(survey_label)
+        survey_layout.addWidget(bareme_only_radio)
+        survey_layout.addLayout(survey_file_layout)
+        survey_group.setLayout(survey_layout)
+
+        reforme_group = QGroupBox(_("Reform"))
+        reforme = self.create_checkbox(_('Reform mode'), 'reforme')
+                 
         layout = QVBoxLayout()
-        layout.addWidget(table_format)
-        legend_group.setLayout(layout)
+        layout.addWidget(reforme)
+        reforme_group.setLayout(layout)
+
         
         vlayout = QVBoxLayout()
-        vlayout.addWidget(legend_group)
+        vlayout.addWidget(survey_group)
+        vlayout.addWidget(reforme_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
 
@@ -76,16 +106,15 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         super(SurveyExplorerWidget, self).__init__(parent)
         self.setStyleSheet(OfSs.dock_style)
         # Create geometry
-        self.setObjectName("ExploreData")
-        self.setWindowTitle("ExploreData")
+        self.setObjectName( _("Survey data explorer"))
         self.dockWidgetContents = QWidget()
         
         self.data_label = QLabel("Data", self.dockWidgetContents)
 
-        self.add_btn = QPushButton(u"Ajouter variable",self.dockWidgetContents)        
-        self.remove_btn = QPushButton(u"Retirer variable",self.dockWidgetContents)  
+        self.add_btn = QPushButton(_("Add a variable"), self.dockWidgetContents)  # "Ajouter variable"      
+        self.remove_btn = QPushButton(_("Remove a variable"), self.dockWidgetContents) # Retirer une variable 
         self.datatables_choices = []
-        self.datatable_combo = MyComboBox(self.dockWidgetContents, u'Choix de la table', self.datatables_choices) 
+        self.datatable_combo = MyComboBox(self.dockWidgetContents, _("Choose a table"), self.datatables_choices) # u'Choix de la table'
         
 #        self.add_btn.setDisabled(True)
 #        self.remove_btn.setDisabled(True)
@@ -116,7 +145,6 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         self.vars = set()
 
         self.initialize()
-
         self.connect(self.add_btn, SIGNAL('clicked()'), self.add_var)
         self.connect(self.remove_btn, SIGNAL('clicked()'), self.remove_var)
         self.connect(self.datatable_combo.box, SIGNAL('currentIndexChanged(int)'), self.select_data)        
@@ -127,31 +155,25 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         """
         Initialize widget
         """
-        pass
-
-    def set_simulation(self, simulation):
-        """
-        Set survey_simulation
-        """
+        # Set survey_simulation
+        simulation = self.main.survey_simulation
         country = CONF.get('parameters', 'country')
         datesim = CONF.get('parameters', 'datesim')
-        reforme = CONF.get('survey', 'reforme')
+        reforme = self.get_option('reforme')
         year = datesim.year
         simulation.set_config(year = year, country = country, reforme = reforme)
-        self.simulation = simulation
 
-    def load_from_file(self):        
-        fname = CONF.get('survey', 'data_file')
+        # load_from_file(self):        
+        fname = self.get_option('data_file')
         if path.isfile(fname):
-            self.simulation.set_survey(filename = fname)
-            
-            year = self.simulation.survey.survey_year
+            simulation.set_survey(filename = fname)
+            year = simulation.survey.survey_year
             # Sets year in label
-            print 'laod from file :', year
             self.data_label.setText("Survey data from year " + str(year))
-            self.add_dataframe(self.simulation.survey.table, name = "input")
+            self.add_dataframe(simulation.survey.table, name = "input")
+            self.set_dataframe(simulation.survey.table, name = "input")
             self.update_view()
-            return True
+            
                 
     def update_btns(self):
         if (self.vars - self.selected_vars):
@@ -178,9 +200,6 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         '''
         if name == None:
             name = "dataframe" + len(self.dataframes.keys())
-    
-#        if not self.data:
-#            self.dataframes = {}
 
         self.dataframes[name] = dataframe
         self.datatables_choices.append((name, name))
@@ -273,7 +292,6 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
             df = self.view_data[list(cols)]
     
         self.view.set_dataframe(df)
-
         self.view.reset()
         self.update_btns()
         QApplication.restoreOverrideCursor()
@@ -298,7 +316,7 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         Note: after some thinking, it appears that using a method
         is more flexible here than using a class attribute
         """
-        return "Survey Explorer"
+        return _("Survey Data Explorer")
 
     
     def get_plugin_icon(self):
@@ -316,7 +334,7 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         Note: these actions will be enabled when plugin's dockwidget is visible
               and they will be disabled when it's hidden
         """
-        raise NotImplementedError
+        return []
     
     def register_plugin(self):
         """
@@ -324,12 +342,20 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         """
         self.main.add_dockwidget(self)
 
-
     def refresh_plugin(self):
         '''
-        Update Scenario Table
+        Update Survey dataframes
         '''
-        pass
+        simulation = self.main.survey_simulation
+        
+        if simulation.outputs is not None:
+            self.add_dataframe(simulation.outputs.table, name = "output")
+#        if self.reforme:
+#            if simulation.outputs_default is not None:
+#                self.add_dataframe(self.survey_simulation.outputs_default.table, name = "output_default")
+        self.update_choices()
+        self.update_btns()
+        self.update_view()
     
     def closing_plugin(self, cancelable=False):
         """

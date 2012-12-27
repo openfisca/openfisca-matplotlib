@@ -24,7 +24,7 @@ from __future__ import division
 import numpy as np
 from pandas import DataFrame, merge
 from PyQt4.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QSortFilterProxyModel,
-                         QSpacerItem, QSizePolicy, QApplication, QCursor, QPushButton, QInputDialog)
+                         QSpacerItem, QSizePolicy, QPushButton, QInputDialog)
 from PyQt4.QtCore import SIGNAL, Qt, QSize
 from src.core.qthelpers import OfSs, DataFrameViewWidget
 from src.core.qthelpers import MyComboBox, get_icon
@@ -35,11 +35,12 @@ from spyderlib.qt.QtGui import QGroupBox
 from src.plugins.__init__ import OpenfiscaPluginWidget, PluginConfigPage
 
 from src.core.baseconfig import get_translation
-_ = get_translation('distribution','src.plugins.survey')
+_ = get_translation('src')
 
-class OFPivotTable(object):
+
+class OpenfiscaPivotTable(object):
     def __init__(self):
-        super(OFPivotTable, self).__init__()
+        super(OpenfiscaPivotTable, self).__init__()
         
         self.data = DataFrame() # Pandas DataFrame
         self.data_default   = None
@@ -58,7 +59,7 @@ class OFPivotTable(object):
             self.simulation = simulation
             self.by_var_choices = self.simulation.var_list
         else:
-            raise Exception('Aggreaates:  %s should be an instance of %s class'  %(simulation, SurveySimulation))
+            raise Exception('OpenfiscaPivotTable:  %s should be an instance of %s class'  %(simulation, SurveySimulation))
 
     @property
     def vars(self):
@@ -76,10 +77,10 @@ class OFPivotTable(object):
         '''
         by_var = by
         if by_var is None:
-            raise Exception("OFPivotTable : get_table needs a 'by' variable")
+            raise Exception("OpenfiscaPivotTable : get_table needs a 'by' variable")
         
         if vars is None:
-            raise Exception("OFPivotTable : get_table needs a 'vars' variable")
+            raise Exception("OpenfiscaPivotTable : get_table needs a 'vars' variable")
 
         initial_set = set([by_var, 'champm'])
         
@@ -101,7 +102,6 @@ class OFPivotTable(object):
             by_var_label = by_var
 
         enum = self.simulation.var2enum[by_var]                
-        
         frame = frame.reset_index(drop=True)
         
         for col in frame.columns:
@@ -200,13 +200,9 @@ class OFPivotTable(object):
 
 
     def clear(self):
-
         self.view.clear()
         self.data = None
         self.wght = None
-
-
-
 
 class DistributionConfigPage(PluginConfigPage):
     def __init__(self, plugin, parent):
@@ -290,15 +286,12 @@ class DistributionWidget(OpenfiscaPluginWidget):
         verticalLayout.addLayout(distribLayout)
         verticalLayout.addWidget(self.view)
                 
-        #self.setWidget(self.dockWidgetContents)
-
-
         self.connect(add_var_btn, SIGNAL('clicked()'), self.add_var)
         self.connect(rmv_var_btn, SIGNAL('clicked()'), self.remove_var)
 
         # Initialize attributes
         self.parent = parent
-        self.of_pivot_table = None
+        self.openfisca_pivot_table = None
         self.distribution_by_var = None
         self.selected_vars = None
         
@@ -321,9 +314,9 @@ class DistributionWidget(OpenfiscaPluginWidget):
         self.selected_vars = set(['revdisp', 'nivvie']) 
         
 
-    def set_of_pivot_table(self, of_pivot_table):
-        self.of_pivot_table = of_pivot_table
-        self.vars = self.of_pivot_table.vars
+    def set_openfisca_pivot_table(self, openfisca_pivot_table):
+        self.openfisca_pivot_table = openfisca_pivot_table
+        self.vars = self.openfisca_pivot_table.vars
         self.set_distribution_choices()
     
     def add_var(self):
@@ -350,11 +343,11 @@ class DistributionWidget(OpenfiscaPluginWidget):
             choices =  self.selected_vars
             dialog_label = "Retirer une variable"
             
-        dialog_choices = sorted([self.of_pivot_table.simulation.var2label[variab] for variab in list(choices)])
+        dialog_choices = sorted([self.openfisca_pivot_table.simulation.var2label[variab] for variab in list(choices)])
         label, ok = QInputDialog.getItem(self, dialog_label , "Choisir la variable", 
                                        dialog_choices)
         if ok and label in dialog_choices:
-            return self.of_pivot_table.simulation.label2var[unicode(label)] 
+            return self.openfisca_pivot_table.simulation.label2var[unicode(label)] 
         else:
             return None 
 
@@ -375,9 +368,9 @@ class DistributionWidget(OpenfiscaPluginWidget):
         self.disconnect(combobox, SIGNAL('currentIndexChanged(int)'), self.dist_by_changed)
         self.distribution_combo.box.clear()
         
-        if self.of_pivot_table is not None:
-            choices = set( self.of_pivot_table.by_var_choices )
-            var2label = self.of_pivot_table.simulation.var2label
+        if self.openfisca_pivot_table is not None:
+            choices = set( self.openfisca_pivot_table.by_var_choices )
+            var2label = self.openfisca_pivot_table.simulation.var2label
         else:
             choices = []
         
@@ -423,17 +416,16 @@ class DistributionWidget(OpenfiscaPluginWidget):
         '''
         Update distribution view
         '''
-        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-        
+        print 'refreshing distribution'
         by_var = self.distribution_by_var
         selection = self.selected_vars
-        if self.of_pivot_table is not None:
-            frame = self.of_pivot_table.get_table(by = by_var, vars = selection)
+        if self.openfisca_pivot_table is not None:
+            frame = self.openfisca_pivot_table.get_table(by = by_var, vars = selection)
             self.view.set_dataframe(frame)
         self.view.reset()
         self.calculated()
 
-        QApplication.restoreOverrideCursor()        
+
     
     def get_plugin_actions(self):
         """
@@ -448,7 +440,10 @@ class DistributionWidget(OpenfiscaPluginWidget):
         Register plugin in OpenFisca's main window
         """
         self.main.add_dockwidget(self)
-
+        dist = OpenfiscaPivotTable()
+        dist.set_simulation(self.main.survey_simulation)
+        self.set_openfisca_pivot_table(dist)
+        
 
     def closing_plugin(self, cancelable=False):
         """
@@ -456,4 +451,7 @@ class DistributionWidget(OpenfiscaPluginWidget):
         Return True or False whether the plugin may be closed immediately or not
         Note: returned value is ignored if *cancelable* is False
         """
+        
+        
+        
         return True

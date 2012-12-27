@@ -27,11 +27,11 @@ from src.views.ui_parametres import Ui_Parametres
 from src.parametres.paramData import XmlReader, Tree2Object
 from src.parametres.paramModel import PrestationModel
 from src.parametres.Delegate import CustomDelegate, ValueColumnDelegate
-from src.core.config import CONF
+
 from src.core.baseconfig import get_translation
 from src.core.utils.qthelpers import get_icon
 import os
-_ = get_translation('parameters', 'src.plugins.general')
+_ = get_translation('src')
 
 from spyderlib.qt.QtGui import QGroupBox, QVBoxLayout
 from src.plugins.__init__ import OpenfiscaPluginWidget, PluginConfigPage
@@ -76,7 +76,7 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
         super(ParamWidget, self).__init__(parent)
         self.setupUi(self)
         self.setLayout(self.verticalLayout)
-        country = CONF.get('parameters', 'country')
+        country = self.get_option('country')
         # TODO: add to conf
         self._file = country + '/param/param.xml' 
         
@@ -101,7 +101,7 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
         self.emit(SIGNAL('changed()'))
     
     def initialize(self):
-        self._date = CONF.get('parameters', 'datesim')
+        self._date = self.get_option('datesim')
         self.label.setText(u"Date : %s" %( str(self._date)) )
         self._reader = XmlReader(self._file, self._date)
         self._rootNode = self._reader.tree
@@ -126,10 +126,10 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
         return obj
 
     def saveXml(self):
-        reformes_dir = CONF.get('paths', 'reformes_dir')
+        reformes_dir = self.get_option('reformes_dir')
         default_fileName = os.path.join(reformes_dir, 'sans-titre')
         fileName = QFileDialog.getSaveFileName(self,
-                                               u"Enregistrer une réforme", default_fileName, u"Paramètres OpenFisca (*.ofp)")
+                                               _("Save a reform"), default_fileName, u"Paramètres OpenFisca (*.ofp)")
         if fileName:
 #            try:
                 self._rootNode.asXml(fileName)
@@ -140,19 +140,19 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
 
 
     def loadXml(self):
-        reformes_dir = CONF.get('paths', 'reformes_dir')
+        reformes_dir = self.get_option('reformes_dir')
         fileName = QFileDialog.getOpenFileName(self,
-                                               u"Ouvrir une réforme", reformes_dir, u"Paramètres OpenFisca (*.ofp)")
+                                               _("Open a reform"), reformes_dir, u"Paramètres OpenFisca (*.ofp)")
         if not fileName == '':
             try: 
                 loader = XmlReader(str(fileName))
-                CONF.set('simulation', 'datesim',str(loader._date))
+                self.set_option('datesim',str(loader._date))
                 self.initialize()
                 self._rootNode.load(loader.tree)
                 self.changed()
             except Exception, e:
                 QMessageBox.critical(
-                    self, "Erreur", u"Impossible de lire le fichier : " + str(e),
+                    self, _("Error"), _("Unable to read the following file : ") + str(e),
                     QMessageBox.Ok, QMessageBox.NoButton)
 
     #------ OpenfiscaPluginMixin API ---------------------------------------------
@@ -182,14 +182,15 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
         Note: these actions will be enabled when plugin's dockwidget is visible
               and they will be disabled when it's hidden
         """
-        raise NotImplementedError
+        return []
     
     def register_plugin(self):
         """
         Register plugin in OpenFisca's main window
         """
         self.main.add_dockwidget(self)
-
+        self.connect(self, SIGNAL('changed()'), self.main.enable_refresh_test_case)
+        self.connect(self, SIGNAL('changed()'), self.main.enable_refresh_survey)
 
     def refresh_plugin(self):
         '''
