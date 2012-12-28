@@ -6,7 +6,7 @@
 
 """Online Help Plugin"""
 
-from spyderlib.qt.QtCore import Signal
+from src.qt.QtCore import Signal
 
 import os.path as osp
 

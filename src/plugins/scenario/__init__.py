@@ -49,7 +49,7 @@ class CompositionConfigPage(PluginConfigPage):
                    (_('center'), 10 )]
         legend_location = self.create_combobox( _('Legend location'), choices, 'graph/legend/location')
         
-        #xaxis  
+        # xaxis  
         
         layout = QVBoxLayout()
         layout.addWidget(legend_enable)
@@ -64,10 +64,17 @@ class CompositionConfigPage(PluginConfigPage):
         
         # TODO: export format for figure  
         
+        reform_group = QGroupBox(_("Reform"))
+        reform = self.create_checkbox(_('Reform mode'), 'reform')
+        layout = QVBoxLayout()
+        layout.addWidget(reform)
+        reform_group.setLayout(layout)
+
         
         vlayout = QVBoxLayout()
         vlayout.addWidget(axis_group)
         vlayout.addWidget(legend_group)
         vlayout.addWidget(table_format)
+        vlayout.addWidget(reform_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)

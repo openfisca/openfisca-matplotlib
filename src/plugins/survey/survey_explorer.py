@@ -79,17 +79,17 @@ class SurveyExplorerConfigPage(PluginConfigPage):
         survey_layout.addLayout(survey_file_layout)
         survey_group.setLayout(survey_layout)
 
-        reforme_group = QGroupBox(_("Reform"))
-        reforme = self.create_checkbox(_('Reform mode'), 'reforme')
+        reform_group = QGroupBox(_("Reform"))
+        reform = self.create_checkbox(_('Reform mode'), 'reform')
                  
         layout = QVBoxLayout()
-        layout.addWidget(reforme)
-        reforme_group.setLayout(layout)
+        layout.addWidget(reform)
+        reform_group.setLayout(layout)
 
         
         vlayout = QVBoxLayout()
         vlayout.addWidget(survey_group)
-        vlayout.addWidget(reforme_group)
+        vlayout.addWidget(reform_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
 
@@ -159,7 +159,7 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         simulation = self.main.survey_simulation
         country = CONF.get('parameters', 'country')
         datesim = CONF.get('parameters', 'datesim')
-        reforme = self.get_option('reforme')
+        reforme = self.get_option('reform')
         year = datesim.year
         simulation.set_config(year = year, country = country, reforme = reforme)
 
