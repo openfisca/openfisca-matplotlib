@@ -25,11 +25,11 @@ from os import path
 from pandas import DataFrame
 
 from src.qt.QtGui import (QWidget, QLabel, QVBoxLayout, QHBoxLayout, QPushButton,
-                         QSpacerItem, QSizePolicy, QApplication, QCursor, QInputDialog, 
-                         QGroupBox, QButtonGroup)
-from src.qt.QtCore import SIGNAL, Qt, QVariant
+                         QSpacerItem, QSizePolicy, QApplication, QInputDialog, 
+                         QGroupBox, QButtonGroup, QDockWidget)
+from src.qt.QtCore import SIGNAL, Qt, QVariant, Signal
 
-
+from src.core.utils.qthelpers import create_action
 from src.core.qthelpers import OfSs, DataFrameViewWidget
 from src.core.qthelpers import MyComboBox
 from src.core.columns import EnumCol
@@ -100,7 +100,11 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
     """
     CONF_SECTION = 'survey'
     CONFIGWIDGET_CLASS = SurveyExplorerConfigPage
+    FEATURES = QDockWidget.DockWidgetClosable | \
+               QDockWidget.DockWidgetFloatable | \
+               QDockWidget.DockWidgetMovable
     DISABLE_ACTIONS_WHEN_HIDDEN = False
+    sig_option_changed = Signal(str, object)
 
     def __init__(self, parent = None):
         super(SurveyExplorerWidget, self).__init__(parent)
@@ -116,11 +120,8 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         self.datatables_choices = []
         self.datatable_combo = MyComboBox(self.dockWidgetContents, _("Choose a table"), self.datatables_choices) # u'Choix de la table'
         
-#        self.add_btn.setDisabled(True)
-#        self.remove_btn.setDisabled(True)
         
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-
         horizontalLayout = QHBoxLayout()
         horizontalLayout.addWidget(self.add_btn)
         horizontalLayout.addWidget(self.remove_btn)
@@ -149,7 +150,7 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         self.connect(self.remove_btn, SIGNAL('clicked()'), self.remove_var)
         self.connect(self.datatable_combo.box, SIGNAL('currentIndexChanged(int)'), self.select_data)        
         self.update_btns()
-
+        self.initialize_plugin() # To run the suitable inherited API methods
         
     def initialize(self):
         """
@@ -173,8 +174,8 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
             self.add_dataframe(simulation.survey.table, name = "input")
             self.set_dataframe(simulation.survey.table, name = "input")
             self.update_view()
+        self.simulation = simulation
             
-                
     def update_btns(self):
         if (self.vars - self.selected_vars):
             self.add_btn.setEnabled(True)
@@ -274,10 +275,10 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         self.var2enum  = var2enum
         
     def update_view(self):
-        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+        self.starting_long_process(_("Updating survey explorer table"))
         if not self.selected_vars:
             self.view.clear()
-            QApplication.restoreOverrideCursor()
+            self.ending_long_process(_("Survey explorer table updated"))    
             return
         
         cols = self.selected_vars
@@ -294,7 +295,7 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         self.view.set_dataframe(df)
         self.view.reset()
         self.update_btns()
-        QApplication.restoreOverrideCursor()
+        self.ending_long_process(_("Survey explorer table updated"))
         
     def calculated(self):
         self.emit(SIGNAL('calculated()'))
@@ -307,7 +308,35 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         self.update_btns()
         
         
+    def compute(self):
+        '''
+        Compute survey_simulation
+        '''
+        self.starting_long_process(_("Ongoing microsimulation ..."))
+        P, P_default = self.main.parameters.getParam(), self.main.parameters.getParam(defaut = True)
+        self.simulation.set_param(P, P_default)
+        self.simulation.compute()
+        self.action_compute.setEnabled(False)
+        self.ending_long_process(_("Microsimulation results are updated"))
+        self.main.refresh_survey_plugins()
+
+    def set_reform(self, reform):
+        """
+        Set reform mode
+        """
+        self.simulation.set_config(reforme = reform)
+        self.set_option('reform', reform)
+        self.action_compute.setEnabled(True)
+         
     #------ OpenfiscaPluginMixin API ---------------------------------------------
+    
+    def apply_plugin_settings(self, options):
+        """
+        Apply configuration file's plugin settings
+        """
+        if 'reform' in options:
+            self.action_set_reform.setChecked(self.get_option('reform'))
+    
     #------ OpenfiscaPluginWidget API ---------------------------------------------
 
     def get_plugin_title(self):
@@ -334,7 +363,41 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         Note: these actions will be enabled when plugin's dockwidget is visible
               and they will be disabled when it's hidden
         """
-        return []
+#        self.open_action = create_action(self, _("&Open..."),
+#                icon='fileopen.png', tip=_("Open survey data file"),
+#                triggered=self.load)
+#        self.register_shortcut(self.open_action, context="Survey data explorer",
+#                               name=_("Open survey data file"), default="Ctrl+O")
+#        self.save_action = create_action(self, _("&Save"),
+#                icon='filesave.png', tip=_("Save current microsimulation data"),
+#                triggered=self.save)
+#
+#        self.register_shortcut(self.save_action, context="Survey data explorer",
+#                               name=_("Save current data microsimulation"), default="Ctrl+S")
+#
+#        self.file_menu_actions = [self.open_action, self.save_action,]
+#        self.main.file_menu_actions += self.file_menu_actions
+        print 'get plugn actyion of survey_explorer'
+        self.action_compute = create_action(self, _('Compute aggregates'),
+                                                      shortcut = 'F10',
+                                                      icon = 'calculator_blue.png', 
+                                                      triggered = self.compute)
+        self.register_shortcut(self.action_compute, 
+                               context = 'Survey explorer',
+                                name = _('Compute test case'), default = 'F10')
+
+        self.action_set_reform = create_action(self, _('Reform mode'), 
+                                                     icon = 'comparison22.png', 
+                                                     toggled = self.set_reform, 
+                                                     tip = u"Différence entre la situation simulée et la situation actuelle")
+
+        self.run_menu_actions = [self.action_compute, self.action_set_reform]
+        self.main.run_menu_actions += self.run_menu_actions        
+        self.main.survey_toolbar_actions += self.run_menu_actions 
+        
+#        return self.file_menu_actions + self.run_menu_actions
+        return self.run_menu_actions
+
     
     def register_plugin(self):
         """
@@ -346,16 +409,19 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         '''
         Update Survey dataframes
         '''
-        simulation = self.main.survey_simulation
-        
+        self.starting_long_process(_("Refreshing survey explorer dataframe"))
+        simulation = self.main.survey_simulation        
         if simulation.outputs is not None:
-            self.add_dataframe(simulation.outputs.table, name = "output")
-#        if self.reforme:
-#            if simulation.outputs_default is not None:
-#                self.add_dataframe(self.survey_simulation.outputs_default.table, name = "output_default")
+            self.add_dataframe(simulation.outputs.table, 
+                               name = "output")
+        if simulation.reforme:
+            if simulation.outputs_default is not None:
+                self.add_dataframe(simulation.outputs_default.table, 
+                                   name = "output_default")
         self.update_choices()
         self.update_btns()
         self.update_view()
+        self.ending_long_process(_("Survey explorer dataframe updated"))
     
     def closing_plugin(self, cancelable=False):
         """

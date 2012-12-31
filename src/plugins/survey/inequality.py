@@ -240,9 +240,11 @@ class InequalityWidget(OpenfiscaPluginWidget):
         '''
         Update Inequality Table
         '''
+        self.starting_long_process(_("Refreshing inequality widget"))
         self.set_data(self.main.survey_simulation.outputs)
         self.plot()
         self.update_frame()
+        self.ending_long_process(_("Inequality widget refreshed"))
     
     def closing_plugin(self, cancelable=False):
         """

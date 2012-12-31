@@ -28,12 +28,11 @@ from datetime import datetime
 from pandas import ExcelWriter
 
 
-from src.qt.QtGui import (QWidget, QVBoxLayout,
-                         QApplication, QCursor, QSizePolicy, QMenu,
+from src.qt.QtGui import (QWidget, QVBoxLayout, QSizePolicy, QMenu,
                          QGroupBox, QFileDialog, QMessageBox)
 from src.qt.QtCore import SIGNAL, Qt
 
-from src.core.config import CONF, get_icon
+from src.core.config import get_icon
 from src.core.qthelpers import OfSs, DataFrameViewWidget, create_action, add_actions
 
 from src import SRC_PATH
@@ -73,20 +72,21 @@ class Aggregates(object):
     def set_header_labels(self):
         '''
         Sets headers labels
-        '''
-        self.var_label           = u"Mesure"
-        self.unit_label          = u"Unité"
-        self.dep_label           = u"Dépense\n(millions d'€)" 
-        self.benef_label         = u"Bénéficiaires\n(milliers)"
-        self.dep_default_label   = u"Dépense initiale\n(millions d'€)"
-        self.benef_default_label = u"Bénéficiaires\ninitiaux\n(milliers)"
-        self.dep_real_label      = u"Dépenses\nréelles\n(millions d'€)"
-        self.benef_real_label    = u"Bénéficiaires\nréels\n(milliers)"
-        self.dep_diff_abs_label      = u"Diff. absolue\nDépenses\n(millions d'€) "
-        self.benef_diff_abs_label    = u"Diff absolue\nBénéficiaires\n(milliers)"
-        self.dep_diff_rel_label      = u"Diff. relative\nDépenses"
-        self.benef_diff_rel_label    = u"Diff. relative\nBénéficiaires"
-        
+        '''        
+        labels = dict()
+        labels['var']    = u"Mesure"
+        labels['entity'] = u"Entité"
+        labels['dep']    = u"Dépense\n(millions d'€)" 
+        labels['benef']  = u"Bénéficiaires\n(milliers)"
+        labels['dep_default']   = u"Dépense initiale\n(millions d'€)"
+        labels['benef_default'] = u"Bénéficiaires\ninitiaux\n(milliers)"
+        labels['dep_real']      = u"Dépenses\nréelles\n(millions d'€)"
+        labels['benef_real']    = u"Bénéficiaires\nréels\n(milliers)"
+        labels['dep_diff_abs']      = u"Diff. absolue\nDépenses\n(millions d'€) "
+        labels['benef_diff_abs']    = u"Diff absolue\nBénéficiaires\n(milliers)"
+        labels['dep_diff_rel']      = u"Diff. relative\nDépenses"
+        labels['benef_diff_rel']    = u"Diff. relative\nBénéficiaires"
+        self.labels = labels
         
     def set_simulation(self, simulation):
         
@@ -119,10 +119,10 @@ class Aggregates(object):
         B = {'data': [], 'default': []}
         U = []
 
-        M_label = {'data': self.dep_label, 
-                   'default': self.dep_default_label}
-        B_label = {'data': self.benef_label, 
-                   'default': self.benef_default_label}
+        M_label = {'data': self.labels['dep'], 
+                   'default': self.labels['dep_default']}
+        B_label = {'data': self.labels['benef'], 
+                   'default': self.labels['benef_default']}
 
         description = self.simulation.outputs.description
         label2var, var2label, var2enum = description.builds_dicts()
@@ -143,14 +143,14 @@ class Aggregates(object):
                 B[dataname].append( montant_benef[dataname][1] )
         
         # build items list
-        items = [(self.var_label, V)]
+        items = [(self.labels['var'], V)]
 
         for dataname in M:
             if M[dataname]:
                 items.append( (M_label[dataname], M[dataname]))
                 items.append(  (B_label[dataname], B[dataname]) )
 
-        items.append( (self.unit_label, U) )        
+        items.append( (self.labels['entity'], U) )        
         self.aggr_frame = DataFrame.from_items(items)
 
     def get_aggregate(self, var):
@@ -186,33 +186,33 @@ class Aggregates(object):
             else:
                 A.append(nan)
                 B.append(nan)
-        self.aggr_frame[self.dep_real_label] = A
-        self.aggr_frame[self.benef_real_label] = B
+        self.aggr_frame[self.labels['dep_real']] = A
+        self.aggr_frame[self.labels['benef_real']] = B
 
         
     def compute_diff(self):
         '''
         Computes and adds relative differences
         '''
-        dep   = self.aggr_frame[self.dep_label]
-        benef = self.aggr_frame[self.benef_label]
+        dep   = self.aggr_frame[self.labels['dep']]
+        benef = self.aggr_frame[self.labels['benef']]
         
         if self.show_default:
-            ref_dep_label, ref_benef_label = self.dep_default_label, self.benef_default_label
+            ref_dep_label, ref_benef_label = self.labels['dep_default'], self.labels['benef_default']
             if ref_dep_label not in self.aggr_frame:
                 return
         elif self.show_real:
-            ref_dep_label, ref_benef_label = self.dep_real_label, self.benef_real_label
+            ref_dep_label, ref_benef_label = self.labels['dep_real'], self.labels['benef_real']
         else:
             return
         
         ref_dep = self.aggr_frame[ref_dep_label]   
         ref_benef = self.aggr_frame[ref_benef_label]
                     
-        self.aggr_frame[self.dep_diff_rel_label] = (dep-ref_dep)/abs(ref_dep)
-        self.aggr_frame[self.benef_diff_rel_label] = (benef-ref_benef)/abs(ref_benef)
-        self.aggr_frame[self.dep_diff_abs_label] = (dep-ref_dep)
-        self.aggr_frame[self.benef_diff_abs_label] = (benef-ref_benef)
+        self.aggr_frame[self.labels['dep_diff_rel']]   = (dep-ref_dep)/abs(ref_dep)
+        self.aggr_frame[self.labels['benef_diff_rel']] = (benef-ref_benef)/abs(ref_benef)
+        self.aggr_frame[self.labels['dep_diff_abs']]   = (dep-ref_dep)
+        self.aggr_frame[self.labels['benef_diff_abs']] = (benef-ref_benef)
         
     def load_amounts_from_file(self, filename = None, year = None):
         '''
@@ -460,19 +460,21 @@ class AggregatesWidget(OpenfiscaPluginWidget):
         if self.aggregates.aggr_frame is None:
             return
             
-        cols = [self.aggregates.var_label, self.aggregates.unit_label,
-                self.aggregates.dep_label, self.aggregates.dep_default_label, self.aggregates.dep_real_label, 
-                self.aggregates.dep_diff_abs_label, self.aggregates.dep_diff_rel_label, 
-                self.aggregates.benef_label, self.aggregates.benef_default_label, self.aggregates.benef_real_label,
-                self.aggregates.benef_diff_abs_label, self.aggregates.benef_diff_rel_label]
+        cols = self.aggregates.labels.values()
+        
+#        [self.aggregates.var_label, self.aggregates.unit_label,
+#                self.aggregates.dep_label, self.aggregates.dep_default_label, self.aggregates.dep_real_label, 
+#                self.aggregates.dep_diff_abs_label, self.aggregates.dep_diff_rel_label, 
+#                self.aggregates.benef_label, self.aggregates.benef_default_label, self.aggregates.benef_real_label,
+#                self.aggregates.benef_diff_abs_label, self.aggregates.benef_diff_rel_label]
         
         if not self.show_real:
-            cols.remove(self.aggregates.dep_real_label) 
-            cols.remove(self.aggregates.benef_real_label)
+            cols.remove(self.aggregates.labels['dep_real'])
+            cols.remove(self.aggregates.labels['benef_real'])
 
         if not self.show_default:
-            cols.remove(self.aggregates.dep_default_label)
-            cols.remove(self.aggregates.benef_default_label)
+            cols.remove(self.aggregates.labels['dep_default'])
+            cols.remove(self.aggregates.labels['benef_default'])
             
 
         remove_all_diffs =  not (self.aggregates.show_real or self.aggregates.show_default)
@@ -480,20 +482,24 @@ class AggregatesWidget(OpenfiscaPluginWidget):
             self.aggregates.compute_diff()
         
         if (not self.show_diff_abs) or remove_all_diffs:
-            cols.remove(self.aggregates.dep_diff_abs_label)
-            cols.remove(self.aggregates.benef_diff_abs_label)    
+            cols.remove(self.aggregates.labels['dep_diff_abs'])
+            cols.remove(self.aggregates.labels['benef_diff_abs'])    
         
         if (not self.show_diff_rel) or remove_all_diffs: 
-            cols.remove(self.aggregates.dep_diff_rel_label)
-            cols.remove(self.aggregates.benef_diff_rel_label)
+            cols.remove(self.aggregates.labels['dep_diff_rel'])
+            cols.remove(self.aggregates.labels['benef_diff_rel'])
  
         if not self.show_dep:
-            for label in [self.aggregates.dep_label, self.aggregates.dep_real_label, self.aggregates.dep_default_label, self.aggregates.dep_diff_abs_label, self.aggregates.dep_diff_rel_label]:
+            for label in [self.aggregates.labels['dep'], self.aggregates.labels['dep_real'],
+                          self.aggregates.labels['dep_default'], self.aggregates.labels['dep_diff_abs'],
+                          self.aggregates.labels['dep_diff_rel']]:
                 if label in cols:
                     cols.remove(label)
 
         if not self.show_benef:
-            for label in [self.aggregates.benef_label, self.aggregates.benef_real_label, self.aggregates.benef_default_label, self.aggregates.benef_diff_abs_label, self.aggregates.benef_diff_rel_label]:
+            for label in [self.aggregates.labels['benef'], self.aggregates.labels['benef_real'], 
+                          self.aggregates.labels['benef_default'], self.aggregates.labels['benef_diff_abs'],
+                          self.aggregates.labels['benef_diff_rel']]:
                 if label in cols:
                     cols.remove(label)
         self.view.set_dataframe(self.aggregates.aggr_frame[cols])
@@ -589,7 +595,7 @@ class AggregatesWidget(OpenfiscaPluginWidget):
         '''
         
         simulation = self.main.survey_simulation
-        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+        self.starting_long_process(_("Refreshing aggregates table ..."))
         agg = Aggregates()
         agg.set_simulation(simulation)
         agg.compute()
@@ -639,8 +645,8 @@ class AggregatesWidget(OpenfiscaPluginWidget):
         self.do_not_update = False
         self.update_view()
         self.calculated()
-        QApplication.restoreOverrideCursor()
-        
+        self.ending_long_process(_("Aggregates table updated"))
+    
     
     def closing_plugin(self, cancelable=False):
         """

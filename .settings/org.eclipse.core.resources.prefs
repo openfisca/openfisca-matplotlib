@@ -1,4 +1,5 @@
 eclipse.preferences.version=1
+encoding//doc/conf.py=utf-8
 encoding//src/Config_old.py=utf-8
 encoding//src/buildUi.py=utf-8
 encoding//src/core/baseconfig.py=utf-8
@@ -12,6 +13,7 @@ encoding//src/core/qthelpers.py=utf-8
 encoding//src/core/simulation.py=utf-8
 encoding//src/core/userconfig.py=utf-8
 encoding//src/core/utils/dochelpers.py=utf-8
+encoding//src/core/utils/inspector/conf.py=utf-8
 encoding//src/core/utils/iofuncs.py=utf-8
 encoding//src/core/utils/qthelpers.py=utf-8
 encoding//src/core/utils_old.py=utf-8

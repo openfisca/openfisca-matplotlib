@@ -416,7 +416,7 @@ class DistributionWidget(OpenfiscaPluginWidget):
         '''
         Update distribution view
         '''
-        print 'refreshing distribution'
+        self.starting_long_process(_("Refreshing distribution table"))
         by_var = self.distribution_by_var
         selection = self.selected_vars
         if self.openfisca_pivot_table is not None:
@@ -424,9 +424,8 @@ class DistributionWidget(OpenfiscaPluginWidget):
             self.view.set_dataframe(frame)
         self.view.reset()
         self.calculated()
+        self.ending_long_process(_("Distribution table refreshed"))
 
-
-    
     def get_plugin_actions(self):
         """
         Return a list of actions related to plugin

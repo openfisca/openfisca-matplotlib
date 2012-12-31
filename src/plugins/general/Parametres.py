@@ -189,8 +189,7 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
         Register plugin in OpenFisca's main window
         """
         self.main.add_dockwidget(self)
-        self.connect(self, SIGNAL('changed()'), self.main.enable_refresh_test_case)
-        self.connect(self, SIGNAL('changed()'), self.main.enable_refresh_survey)
+        self.connect(self, SIGNAL('changed()'), self.main.parameters_changed)
 
     def refresh_plugin(self):
         '''
