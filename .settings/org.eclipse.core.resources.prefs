@@ -1,5 +1,6 @@
 eclipse.preferences.version=1
 encoding//doc/conf.py=utf-8
+encoding//doc/sphinxext/ipython_directive.py=utf-8
 encoding//src/Config_old.py=utf-8
 encoding//src/buildUi.py=utf-8
 encoding//src/core/baseconfig.py=utf-8
