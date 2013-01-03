@@ -1,30 +1,19 @@
 # -*- coding:utf-8 -*-
+#
+# This file is part of OpenFisca.
+# OpenFisca is a socio-fiscal microsimulation software
 # Copyright © 2011 Clément Schaff, Mahdi Ben Jelloul
+# Licensed under the terms of the GVPLv3 or later license
+# (see openfisca/__init__.py for details)
 
-"""
-openFisca, Logiciel libre de simulation du système socio-fiscal français
-Copyright © 2011 Clément Schaff, Mahdi Ben Jelloul
-
-This file is part of openFisca.
-
-    openFisca is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    openFisca is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
-"""
 
 from __future__ import division
 
-from PyQt4.QtCore import QAbstractItemModel, QModelIndex, Qt, QVariant
-from PyQt4.QtGui import  QFileDialog, QMessageBox, QWidget, QAbstractItemView
+from src.qt.QtCore import QAbstractItemModel, QModelIndex, Qt
+from src.qt.QtGui import  QFileDialog, QMessageBox, QWidget, QAbstractItemView
+from src.qt.compat import to_qvariant
+
+
 from datetime import datetime
 from src.core.qthelpers import OfTreeView
 import csv
@@ -262,9 +251,9 @@ class OutputModel(QAbstractItemModel):
         col = index.column()
         if role == Qt.DisplayRole:
             if col == 0: 
-                return QVariant(node.desc)
+                return to_qvariant(node.desc)
             else:
-                return QVariant(int(np.round(node.vals[col-1])))
+                return to_qvariant(int(np.round(node.vals[col-1])))
         if role == Qt.TextAlignmentRole:
             if col == 0: 
                 return Qt.AlignLeft
@@ -272,9 +261,9 @@ class OutputModel(QAbstractItemModel):
 
     def headerData(self, section, orientation, role):
         if role == Qt.DisplayRole:
-            if   section == 0: return QVariant(self._headers.desc)
+            if   section == 0: return to_qvariant(self._headers.desc)
             else:
-                return QVariant(int(self._headers.vals[section-1]))
+                return to_qvariant(int(self._headers.vals[section-1]))
     
     def flags(self, index):
         node = self.getNode(index)

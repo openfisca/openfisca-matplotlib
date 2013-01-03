@@ -23,11 +23,13 @@ This file is part of openFisca.
 
 from __future__ import division
 
-from PyQt4.QtCore import (QAbstractItemModel, QModelIndex, Qt, QVariant, 
+from src.qt.QtCore import (QAbstractItemModel, QModelIndex, Qt, 
                           SIGNAL, QSize)
-from PyQt4.QtGui import (QFileDialog, QColor, QVBoxLayout, QDialog, 
+from src.qt.QtGui import (QFileDialog, QColor, QVBoxLayout, QDialog, 
                          QMessageBox, QTreeView, QIcon, QPixmap, QHBoxLayout, 
                          QPushButton)
+from src.qt.compat import to_qvariant
+
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle, FancyArrow
 from matplotlib.ticker import FuncFormatter
@@ -43,7 +45,7 @@ from src.core.baseconfig import get_translation
 from src.plugins.__init__ import OpenfiscaPluginWidget
 _ = get_translation('src')
 
-from src.france import REVENUES_CATEGORIES
+from src.countries.france import REVENUES_CATEGORIES # TODO: should be more general
 
 locale.setlocale(locale.LC_ALL, '')
 
@@ -117,11 +119,11 @@ class DataModel(QAbstractItemModel):
             return None
         node = self.getNode(index)
         if role == Qt.DisplayRole or role == Qt.EditRole:
-            return QVariant(node.desc)
+            return to_qvariant(node.desc)
         if role == Qt.DecorationRole:
             return colorIcon(node.color)
         if role == Qt.CheckStateRole:
-            return QVariant(2*(node.visible>=1))
+            return to_qvariant(2*(node.visible>=1))
      
     def setData(self, index, value, role = Qt.EditRole):
         if not index.isValid():

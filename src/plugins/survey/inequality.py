@@ -20,10 +20,11 @@ This file is part of openFisca.
     You should have received a copy of the GNU General Public License
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
-from PyQt4.QtGui import (QWidget, QApplication, QCursor)
-from PyQt4.QtCore import SIGNAL, Qt
+
 from pandas import DataFrame
 
+from src.qt.QtGui import (QWidget, QApplication, QCursor)
+from src.qt.QtCore import SIGNAL, Qt
 from src.core.qthelpers import OfSs
 from src.core.utils_old import lorenz, gini
 

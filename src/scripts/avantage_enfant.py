@@ -23,10 +23,10 @@ This file is part of openFisca.
 """
 
 
-from core.simulation import ScenarioSimulation 
+from src.core.simulation import ScenarioSimulation 
 
 import sys
-from PyQt4.QtGui import QMainWindow, QApplication
+from src.qt.QtGui import QMainWindow, QApplication
 from src.widgets.matplotlibwidget import MatplotlibWidget
 
 class ApplicationWindow(QMainWindow):

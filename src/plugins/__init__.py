@@ -1,26 +1,12 @@
 # -*- coding:utf-8 -*-
-# Copyright © 2012 Clément Schaff, Mahdi Ben Jelloul
+#
+# This file is part of OpenFisca.
+# OpenFisca is a socio-fiscal microsimulation software
+# Copyright © 2011 Clément Schaff, Mahdi Ben Jelloul
+# Licensed under the terms of the GVPLv3 or later license
+# (see openfisca/__init__.py for details)
 
-"""
-openFisca, Logiciel libre de simulation du système socio-fiscal français
-Copyright © 2011 Clément Schaff, Mahdi Ben Jelloul
-
-This file is part of openFisca.
-
-    openFisca is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    (at your option) any later version.
-
-    openFisca is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
-"""
-
-# This file is inspired by Spyder (http://packages.python.org/spyder/)
+# This file is inspired by Spyder, see openfisca/spyder.txt for more details
 
 """
 src.plugins
@@ -37,7 +23,7 @@ from src.qt.QtCore import SIGNAL, Qt, QObject
 from src.qt.QtCore import pyqtSignal as Signal
 
 # Local imports
-from src.core.qthelpers import toggle_actions
+from src.core.utils.qthelpers import toggle_actions
 from src.core.config import CONF
 from src.core.userconfig import NoDefault
 

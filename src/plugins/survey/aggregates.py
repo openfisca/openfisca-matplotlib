@@ -33,7 +33,8 @@ from src.qt.QtGui import (QWidget, QVBoxLayout, QSizePolicy, QMenu,
 from src.qt.QtCore import SIGNAL, Qt
 
 from src.core.config import get_icon
-from src.core.qthelpers import OfSs, DataFrameViewWidget, create_action, add_actions
+from src.core.qthelpers import OfSs, DataFrameViewWidget
+from src.core.utils.qthelpers import create_action, add_actions
 
 from src import SRC_PATH
 from src.core.simulation import SurveySimulation
@@ -223,7 +224,7 @@ class Aggregates(object):
             year     = self.simulation.datesim.year
         if filename is None:
             country = self.simulation.country
-            data_dir = os.path.join(SRC_PATH, country, 'data')
+            data_dir = os.path.join(SRC_PATH, 'countries', country, 'data')
 
         try:
             filename = os.path.join(data_dir, "amounts.h5")
@@ -461,20 +462,15 @@ class AggregatesWidget(OpenfiscaPluginWidget):
             return
             
         cols = self.aggregates.labels.values()
-        
-#        [self.aggregates.var_label, self.aggregates.unit_label,
-#                self.aggregates.dep_label, self.aggregates.dep_default_label, self.aggregates.dep_real_label, 
-#                self.aggregates.dep_diff_abs_label, self.aggregates.dep_diff_rel_label, 
-#                self.aggregates.benef_label, self.aggregates.benef_default_label, self.aggregates.benef_real_label,
-#                self.aggregates.benef_diff_abs_label, self.aggregates.benef_diff_rel_label]
+        labels = self.aggregates.labels
         
         if not self.show_real:
-            cols.remove(self.aggregates.labels['dep_real'])
-            cols.remove(self.aggregates.labels['benef_real'])
+            cols.remove(labels['dep_real'])
+            cols.remove(labels['benef_real'])
 
         if not self.show_default:
-            cols.remove(self.aggregates.labels['dep_default'])
-            cols.remove(self.aggregates.labels['benef_default'])
+            cols.remove(labels['dep_default'])
+            cols.remove(labels['benef_default'])
             
 
         remove_all_diffs =  not (self.aggregates.show_real or self.aggregates.show_default)
@@ -482,24 +478,24 @@ class AggregatesWidget(OpenfiscaPluginWidget):
             self.aggregates.compute_diff()
         
         if (not self.show_diff_abs) or remove_all_diffs:
-            cols.remove(self.aggregates.labels['dep_diff_abs'])
-            cols.remove(self.aggregates.labels['benef_diff_abs'])    
+            cols.remove(labels['dep_diff_abs'])
+            cols.remove(labels['benef_diff_abs'])    
         
         if (not self.show_diff_rel) or remove_all_diffs: 
-            cols.remove(self.aggregates.labels['dep_diff_rel'])
-            cols.remove(self.aggregates.labels['benef_diff_rel'])
+            cols.remove(labels['dep_diff_rel'])
+            cols.remove(labels['benef_diff_rel'])
  
         if not self.show_dep:
-            for label in [self.aggregates.labels['dep'], self.aggregates.labels['dep_real'],
-                          self.aggregates.labels['dep_default'], self.aggregates.labels['dep_diff_abs'],
-                          self.aggregates.labels['dep_diff_rel']]:
+            for label in [labels['dep'], labels['dep_real'],
+                          labels['dep_default'], labels['dep_diff_abs'],
+                          labels['dep_diff_rel']]:
                 if label in cols:
                     cols.remove(label)
 
         if not self.show_benef:
-            for label in [self.aggregates.labels['benef'], self.aggregates.labels['benef_real'], 
-                          self.aggregates.labels['benef_default'], self.aggregates.labels['benef_diff_abs'],
-                          self.aggregates.labels['benef_diff_rel']]:
+            for label in [labels['benef'], labels['benef_real'], 
+                          labels['benef_default'], labels['benef_diff_abs'],
+                          labels['benef_diff_rel']]:
                 if label in cols:
                     cols.remove(label)
         self.view.set_dataframe(self.aggregates.aggr_frame[cols])

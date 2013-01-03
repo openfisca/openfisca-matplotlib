@@ -6,8 +6,7 @@
 
 src/build
 src/main.cfg
-src/france/data/sources/final.csv
-src/france/data/sources/final*.csv
-src/france/data/survey.h5
-src/france/data/survey_old.h5
-
+src/countries/france/data/sources/final.csv
+src/countries/france/data/sources/final*.csv
+src/countries/france/data/survey_old.h5
+src/countries/france/data/survey.h5
