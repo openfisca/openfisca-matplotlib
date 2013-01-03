@@ -56,6 +56,7 @@ encoding//src/plugins/survey/aggregates.py=utf-8
 encoding//src/plugins/survey/distribution.py=utf-8
 encoding//src/plugins/survey/inequality.py=utf-8
 encoding//src/plugins/survey/survey_explorer.py=utf-8
+encoding//src/qt/__init__.py=utf-8
 encoding//src/qt/compat.py=utf-8
 encoding//src/requirements.py=utf-8
 encoding//src/resources_rc.py=utf-8
