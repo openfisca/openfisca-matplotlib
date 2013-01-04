@@ -23,14 +23,17 @@ This file is part of openFisca.
 from __future__ import division
 import numpy as np
 from pandas import DataFrame, merge
-from PyQt4.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QSortFilterProxyModel,
-                         QSpacerItem, QSizePolicy, QPushButton, QInputDialog)
-from PyQt4.QtCore import SIGNAL, Qt, QSize
-from src.core.qthelpers import OfSs, DataFrameViewWidget
-from src.core.qthelpers import MyComboBox, get_icon
+
+from src.qt.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QSortFilterProxyModel,
+                         QSpacerItem, QSizePolicy, QPushButton, QInputDialog, QGroupBox)
+from src.qt.QtCore import SIGNAL, QSize
+from src.qt.compat import from_qvariant
+
+from src.core.qthelpers import OfSs, DataFrameViewWidget, MyComboBox
+from src.core.utils.qthelpers import  get_icon
 from src.core.simulation import SurveySimulation
 
-from spyderlib.qt.QtGui import QGroupBox
+
 
 from src.plugins.__init__ import OpenfiscaPluginWidget, PluginConfigPage
 
@@ -355,7 +358,8 @@ class DistributionWidget(OpenfiscaPluginWidget):
         widget = self.distribution_combo.box
         if isinstance(widget, QComboBox):
             data = widget.itemData(widget.currentIndex())
-            by_var = unicode(data.toString())
+            by_var = unicode( from_qvariant(data))
+
             self.distribution_by_var = by_var                
             self.refresh_plugin()
                      

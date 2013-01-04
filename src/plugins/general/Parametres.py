@@ -21,8 +21,10 @@ This file is part of openFisca.
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from PyQt4.QtGui import QFileDialog, QMessageBox
-from PyQt4.QtCore import SIGNAL, QDate
+
+from src.qt.QtGui import QFileDialog, QMessageBox
+from src.qt.QtCore import SIGNAL, QDate
+
 from src.views.ui_parametres import Ui_Parametres
 from src.parametres.paramData import XmlReader, Tree2Object
 from src.parametres.paramModel import PrestationModel
@@ -77,9 +79,8 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
         self.setupUi(self)
         self.setLayout(self.verticalLayout)
         country = self.get_option('country')
-        # TODO: add to conf
-        self._file = country + '/param/param.xml' 
-        
+
+        self._file = 'countries/' + country + '/param/param.xml' 
         
         self.__parent = parent
 

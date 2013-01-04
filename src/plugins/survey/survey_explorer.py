@@ -1,43 +1,34 @@
 # -*- coding:utf-8 -*-
-# Copyright © 2012 Clément Schaff, Mahdi Ben Jelloul
 
-"""
-openFisca, Logiciel libre de simulation du système socio-fiscal français
-Copyright © 2011 Clément Schaff, Mahdi Ben Jelloul
+#
+# This file is part of OpenFisca.
+# OpenFisca is a socio-fiscal microsimulation software
+# Copyright © 2011 Clément Schaff, Mahdi Ben Jelloul
+# Licensed under the terms of the GVPLv3 or later license
+# (see openfisca/__init__.py for details)
 
-This file is part of openFisca.
-
-    openFisca is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    openFisca is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
-"""
 
 from os import path
 from pandas import DataFrame
 
 from src.qt.QtGui import (QWidget, QLabel, QVBoxLayout, QHBoxLayout, QPushButton,
-                         QSpacerItem, QSizePolicy, QApplication, QInputDialog, 
+                         QSpacerItem, QSizePolicy, QInputDialog, 
                          QGroupBox, QButtonGroup, QDockWidget)
-from src.qt.QtCore import SIGNAL, Qt, QVariant, Signal
+from src.qt.QtCore import SIGNAL, Signal
+from src.qt.compat import to_qvariant
 
 from src.core.utils.qthelpers import create_action
-from src.core.qthelpers import OfSs, DataFrameViewWidget
-from src.core.qthelpers import MyComboBox
+from src.core.qthelpers import OfSs, DataFrameViewWidget, MyComboBox
+
 from src.core.columns import EnumCol
 
 from src.core.config import CONF, get_icon
 from src.plugins.__init__ import OpenfiscaPluginWidget, PluginConfigPage
 from src.core.baseconfig import get_translation
 _ = get_translation('src')
+
+
+from src.qt.compat import from_qvariant
 
 
 class SurveyExplorerConfigPage(PluginConfigPage):
@@ -186,13 +177,16 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         box = self.datatable_combo.box
         box.clear()
         for name, key in self.datatables_choices:
-            box.addItem(name, QVariant(key))
+            box.addItem(name, to_qvariant(key))
 
     def select_data(self):
         widget = self.datatable_combo.box
-        dataframe_name = unicode(widget.itemData(widget.currentIndex()).toString())
-        if dataframe_name: # to deal with the box.clear() 
+        dataframe_name = from_qvariant(widget.itemData(widget.currentIndex()))
+        try: # to deal with the box.clear() 
             self.set_dataframe(name = dataframe_name)
+        except:
+            pass
+
         self.update_btns()
 
     def add_dataframe(self, dataframe, name = None):
@@ -268,9 +262,7 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
                 else:
                     label2var[var] = var
                     var2label[var] = var
-        
-        all_labels = set(label2var.values()).intersection(data_vars)
-        
+                    
         self.var2label = var2label
         self.var2enum  = var2enum
         
