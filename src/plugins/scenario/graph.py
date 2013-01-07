@@ -549,8 +549,8 @@ def drawBaremeCompareHouseholds(data, ax, xaxis, dataDefault = None, legend = Tr
     NMEN = len(xdata.vals)
     xlabel = xdata.desc
     ax.set_xlabel(xlabel)
-    currency = of_import('utils', 'currency', country = country)
-    ax.set_ylabel(prefix + u"Revenu disponible (" + currency + " par an)")
+    from src.countries.france import CURRENCY
+    ax.set_ylabel(prefix + u"Revenu disponible (" + CURRENCY + " par an)")
     ax.set_xlim(np.amin(xdata.vals), np.amax(xdata.vals))
     ax.plot(xdata.vals, np.zeros(NMEN), color = 'black', label = 'xaxis')
     

@@ -369,7 +369,6 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
 #
 #        self.file_menu_actions = [self.open_action, self.save_action,]
 #        self.main.file_menu_actions += self.file_menu_actions
-        print 'get plugn actyion of survey_explorer'
         self.action_compute = create_action(self, _('Compute aggregates'),
                                                       shortcut = 'F10',
                                                       icon = 'calculator_blue.png', 
