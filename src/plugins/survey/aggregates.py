@@ -90,6 +90,9 @@ class Aggregates(object):
         labels['dep_diff_rel']      = u"Diff. relative\nDépenses"
         labels['benef_diff_rel']    = u"Diff. relative\nBénéficiaires"
         self.labels = labels
+        self.labels_ordered_list = ['var', 'entity', 'dep', 'benef', 'dep_default', 'benef_default',
+                                    'dep_real', 'benef_real', 'dep_diff_abs', 'benef_diff_abs',
+                                    'dep_diff_rel', 'benef_diff_rel']
         
     def set_simulation(self, simulation):
         
@@ -217,6 +220,8 @@ class Aggregates(object):
         self.aggr_frame[self.labels['dep_diff_abs']]   = (dep-ref_dep)
         self.aggr_frame[self.labels['benef_diff_abs']] = (benef-ref_benef)
         
+
+        
     def load_amounts_from_file(self, filename = None, year = None):
         '''
         Loads totals from files
@@ -251,7 +256,7 @@ class Aggregates(object):
                 self.totals_df.set_value('logt', col,  logt)
                 
                 # Deals wit irpp, csg, crds
-                for var in ['irpp', 'csg', 'crds']:
+                for var in ['irpp', 'csg', 'crds', 'cotsoc_noncontrib']:
                     if col in ['amount']:
                         val = - self.totals_df.get_value(var, col)
                         self.totals_df.set_value(var, col, val)
@@ -465,7 +470,7 @@ class AggregatesWidget(OpenfiscaPluginWidget):
         if self.aggregates.aggr_frame is None:
             return
             
-        cols = self.aggregates.labels.values()
+        cols = [self.aggregates.labels[code] for code in self.aggregates.labels_ordered_list]
 
         labels = self.aggregates.labels
         
@@ -505,11 +510,12 @@ class AggregatesWidget(OpenfiscaPluginWidget):
 
                 if label in cols:
                     cols.remove(label)
+        
         self.view.set_dataframe(self.aggregates.aggr_frame[cols])
         self.view.resizeColumnsToContents()
         self.view.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Expanding)
 
-                
+
     def calculated(self):
         '''
         Emits signal indicating that aggregates are computed
