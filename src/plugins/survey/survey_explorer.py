@@ -14,7 +14,7 @@ from pandas import DataFrame
 from src.qt.QtGui import (QWidget, QLabel, QVBoxLayout, QHBoxLayout, QPushButton,
                          QSpacerItem, QSizePolicy, QInputDialog, 
                          QGroupBox, QButtonGroup, QDockWidget)
-from src.qt.QtCore import SIGNAL, Signal
+from src.qt.QtCore import SIGNAL, Signal,Qt
 from src.qt.compat import to_qvariant
 
 from src.core.utils.qthelpers import create_action
@@ -91,6 +91,7 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
     """
     CONF_SECTION = 'survey'
     CONFIGWIDGET_CLASS = SurveyExplorerConfigPage
+    LOCATION = Qt.LeftDockWidgetArea
     FEATURES = QDockWidget.DockWidgetClosable | \
                QDockWidget.DockWidgetFloatable | \
                QDockWidget.DockWidgetMovable
@@ -148,6 +149,10 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         Initialize widget
         """
         # Set survey_simulation
+        
+        if not self.get_option('enable') or self.main.survey_simulation is None:
+            return
+                
         simulation = self.main.survey_simulation
         country = CONF.get('parameters', 'country')
         datesim = CONF.get('parameters', 'datesim')
@@ -328,6 +333,11 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         """
         if 'reform' in options:
             self.action_set_reform.setChecked(self.get_option('reform'))
+    
+        if 'enable' in options:
+            self.main.register_survey_widgets(self.get_option('enable'))
+
+                
     
     #------ OpenfiscaPluginWidget API ---------------------------------------------
 

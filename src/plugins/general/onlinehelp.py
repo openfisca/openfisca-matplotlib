@@ -12,7 +12,7 @@ import os.path as osp
 
 # Local imports
 from src.core.baseconfig import get_conf_path, _
-from spyderlib.widgets.pydocgui import PydocBrowser
+from src.spyder_widgets.pydocgui import PydocBrowser
 from src.plugins.__init__ import OpenfiscaPluginMixin
 
 

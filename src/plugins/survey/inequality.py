@@ -24,7 +24,7 @@ This file is part of openFisca.
 
 from pandas import DataFrame
 
-from src.qt.QtGui import (QWidget, QApplication, QCursor)
+from src.qt.QtGui import (QWidget, QApplication, QCursor, QDockWidget)
 from src.qt.QtCore import SIGNAL, Qt
 
 from src.core.qthelpers import OfSs
@@ -66,7 +66,12 @@ class InequalityWidget(OpenfiscaPluginWidget):
     """
     CONF_SECTION = 'inequality'
     CONFIGWIDGET_CLASS = InequalityConfigPage
-
+    
+    LOCATION = Qt.LeftDockWidgetArea
+    FEATURES = QDockWidget.DockWidgetClosable | \
+               QDockWidget.DockWidgetFloatable | \
+               QDockWidget.DockWidgetMovable
+    DISABLE_ACTIONS_WHEN_HIDDEN = False
     
     def __init__(self, parent = None):
         super(InequalityWidget, self).__init__(parent)
