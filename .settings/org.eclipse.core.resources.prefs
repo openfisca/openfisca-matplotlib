@@ -21,6 +21,7 @@ encoding//src/core/utils/inspector/conf.py=utf-8
 encoding//src/core/utils/iofuncs.py=utf-8
 encoding//src/core/utils/qthelpers.py=utf-8
 encoding//src/core/utils_old.py=utf-8
+encoding//src/countries/__init__.py=utf-8
 encoding//src/countries/france/__init__.py=utf-8
 encoding//src/countries/france/data/codeAplReader.py=utf-8
 encoding//src/countries/france/model/calage.py=utf-8

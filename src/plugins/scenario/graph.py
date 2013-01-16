@@ -645,7 +645,7 @@ def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None, legend = True
     if dataDefault is None: 
         dataDefault = data
 
-    
+    # TODO: the following is an ugly fix which is not general enough
     if xaxis == "rev_cap_brut":
         typ_rev = 'superbrut'
     elif xaxis == "rev_cap_net":
