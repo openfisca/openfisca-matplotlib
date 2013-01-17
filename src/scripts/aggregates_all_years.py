@@ -9,7 +9,8 @@
 # Script to compute the aggregates for all the referenced years
 
 from src.core.simulation import SurveySimulation 
-from src.plugins.survey.aggregates import Aggregates
+from src.plugins.survey.aggregates import Aggregates, ExcelWriter
+
 
 if __name__ == '__main__':
 
@@ -18,6 +19,10 @@ if __name__ == '__main__':
         country = 'france'
         destination_dir = "c:/users/utilisateur/documents/"
         fname = "Agg_%s.%s" %(str(yr), "xls")
+
+        fname_all = "aggregates.xls"
+        fname_all = os.path.join(directory, filename)               
+        
         simu = SurveySimulation()
         simu.set_config(year = yr, country = country)
         simu.set_param()
@@ -27,7 +32,14 @@ if __name__ == '__main__':
         agg = Aggregates()
         agg.set_simulation(simu)
         agg.compute()
-        agg.save_table(directory = destination_dir, filename = fname)
+#        agg.save_table(directory = destination_dir, filename = fname)
+ 
+
+        writer = ExcelWriter(str(fname_all))
+        agg.aggr_frame.to_excel(writer, yr, index= False, header= True)
+        print writer
+        writer.save()
+
         del simu
         del agg
         import gc
