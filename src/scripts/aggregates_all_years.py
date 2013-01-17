@@ -10,7 +10,7 @@
 
 from src.core.simulation import SurveySimulation 
 from src.plugins.survey.aggregates import Aggregates, ExcelWriter
-
+import os
 
 if __name__ == '__main__':
 
@@ -21,7 +21,7 @@ if __name__ == '__main__':
         fname = "Agg_%s.%s" %(str(yr), "xls")
 
         fname_all = "aggregates.xls"
-        fname_all = os.path.join(directory, filename)               
+        fname_all = os.path.join(destination_dir, fname_all)               
         
         simu = SurveySimulation()
         simu.set_config(year = yr, country = country)
