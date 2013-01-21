@@ -55,10 +55,12 @@ class ParametersConfigPage(PluginConfigPage):
                                         choices, 'country')
 
         # Date
-        date_dateedit = self.create_dateedit( _("Simulation date"), 'datesim', min_date = QDate(2002,01,01), 
-                                              max_date = QDate(2012,12,31))
-        
-#        date_dateedit.dateteidt.setDate()
+        from src.core.config import CONF
+        current_date = CONF.get('parameters', 'datesim')
+        date_dateedit = self.create_dateedit( _("Legislation date"), 'datesim', 
+                                              min_date = QDate(2002,01,01), 
+                                              max_date = QDate(2012,12,31),
+                                              current_date = QDate(current_date))
         
         layout = QVBoxLayout()
         layout.addWidget(country_combo)
@@ -160,6 +162,21 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
                     QMessageBox.Ok, QMessageBox.NoButton)
 
     #------ OpenfiscaPluginMixin API ---------------------------------------------
+
+    def apply_plugin_settings(self, options):
+        """
+        Apply configuration file's plugin settings
+        """
+        if 'country' in options:
+            country = self.get_option('country')
+            print country
+        if 'datesim' in options:
+            datesim = self.get_option('datesim')
+            print datesim
+            
+    
+    
+    
     #------ OpenfiscaPluginWidget API ---------------------------------------------
 
     def get_plugin_title(self):

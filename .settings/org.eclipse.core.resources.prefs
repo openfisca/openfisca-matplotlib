@@ -16,6 +16,7 @@ encoding//src/core/qthelpers.py=utf-8
 encoding//src/core/simulation.py=utf-8
 encoding//src/core/userconfig.py=utf-8
 encoding//src/core/utils/dochelpers.py=utf-8
+encoding//src/core/utils/encoding.py=utf-8
 encoding//src/core/utils/environ.py=utf-8
 encoding//src/core/utils/inspector/conf.py=utf-8
 encoding//src/core/utils/iofuncs.py=utf-8

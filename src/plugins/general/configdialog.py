@@ -247,7 +247,12 @@ class OpenfiscaConfigPage(ConfigPage):
             self.connect(checkbox, SIGNAL("clicked(bool)"),
                          lambda _foo, opt=option: self.has_been_modified(opt))
         for radiobutton, (option, default) in self.radiobuttons.items():
+            print radiobutton
+            print self.get_option(option, default)
+            print type(radiobutton)
+            print type(self.get_option(option, default))
             radiobutton.setChecked(self.get_option(option, default))
+            
             self.connect(radiobutton, SIGNAL("toggled(bool)"),
                          lambda _foo, opt=option: self.has_been_modified(opt))
         for lineedit, (option, default) in self.lineedits.items():
@@ -291,10 +296,10 @@ class OpenfiscaConfigPage(ConfigPage):
                          lambda opt=option: self.has_been_modified(opt))
             self.connect(edit, SIGNAL("textChanged(QString)"),
                          lambda _foo, opt=option: self.has_been_modified(opt))
+        
         for dateedit, option in self.dateedits.items():
             date = self.get_option(option, default)
-            print 'dateedit :', dateedit
-            print 'date :', date 
+            # TODO: parameters date should be fixed here
     
         for (clayout, cb_bold, cb_italic
              ), (option, default) in self.scedits.items():
@@ -403,7 +408,7 @@ class OpenfiscaConfigPage(ConfigPage):
         return widget
     
     def create_dateedit(self, text, option, tip = None, 
-                        min_date = None, max_date = None):
+                        min_date = None, max_date = None, current_date = None):
         """
         Create a date edit
         """
@@ -412,6 +417,7 @@ class OpenfiscaConfigPage(ConfigPage):
         dateedit.setDisplayFormat('dd MMM yyyy')
         if min_date: dateedit.setMinimumDate(min_date)
         if max_date: dateedit.setMaximumDate(max_date)
+        if current_date: dateedit.setDate(current_date)
         if tip: dateedit.setToolTip(tip)
         self.dateedits[dateedit] = option
         layout = QHBoxLayout()

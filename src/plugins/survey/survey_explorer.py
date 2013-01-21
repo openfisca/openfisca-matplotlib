@@ -47,7 +47,8 @@ class SurveyExplorerConfigPage(PluginConfigPage):
 
         bareme_only_radio = self.create_radiobutton(_("Test case only"),  #u"Mode barème uniquement",
                                                     'survey_data/bareme_only', False,
-                                                    u"Mode barème uniquement",
+                                                    tip = u"Mode barème uniquement",
+                                                    
                                 button_group = survey_bg)
         survey_radio = self.create_radiobutton(_("The following file"),  # le fichier suivant",
                                                'enable', True,
@@ -174,7 +175,7 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
             except:
                 print 'Survey data loading failed: disabling survey mode'
                 
-                self.set_option('enable', 'False')
+                self.set_option('enable', False)
                 print self.get_option('enable')
                 print CONF.get('survey', 'enable')
                 print 
