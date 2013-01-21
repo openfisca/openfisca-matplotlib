@@ -14,9 +14,9 @@ from src.core.config import (get_icon, CONF, CUSTOM_COLOR_SCHEME_NAME,
                               set_default_color_scheme, COLOR_SCHEME_NAMES)
 from src.core.utils.qthelpers import get_std_icon
 from src.core.userconfig import NoDefault
-from spyderlib.widgets.colors import ColorLayout
+from src.widgets.colors import ColorLayout
 
-from spyderlib.qt.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
+from src.qt.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
                                 QVBoxLayout, QStackedWidget, QListView,
                                 QHBoxLayout, QDialogButtonBox, QCheckBox,
                                 QMessageBox, QLabel, QLineEdit, QSpinBox,
@@ -24,8 +24,8 @@ from spyderlib.qt.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
                                 QComboBox, QColor, QGridLayout, QTabWidget,
                                 QRadioButton, QButtonGroup, QSplitter,
                                 QStyleFactory, QScrollArea, QDateEdit)
-from spyderlib.qt.QtCore import Qt, QSize, SIGNAL, SLOT, Slot
-from spyderlib.qt.compat import (to_qvariant, from_qvariant,
+from src.qt.QtCore import Qt, QSize, SIGNAL, SLOT, Slot
+from src.qt.compat import (to_qvariant, from_qvariant,
                                  getexistingdirectory, getopenfilename)
 
 
@@ -211,6 +211,7 @@ class OpenfiscaConfigPage(ConfigPage):
         self.coloredits = {}
         self.scedits = {}
         self.changed_options = set()
+        self.dateedits =  {}
         self.default_button_group = None
         
     def apply_settings(self, options):
@@ -263,7 +264,7 @@ class OpenfiscaConfigPage(ConfigPage):
                 data = from_qvariant(combobox.itemData(index), unicode)
                 # For PyQt API v2, it is necessary to convert `data` to 
                 # unicode in case the original type was not a string, like an 
-                # integer for example (see spyderlib.qt.compat.from_qvariant):
+                # integer for example (see src.qt.compat.from_qvariant):
                 if unicode(data) == unicode(value):
                     break
             combobox.setCurrentIndex(index)
@@ -290,6 +291,11 @@ class OpenfiscaConfigPage(ConfigPage):
                          lambda opt=option: self.has_been_modified(opt))
             self.connect(edit, SIGNAL("textChanged(QString)"),
                          lambda _foo, opt=option: self.has_been_modified(opt))
+        for dateedit, option in self.dateedits.items():
+            date = self.get_option(option, default)
+            print 'dateedit :', dateedit
+            print 'date :', date 
+    
         for (clayout, cb_bold, cb_italic
              ), (option, default) in self.scedits.items():
             edit = clayout.lineedit
@@ -398,14 +404,16 @@ class OpenfiscaConfigPage(ConfigPage):
     
     def create_dateedit(self, text, option, tip = None, 
                         min_date = None, max_date = None):
-        """Create a date edit"""
+        """
+        Create a date edit
+        """
         label = QLabel(text)
         dateedit = QDateEdit()
         dateedit.setDisplayFormat('dd MMM yyyy')
         if min_date: dateedit.setMinimumDate(min_date)
         if max_date: dateedit.setMaximumDate(max_date)
         if tip: dateedit.setToolTip(tip)
-        # self.dateedits[dateedit] = option
+        self.dateedits[dateedit] = option
         layout = QHBoxLayout()
         for subwidget in (label, dateedit):
             layout.addWidget(subwidget)

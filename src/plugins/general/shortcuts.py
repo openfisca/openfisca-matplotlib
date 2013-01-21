@@ -6,11 +6,11 @@
 
 """Shortcut management"""
 
-from spyderlib.qt.QtGui import (QVBoxLayout, QComboBox, QItemDelegate,
+from src.qt.QtGui import (QVBoxLayout, QComboBox, QItemDelegate,
                                 QTableView, QMessageBox, QPushButton)
-from spyderlib.qt.QtCore import (Qt, QSize, QAbstractTableModel, QModelIndex,
+from src.qt.QtCore import (Qt, QSize, QAbstractTableModel, QModelIndex,
                                SIGNAL)
-from spyderlib.qt.compat import to_qvariant, from_qvariant
+from src.qt.compat import to_qvariant, from_qvariant
 
 import sys
 

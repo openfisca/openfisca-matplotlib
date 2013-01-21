@@ -8,11 +8,11 @@
 
 from __future__ import with_statement
 
-from spyderlib.qt.QtGui import (QDialog, QListWidget, QDialogButtonBox,
+from src.qt.QtGui import (QDialog, QListWidget, QDialogButtonBox,
                                 QVBoxLayout, QHBoxLayout, QMessageBox,
                                 QListWidgetItem)
-from spyderlib.qt.QtCore import Qt, SIGNAL, SLOT
-from spyderlib.qt.compat import getexistingdirectory
+from src.qt.QtCore import Qt, SIGNAL, SLOT
+from src.qt.compat import getexistingdirectory
 
 import os
 import sys

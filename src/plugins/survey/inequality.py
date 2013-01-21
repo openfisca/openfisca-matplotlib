@@ -35,7 +35,7 @@ from matplotlib.lines import Line2D
 
 from src.core.qthelpers import DataFrameViewWidget
 
-from spyderlib.qt.QtGui import QGroupBox, QVBoxLayout
+from src.qt.QtGui import QGroupBox, QVBoxLayout
 from src.plugins.__init__ import OpenfiscaPluginWidget, PluginConfigPage
 from src.core.config import get_icon
 from src.core.baseconfig import get_translation

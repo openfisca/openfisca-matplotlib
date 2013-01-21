@@ -12,15 +12,19 @@ from src.core.simulation import SurveySimulation
 from src.plugins.survey.aggregates import Aggregates, ExcelWriter
 import os
 
+
+
 if __name__ == '__main__':
 
+
+    writer = None
     years = ['2006', '2007', '2008', '2009']
     for yr in years:
         country = 'france'
         destination_dir = "c:/users/utilisateur/documents/"
         fname = "Agg_%s.%s" %(str(yr), "xls")
 
-        fname_all = "aggregates.xls"
+        fname_all = "aggregates.xlsx"
         fname_all = os.path.join(destination_dir, fname_all)               
         
         simu = SurveySimulation()
@@ -34,14 +38,15 @@ if __name__ == '__main__':
         agg.compute()
 #        agg.save_table(directory = destination_dir, filename = fname)
  
-
-        writer = ExcelWriter(str(fname_all))
+        if writer is None:
+            writer = ExcelWriter(str(fname_all))
         agg.aggr_frame.to_excel(writer, yr, index= False, header= True)
-        print writer
-        writer.save()
-
         del simu
         del agg
         import gc
         gc.collect()
+    
+    writer.save()
+
+
     

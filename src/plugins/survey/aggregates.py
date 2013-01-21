@@ -157,7 +157,10 @@ class Aggregates(object):
                 items.append(  (B_label[dataname], B[dataname]) )
 
         items.append( (self.labels['entity'], U) )        
+        
         self.aggr_frame = DataFrame.from_items(items)
+#        cols = [self.labels[code] for code in self.labels_ordered_list]
+#        self.aggr_frame = cols
 
     def get_aggregate(self, var):
         '''

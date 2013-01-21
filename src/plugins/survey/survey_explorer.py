@@ -40,7 +40,7 @@ class SurveyExplorerConfigPage(PluginConfigPage):
         '''
         Setup the page of the survey widget
         '''
-
+        
         survey_group = QGroupBox(_("Survey data")) # "Données d'enquête" 
         survey_bg = QButtonGroup(self)
         survey_label = QLabel(_("Location of survey data for microsimulation")) # u"Emplacement des données d'enquête pour la microsimulation")
@@ -163,13 +163,23 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         # load_from_file(self):        
         fname = self.get_option('data_file')
         if path.isfile(fname):
-            simulation.set_survey(filename = fname)
-            year = simulation.survey.survey_year
-            # Sets year in label
-            self.data_label.setText("Survey data from year " + str(year))
-            self.add_dataframe(simulation.survey.table, name = "input")
-            self.set_dataframe(simulation.survey.table, name = "input")
-            self.update_view()
+            try:
+                simulation.set_survey(filename = fname)
+                year = simulation.survey.survey_year
+                # Sets year in label
+                self.data_label.setText("Survey data from year " + str(year))
+                self.add_dataframe(simulation.survey.table, name = "input")
+                self.set_dataframe(simulation.survey.table, name = "input")
+                self.update_view()
+            except:
+                print 'Survey data loading failed: disabling survey mode'
+                
+                self.set_option('enable', 'False')
+                print self.get_option('enable')
+                print CONF.get('survey', 'enable')
+                print 
+#                raise Exception('Survey data loading failed')
+                
         self.simulation = simulation
             
     def update_btns(self):

@@ -172,8 +172,8 @@ class CursorPositionStatus(StatusBarWidget):
 
 
 def test():
-    from spyderlib.qt.QtGui import QMainWindow
-    from spyderlib.utils.qthelpers import qapplication
+    from src.qt.QtGui import QMainWindow
+    from src.core.utils.qthelpers import qapplication
     app = qapplication()
     win = QMainWindow()
     win.setWindowTitle("Status widgets test")

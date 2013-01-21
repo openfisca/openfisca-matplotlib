@@ -35,7 +35,7 @@ from src.core.utils.qthelpers import get_icon
 import os
 _ = get_translation('src')
 
-from spyderlib.qt.QtGui import QGroupBox, QVBoxLayout
+from src.qt.QtGui import QGroupBox, QVBoxLayout
 from src.plugins.__init__ import OpenfiscaPluginWidget, PluginConfigPage
 
 
@@ -55,7 +55,10 @@ class ParametersConfigPage(PluginConfigPage):
                                         choices, 'country')
 
         # Date
-        date_dateedit = self.create_dateedit( _("Simulation date"), 'datesim', min_date = QDate(2002,01,01), max_date = QDate(2012,12,31))
+        date_dateedit = self.create_dateedit( _("Simulation date"), 'datesim', min_date = QDate(2002,01,01), 
+                                              max_date = QDate(2012,12,31))
+        
+#        date_dateedit.dateteidt.setDate()
         
         layout = QVBoxLayout()
         layout.addWidget(country_combo)
