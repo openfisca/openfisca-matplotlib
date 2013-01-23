@@ -56,11 +56,12 @@ class ParametersConfigPage(PluginConfigPage):
 
         # Date
         from src.core.config import CONF
-        current_date = CONF.get('parameters', 'datesim')
-        date_dateedit = self.create_dateedit( _("Legislation date"), 'datesim', 
-                                              min_date = QDate(2002,01,01), 
-                                              max_date = QDate(2012,12,31),
-                                              current_date = QDate(current_date))
+        default = CONF.get('parameters', 'datesim')
+        date_dateedit = self.create_dateedit(prefix=_("Legislation date"),
+                                             option= 'datesim', 
+                                             default = default,
+                                             min_ = "2002-01-01", 
+                                             max_ = "2012-12-31")
         
         layout = QVBoxLayout()
         layout.addWidget(country_combo)
@@ -71,6 +72,7 @@ class ParametersConfigPage(PluginConfigPage):
         vlayout.addWidget(group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
+
 
 class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
     """
@@ -83,16 +85,12 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
         super(ParamWidget, self).__init__(parent)
         self.setupUi(self)
         self.setLayout(self.verticalLayout)
-        country = self.get_option('country')
-
-        self._file = 'countries/' + country + '/param/param.xml' 
         
         self.__parent = parent
 
         self.connect(self.save_btn, SIGNAL("clicked()"), self.saveXml)
         self.connect(self.open_btn, SIGNAL("clicked()"), self.loadXml)
         self.connect(self.reset_btn, SIGNAL("clicked()"), self.reset)
-        
         
         self.initialize()
 
@@ -107,7 +105,14 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
         self.emit(SIGNAL('changed()'))
     
     def initialize(self):
-        self._date = self.get_option('datesim')
+        country = self.get_option('country')
+        self._file = 'countries/' + country + '/param/param.xml'
+        
+        value = self.get_option('datesim')
+        from datetime import datetime
+        self._date = datetime.strptime(value ,"%Y-%m-%d").date()
+
+        
         self.label.setText(u"Date : %s" %( str(self._date)) )
         self._reader = XmlReader(self._file, self._date)
         self._rootNode = self._reader.tree
@@ -169,12 +174,13 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
         """
         if 'country' in options:
             country = self.get_option('country')
-            print country
-        if 'datesim' in options:
-            datesim = self.get_option('datesim')
-            print datesim
+            NotImplementedError
+#            self.main.close()
+#            from src.of_test import main
+#            main()
             
-    
+        if 'datesim' in options:
+            self.reset()
     
     
     #------ OpenfiscaPluginWidget API ---------------------------------------------

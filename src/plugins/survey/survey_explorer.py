@@ -27,7 +27,7 @@ from src.plugins.__init__ import OpenfiscaPluginWidget, PluginConfigPage
 from src.core.baseconfig import get_translation
 _ = get_translation('src')
 
-
+from datetime import datetime
 from src.qt.compat import from_qvariant
 
 
@@ -46,7 +46,7 @@ class SurveyExplorerConfigPage(PluginConfigPage):
         survey_label = QLabel(_("Location of survey data for microsimulation")) # u"Emplacement des données d'enquête pour la microsimulation")
 
         bareme_only_radio = self.create_radiobutton(_("Test case only"),  #u"Mode barème uniquement",
-                                                    'survey_data/bareme_only', False,
+                                                    'survey/bareme_only', False,
                                                     tip = u"Mode barème uniquement",
                                                     
                                 button_group = survey_bg)
@@ -156,7 +156,8 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
                 
         simulation = self.main.survey_simulation
         country = CONF.get('parameters', 'country')
-        datesim = CONF.get('parameters', 'datesim')
+        value = CONF.get('parameters', 'datesim')
+        datesim = datetime.strptime(value ,"%Y-%m-%d").date()
         reforme = self.get_option('reform')
         year = datesim.year
         simulation.set_config(year = year, country = country, reforme = reforme)
@@ -176,9 +177,8 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
                 print 'Survey data loading failed: disabling survey mode'
                 
                 self.set_option('enable', False)
-                print self.get_option('enable')
-                print CONF.get('survey', 'enable')
-                print 
+                self.set_option('bareme_only', True)
+                 
 #                raise Exception('Survey data loading failed')
                 
         self.simulation = simulation
@@ -345,10 +345,13 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         if 'reform' in options:
             self.action_set_reform.setChecked(self.get_option('reform'))
     
-        if 'enable' in options:
-            self.main.register_survey_widgets(self.get_option('enable'))
-
-                
+        if 'enable' in options or 'bareme_only' in options:
+            enable1 =  self.get_option('enable')
+            enable2 = not self.get_option('bareme_only')
+            print 'enable 1: ', enable1
+            print 'enable 2: ', enable2
+            print enable1 and enable2
+            self.main.register_survey_widgets( enable1 and enable2 )
     
     #------ OpenfiscaPluginWidget API ---------------------------------------------
 

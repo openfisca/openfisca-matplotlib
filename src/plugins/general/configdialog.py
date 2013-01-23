@@ -24,7 +24,7 @@ from src.qt.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
                                 QComboBox, QColor, QGridLayout, QTabWidget,
                                 QRadioButton, QButtonGroup, QSplitter,
                                 QStyleFactory, QScrollArea, QDateEdit)
-from src.qt.QtCore import Qt, QSize, SIGNAL, SLOT, Slot
+from src.qt.QtCore import Qt, QSize, SIGNAL, SLOT, Slot, QDate
 from src.qt.compat import (to_qvariant, from_qvariant,
                                  getexistingdirectory, getopenfilename)
 
@@ -45,7 +45,6 @@ class ConfigPage(QWidget):
             * load settings and change widgets accordingly
         """
         self.setup_page()
-        print self
         self.load_from_conf()
         
     def get_name(self):
@@ -247,10 +246,6 @@ class OpenfiscaConfigPage(ConfigPage):
             self.connect(checkbox, SIGNAL("clicked(bool)"),
                          lambda _foo, opt=option: self.has_been_modified(opt))
         for radiobutton, (option, default) in self.radiobuttons.items():
-            print radiobutton
-            print self.get_option(option, default)
-            print type(radiobutton)
-            print type(self.get_option(option, default))
             radiobutton.setChecked(self.get_option(option, default))
             
             self.connect(radiobutton, SIGNAL("toggled(bool)"),
@@ -297,9 +292,13 @@ class OpenfiscaConfigPage(ConfigPage):
             self.connect(edit, SIGNAL("textChanged(QString)"),
                          lambda _foo, opt=option: self.has_been_modified(opt))
         
-        for dateedit, option in self.dateedits.items():
-            date = self.get_option(option, default)
-            # TODO: parameters date should be fixed here
+        for dateedit, (option, default) in self.dateedits.items():
+            def extract_qdate_from_str(x):
+                return QDate(int(x[:4]), int(x[5:7]), int(x[8:10]))
+            dateedit.setDate(extract_qdate_from_str(self.get_option(option, default)))
+            self.connect(dateedit, SIGNAL('dateChanged(QDate)'),
+                         lambda _foo, opt=option: self.has_been_modified(opt))
+        
     
         for (clayout, cb_bold, cb_italic
              ), (option, default) in self.scedits.items():
@@ -319,7 +318,10 @@ class OpenfiscaConfigPage(ConfigPage):
                          lambda _foo, opt=option: self.has_been_modified(opt))
     
     def save_to_conf(self):
-        """Save settings to configuration file"""
+        """
+        Save settings to configuration file
+        """
+
         for checkbox, (option, _default) in self.checkboxes.items():
             self.set_option(option, checkbox.isChecked())
         for radiobutton, (option, _default) in self.radiobuttons.items():
@@ -342,6 +344,10 @@ class OpenfiscaConfigPage(ConfigPage):
             bold = cb_bold.isChecked()
             italic = cb_italic.isChecked()
             self.set_option(option, (color, bold, italic))
+            
+        for dateedit, (option, _default) in self.dateedits.items():
+            value = dateedit.date().toString("yyyy-MM-dd") 
+            self.set_option(option, value)
     
     @Slot(str)
     def has_been_modified(self, option):
@@ -407,27 +413,43 @@ class OpenfiscaConfigPage(ConfigPage):
         widget.setLayout(layout)
         return widget
     
-    def create_dateedit(self, text, option, tip = None, 
-                        min_date = None, max_date = None, current_date = None):
-        """
-        Create a date edit
-        """
-        label = QLabel(text)
+    def create_dateedit(self, prefix, option, default=NoDefault,
+                       min_=None, max_=None, step=None, tip=None):
+        if prefix:
+            plabel = QLabel(prefix)
+        else:
+            plabel = None
+
         dateedit = QDateEdit()
         dateedit.setDisplayFormat('dd MMM yyyy')
-        if min_date: dateedit.setMinimumDate(min_date)
-        if max_date: dateedit.setMaximumDate(max_date)
-        if current_date: dateedit.setDate(current_date)
-        if tip: dateedit.setToolTip(tip)
-        self.dateedits[dateedit] = option
+
+        def extract_qdate_from_str(x):
+            return QDate(int(x[:4]), int(x[5:7]), int(x[8:10]))
+
+        if min_ is not None:
+            min_qdate = extract_qdate_from_str(min_)
+            dateedit.setMinimumDate(min_qdate)
+        if max_ is not None:
+            max_qdate = extract_qdate_from_str(max_)
+            dateedit.setMaximumDate(max_qdate)
+        
+        default_qdate = extract_qdate_from_str(default)
+    
+        dateedit.setDate(default_qdate)        
+        if tip is not None:
+            dateedit.setToolTip(tip)
+        self.dateedits[dateedit] = (option, default)
         layout = QHBoxLayout()
-        for subwidget in (label, dateedit):
-            layout.addWidget(subwidget)
+        for subwidget in (plabel, dateedit):
+            if subwidget is not None:
+                layout.addWidget(subwidget)
         layout.addStretch(1)
         layout.setContentsMargins(0, 0, 0, 0)
         widget = QWidget(self)
         widget.setLayout(layout)
         return widget
+    
+    
     
     def create_browsedir(self, text, option, default=NoDefault, tip=None):
         widget = self.create_lineedit(text, option, default,
