@@ -158,9 +158,22 @@ class Aggregates(object):
 
         items.append( (self.labels['entity'], U) )        
         
-        self.aggr_frame = DataFrame.from_items(items)
-#        cols = [self.labels[code] for code in self.labels_ordered_list]
-#        self.aggr_frame = cols
+        aggr_frame = DataFrame.from_items(items)
+        
+        print aggr_frame
+        self.aggr_frame = None
+        for code in self.labels_ordered_list:
+            try:
+                print self.labels[code]
+                col = aggr_frame[self.labels[code]]
+                if self.aggr_frame is None:
+                    self.aggr_frame = DataFrame(col)
+                else:
+                    self.aggr_frame = self.aggr_frame.merge(col)
+            except:
+                pass
+        print self.aggr_frame.to_string()
+
 
     def get_aggregate(self, var):
         '''

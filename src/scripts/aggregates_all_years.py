@@ -38,6 +38,8 @@ if __name__ == '__main__':
         agg.compute()
 #        agg.save_table(directory = destination_dir, filename = fname)
  
+        print agg.aggr_frame
+        break
         if writer is None:
             writer = ExcelWriter(str(fname_all))
         agg.aggr_frame.to_excel(writer, yr, index= False, header= True)
@@ -46,7 +48,8 @@ if __name__ == '__main__':
         import gc
         gc.collect()
     
-    writer.save()
+    
+    #writer.save()
 
 
     
