@@ -180,6 +180,9 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
 #            main()
             
         if 'datesim' in options:
+            
+            if self.main.survey_explorer.get_option('enable'):
+                self.main.register_survey_widgets(True)
             self.reset()
     
     

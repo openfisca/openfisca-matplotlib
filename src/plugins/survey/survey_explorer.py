@@ -348,9 +348,6 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         if 'enable' in options or 'bareme_only' in options:
             enable1 =  self.get_option('enable')
             enable2 = not self.get_option('bareme_only')
-            print 'enable 1: ', enable1
-            print 'enable 2: ', enable2
-            print enable1 and enable2
             self.main.register_survey_widgets( enable1 and enable2 )
     
     #------ OpenfiscaPluginWidget API ---------------------------------------------
@@ -424,7 +421,7 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         '''
         Update Survey dataframes
         '''
-        self.starting_long_process(_("Refreshing survey explorer dataframe"))
+        self.starting_long_process(_("Refreshing survey explorer dataframe ..."))
         simulation = self.main.survey_simulation        
         if simulation.outputs is not None:
             self.add_dataframe(simulation.outputs.table, 

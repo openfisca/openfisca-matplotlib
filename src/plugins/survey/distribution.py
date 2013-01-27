@@ -87,7 +87,11 @@ class OpenfiscaPivotTable(object):
 
         initial_set = set([by_var, 'champm'])
         
-        data, data_default = self.simulation.aggregated_by_household(initial_set)
+        try:
+            data, data_default = self.simulation.aggregated_by_household(initial_set)
+        except:
+            self.simulation.compute()    
+            
         self.set_data(data, data_default)        
         
         dist_frame_dict = self.group_by(vars, by_var)
@@ -420,7 +424,7 @@ class DistributionWidget(OpenfiscaPluginWidget):
         '''
         Update distribution view
         '''
-        self.starting_long_process(_("Refreshing distribution table"))
+        self.starting_long_process(_("Refreshing distribution table ..."))
         by_var = self.distribution_by_var
         selection = self.selected_vars
         if self.openfisca_pivot_table is not None:
