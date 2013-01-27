@@ -79,16 +79,16 @@ class Aggregates(object):
         labels = dict()
         labels['var']    = u"Mesure"
         labels['entity'] = u"Entité"
-        labels['dep']    = u"Dépense\n(millions d'€)" 
-        labels['benef']  = u"Bénéficiaires\n(milliers)"
-        labels['dep_default']   = u"Dépense initiale\n(millions d'€)"
-        labels['benef_default'] = u"Bénéficiaires\ninitiaux\n(milliers)"
-        labels['dep_real']      = u"Dépenses\nréelles\n(millions d'€)"
-        labels['benef_real']    = u"Bénéficiaires\nréels\n(milliers)"
-        labels['dep_diff_abs']      = u"Diff. absolue\nDépenses\n(millions d'€) "
-        labels['benef_diff_abs']    = u"Diff absolue\nBénéficiaires\n(milliers)"
-        labels['dep_diff_rel']      = u"Diff. relative\nDépenses"
-        labels['benef_diff_rel']    = u"Diff. relative\nBénéficiaires"
+        labels['dep']    = u"Dépense \n(millions d'€)" 
+        labels['benef']  = u"Bénéficiaires \n(milliers)"
+        labels['dep_default']   = u"Dépense initiale \n(millions d'€)"
+        labels['benef_default'] = u"Bénéficiaires \ninitiaux \n(milliers)"
+        labels['dep_real']      = u"Dépenses \nréelles \n(millions d'€)"
+        labels['benef_real']    = u"Bénéficiaires \nréels \n(milliers)"
+        labels['dep_diff_abs']      = u"Diff. absolue \nDépenses \n(millions d'€) "
+        labels['benef_diff_abs']    = u"Diff absolue \nBénéficiaires \n(milliers)"
+        labels['dep_diff_rel']      = u"Diff. relative \nDépenses"
+        labels['benef_diff_rel']    = u"Diff. relative \nBénéficiaires"
         self.labels = labels
         self.labels_ordered_list = ['var', 'entity', 'dep', 'benef', 'dep_default', 'benef_default',
                                     'dep_real', 'benef_real', 'dep_diff_abs', 'benef_diff_abs',
@@ -160,19 +160,18 @@ class Aggregates(object):
         
         aggr_frame = DataFrame.from_items(items)
         
-        print aggr_frame
+
         self.aggr_frame = None
         for code in self.labels_ordered_list:
             try:
-                print self.labels[code]
                 col = aggr_frame[self.labels[code]]
                 if self.aggr_frame is None:
                     self.aggr_frame = DataFrame(col)
                 else:
-                    self.aggr_frame = self.aggr_frame.merge(col)
+                    self.aggr_frame = self.aggr_frame.join(col, how="outer")
             except:
                 pass
-        print self.aggr_frame.to_string()
+
 
 
     def get_aggregate(self, var):
@@ -187,7 +186,7 @@ class Aggregates(object):
 
         for name, data in datasets.iteritems():
             montants = data[var]
-            beneficiaires = data[var].values != 0
+            beneficiaires = data[var].values > 0
             m_b[name] = [int(round(sum(montants*self.wght)/10**6)),
                         int(round(sum(beneficiaires*self.wght)/10**3))]
         return m_b
@@ -216,6 +215,7 @@ class Aggregates(object):
         '''
         Computes and adds relative differences
         '''
+
         dep   = self.aggr_frame[self.labels['dep']]
         benef = self.aggr_frame[self.labels['benef']]
         
@@ -415,13 +415,13 @@ class AggregatesWidget(OpenfiscaPluginWidget):
         self.parent = parent
         self.aggregates = None
 
-        self.show_dep = True
-        self.show_benef = True        
-        self.show_real = True
-        self.show_diff = True
-        self.show_diff_abs = True
-        self.show_diff_rel = True
-        self.show_default = False
+        self.show_dep = self.get_option('show_dep')
+        self.show_benef = self.get_option('show_benef')        
+        self.show_real = self.get_option('show_real')
+        self.show_diff = self.get_option('show_diff')
+        self.show_diff_abs = self.get_option('show_diff_abs')
+        self.show_diff_rel = self.get_option('show_diff_rel')
+        self.show_default = self.get_option('show_default')
         
     def set_aggregates(self, aggregates):
         """
@@ -436,48 +436,13 @@ class AggregatesWidget(OpenfiscaPluginWidget):
     def ctx_select_menu(self, point):
         self.select_menu.exec_( self.headers.mapToGlobal(point) )
 
-    def toggle_show_default(self, boolean):
-        ''' 
-        Toggles reference values from administrative data
-        '''
-        self.show_default = boolean
-        self.update_view()
 
-    def toggle_show_real(self, boolean):
-        ''' 
-        Toggles reference values from administrative data
-        '''
-        self.show_real = boolean
-        self.update_view()
-            
-    def toggle_show_diff_abs(self, boolean):
-        ''' 
-        Toggles differences 
-        '''
-        self.show_diff_abs = boolean
-        self.update_view()
-
-    def toggle_show_diff_rel(self, boolean):
-        ''' 
-        Toggles differences 
-        '''
-        self.show_diff_rel = boolean
-        self.update_view()
-
-    def toggle_show_dep(self, boolean):
-        '''
-        Toggles to show amounts (dépenses) 
-        '''
+    def toggle_option(self, option, boolean):
+        self.set_option(option, boolean)
         self.show_dep = boolean
         self.update_view()
         
-    def toggle_show_benef(self, boolean):
-        '''
-        Toggles to show beneficiaries
-        ''' 
-        self.show_benef = boolean
-        self.update_view()
-        
+
         
     def update_view(self):
         '''
@@ -490,11 +455,11 @@ class AggregatesWidget(OpenfiscaPluginWidget):
 
         labels = self.aggregates.labels
         
-        if not self.show_real:
+        if not self.get_option('show_real'):
             cols.remove(labels['dep_real'])
             cols.remove(labels['benef_real'])
 
-        if not self.show_default:
+        if (not self.get_option('show_default')) or self.aggregates.simulation.reforme is False:
             cols.remove(labels['dep_default'])
             cols.remove(labels['benef_default'])
 
@@ -502,16 +467,16 @@ class AggregatesWidget(OpenfiscaPluginWidget):
         if not remove_all_diffs:
             self.aggregates.compute_diff()
         
-        if (not self.show_diff_abs) or remove_all_diffs:
+        if (not self.get_option('show_diff_abs')) or remove_all_diffs:
 
             cols.remove(labels['dep_diff_abs'])
             cols.remove(labels['benef_diff_abs'])    
         
-        if (not self.show_diff_rel) or remove_all_diffs: 
+        if (not self.get_option('show_diff_rel')) or remove_all_diffs: 
             cols.remove(labels['dep_diff_rel'])
             cols.remove(labels['benef_diff_rel'])
  
-        if not self.show_dep:
+        if not self.get_option('show_dep'):
             for label in [labels['dep'], labels['dep_real'],
                           labels['dep_default'], labels['dep_diff_abs'],
                           labels['dep_diff_rel']]:
@@ -519,7 +484,7 @@ class AggregatesWidget(OpenfiscaPluginWidget):
                 if label in cols:
                     cols.remove(label)
 
-        if not self.show_benef:
+        if not self.get_option('show_benef'):
             for label in [labels['benef'], labels['benef_real'], 
                           labels['benef_default'], labels['benef_diff_abs'],
                           labels['benef_diff_rel']]:
@@ -579,6 +544,19 @@ class AggregatesWidget(OpenfiscaPluginWidget):
                     QMessageBox.Ok, QMessageBox.NoButton)
 
     #------ OpenfiscaPluginMixin API ---------------------------------------------
+
+    def apply_plugin_settings(self, options):
+        """
+        Apply configuration file's plugin settings
+        """
+        show_options = ['show_default', 'show_real', 'show_diff_abs',
+                        'show_diff_abs', 'show_diff_rel', 'show_dep', 'show_benef']
+        
+        for option in options:
+            if option in show_options:
+                self.toggle_option(option, self.get_option(option))
+
+    
     #------ OpenfiscaPluginWidget API ---------------------------------------------
 
     def get_plugin_title(self):
@@ -630,19 +608,25 @@ class AggregatesWidget(OpenfiscaPluginWidget):
         self.description = self.aggregates.simulation.outputs.description
 
         self.select_menu = QMenu()
-        action_dep     = create_action(self, u"Dépenses",   toggled = self.toggle_show_dep)
-        action_benef     = create_action(self, u"Bénéficiaires", toggled = self.toggle_show_benef)
-        action_real    = create_action(self, u"Réel",       toggled = self.toggle_show_real)
-        action_diff_abs    = create_action(self, u"Diff. absolue", toggled = self.toggle_show_diff_abs)
-        action_diff_rel    = create_action(self, u"Diff. relative ", toggled = self.toggle_show_diff_rel)
-        action_default = create_action(self, u"Référence",  toggled = self.toggle_show_default)
+        action_dep = create_action(self, u"Dépenses", 
+                                   toggled = lambda boolean: self.toggle_option('show_dep', boolean))
+        action_benef = create_action(self, u"Bénéficiaires",
+                                     toggled = lambda boolean: self.toggle_option('show_benef', boolean))
+        action_real = create_action(self, u"Réel",
+                                   toggled = lambda boolean: self.toggle_option('show_real', boolean))
+        action_diff_abs = create_action(self, u"Diff. absolue",
+                                       toggled = lambda boolean: self.toggle_option('show_diff_abs', boolean))
+        action_diff_rel = create_action(self, u"Diff. relative ",
+                                       toggled = lambda boolean: self.toggle_option('show_diff_rel', boolean))
+        action_default = create_action(self, u"Référence",
+                                       toggled = lambda boolean: self.toggle_option('show_default', boolean))
                 
         actions = [action_dep, action_benef]        
         action_dep.toggle()
         action_benef.toggle()
                 
         if self.aggregates.simulation.reforme is False:
-            self.show_default = False
+            self.set_option('show_default', False) 
             if self.aggregates.totals_df is not None: # real available
                 actions.append(action_real)
                 actions.append(action_diff_abs)
@@ -651,12 +635,12 @@ class AggregatesWidget(OpenfiscaPluginWidget):
                 action_diff_abs.toggle()
                 action_diff_rel.toggle()
             else: 
-                self.show_real = False
-                self.show_diff_abs = False
-                self.show_diff_rel = False
+                self.set_option('show_real', False)
+                self.set_option('show_diff_abs', False)
+                self.set_option('show_diff_rel', False)
 
         else:
-            self.show_real = False
+            self.set_option('show_real', False)
             actions.append(action_default)
             actions.append(action_diff_abs)
             actions.append(action_diff_rel)            
