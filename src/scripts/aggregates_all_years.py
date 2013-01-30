@@ -15,21 +15,37 @@ import os
 
 country = 'france'
 destination_dir = "c:/users/utilisateur/documents/"
-fname_all = "aggregates.xlsx"
+fname_all = "aggregates_inflated_loyers.xlsx"
 fname_all = os.path.join(destination_dir, fname_all)              
 
 
+def get_loyer_inflator(year):
+    
+    xls = ExcelFile('../countries/france/data/sources/loyers.xlsx')
+    df = xls.parse('data', na_values=['NA'])   
+    irl_2006 = df[ (df['year'] == 2006) & (df['quarter'] == 1)]['irl']
+#    print irl_2006
+    irl = df[ (df['year'] == year) & (df['quarter'] == 1)]['irl']
+#    print irl 
+    return float(irl.values/irl_2006.values)
+
 def build_aggregates():
 
-    writer = None
-    years = ['2006', '2007', '2008', '2009']
-    for yr in years:
 
+
+
+    writer = None
+    years = range(2006,2010)
+    for year in years:
+        
+        yr = str(year)
 #        fname = "Agg_%s.%s" %(str(yr), "xls")
         simu = SurveySimulation()
         simu.set_config(year = yr, country = country)
         simu.set_param()
         simu.set_survey()
+        inflator = get_loyer_inflator(year)
+        simu.inflate_survey({'loyer' : inflator})
         simu.compute()
         
         agg = Aggregates()
