@@ -85,5 +85,5 @@ def diag_aggregates():
 if __name__ == '__main__':
 
 
-    #build_aggregates()
+    build_aggregates()
     diag_aggregates()

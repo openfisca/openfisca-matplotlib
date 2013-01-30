@@ -186,7 +186,7 @@ class Aggregates(object):
 
         for name, data in datasets.iteritems():
             montants = data[var]
-            beneficiaires = data[var].values > 0
+            beneficiaires = data[var].values != 0
             m_b[name] = [int(round(sum(montants*self.wght)/10**6)),
                         int(round(sum(beneficiaires*self.wght)/10**3))]
         return m_b
