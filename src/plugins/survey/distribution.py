@@ -58,11 +58,21 @@ class OpenfiscaPivotTable(object):
     
     
     def set_simulation(self, simulation):
+        """
+        Set the survey_simulation
+        
+        Parameters
+        ----------
+        
+        simulation : SurveySimulation
+        """
         if isinstance(simulation, SurveySimulation):
             self.simulation = simulation
             self.by_var_choices = self.simulation.var_list
         else:
             raise Exception('OpenfiscaPivotTable:  %s should be an instance of %s class'  %(simulation, SurveySimulation))
+
+
 
     @property
     def vars(self):
@@ -85,7 +95,7 @@ class OpenfiscaPivotTable(object):
         if vars is None:
             raise Exception("OpenfiscaPivotTable : get_table needs a 'vars' variable")
 
-        initial_set = set([by_var, 'champm'])
+        initial_set = set([by_var, 'champm'] + list(vars))
         
         try:
             data, data_default = self.simulation.aggregated_by_household(initial_set)
@@ -323,7 +333,7 @@ class DistributionWidget(OpenfiscaPluginWidget):
 
     def set_openfisca_pivot_table(self, openfisca_pivot_table):
         self.openfisca_pivot_table = openfisca_pivot_table
-        self.vars = self.openfisca_pivot_table.vars
+        self.vars = self.openfisca_pivot_table.vars 
         self.set_distribution_choices()
     
     def add_var(self):
@@ -343,6 +353,7 @@ class DistributionWidget(OpenfiscaPluginWidget):
             return
 
     def ask(self, remove=False):
+        self.vars = self.openfisca_pivot_table.vars
         if not remove:
             dialog_label = "Ajouter une variable"
             choices = self.vars - self.selected_vars
@@ -425,8 +436,10 @@ class DistributionWidget(OpenfiscaPluginWidget):
         Update distribution view
         '''
         self.starting_long_process(_("Refreshing distribution table ..."))
+
         by_var = self.distribution_by_var
         selection = self.selected_vars
+        print self.openfisca_pivot_table.simulation
         if self.openfisca_pivot_table is not None:
             frame = self.openfisca_pivot_table.get_table(by = by_var, vars = selection)
             self.view.set_dataframe(frame)
@@ -458,7 +471,5 @@ class DistributionWidget(OpenfiscaPluginWidget):
         Return True or False whether the plugin may be closed immediately or not
         Note: returned value is ignored if *cancelable* is False
         """
-        
-        
         
         return True
