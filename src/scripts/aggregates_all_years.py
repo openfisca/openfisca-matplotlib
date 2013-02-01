@@ -32,12 +32,9 @@ def get_loyer_inflator(year):
 def build_aggregates():
 
 
-
-
     writer = None
     years = range(2006,2010)
-    for year in years:
-        
+    for year in years:        
         yr = str(year)
 #        fname = "Agg_%s.%s" %(str(yr), "xls")
         simu = SurveySimulation()
@@ -97,9 +94,29 @@ def diag_aggregates():
     df_final.to_excel(writer, sheet_name="diagnostics", float_format="%.2f")
     writer.save()
 
+from src.plugins.survey.distribution import OpenfiscaPivotTable
+
+def get_age_structure(simulation):
+    
+    pivot_table = OpenfiscaPivotTable()
+    pivot_table.set_simulation(simulation)
+    df = pivot_table.get_table(entity = 'ind', by = "age", vars = [])
+    return df
+
+
+def test():
+    yr = 2006
+    country = 'france'
+    simu = SurveySimulation()
+    simu.set_config(year = yr, country = country)
+    simu.set_param()
+    simu.set_survey()
+    df = get_age_structure(simu)
+    print df.to_string()    
 
 if __name__ == '__main__':
 
 
-    build_aggregates()
-    diag_aggregates()
+#    build_aggregates()
+#    diag_aggregates()
+    test()

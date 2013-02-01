@@ -37,6 +37,7 @@ from src.core.simulation import SurveySimulation
 
 from src.plugins.__init__ import OpenfiscaPluginWidget, PluginConfigPage
 
+from src.core.utils_old import of_import
 from src.core.baseconfig import get_translation
 _ = get_translation('src')
 
@@ -72,8 +73,6 @@ class OpenfiscaPivotTable(object):
         else:
             raise Exception('OpenfiscaPivotTable:  %s should be an instance of %s class'  %(simulation, SurveySimulation))
 
-
-
     @property
     def vars(self):
         return set(self.simulation.var_list)
@@ -84,7 +83,7 @@ class OpenfiscaPivotTable(object):
             self.data_default = default
         self.wght = self.data['wprm']
 
-    def get_table(self, by = None, vars = None):
+    def get_table(self, by = None, vars = None, entity = None):
         '''
         Updated frame
         '''
@@ -97,10 +96,18 @@ class OpenfiscaPivotTable(object):
 
         initial_set = set([by_var, 'champm'] + list(vars))
         
+        country = self.simulation.country
+        if entity is None:
+            ENTITIES_INDEX = of_import(None, 'ENTITIES_INDEX', country) # import ENTITIES_INDEX from country.__init__.py
+            entity = ENTITIES_INDEX[0]
+
         try:
-            data, data_default = self.simulation.aggregated_by_household(initial_set)
+            data, data_default = self.simulation.aggregated_by_entity(entity,  initial_set)
         except:
-            self.simulation.compute()    
+            self.simulation.compute()
+            data, data_default = self.simulation.aggregated_by_entity(entity, initial_set)
+            
+        
             
         self.set_data(data, data_default)        
         
@@ -125,6 +132,9 @@ class OpenfiscaPivotTable(object):
             if col[-6:] == "__init":
                 frame.rename(columns = { col : self.simulation.var2label[col[:-6]] + " init."}, inplace = True) 
             else:
+                print frame
+                print col
+                print self.simulation.var2label[col]
                 frame.rename(columns = { col : self.simulation.var2label[col] }, inplace = True)
         
         if enum is not None:

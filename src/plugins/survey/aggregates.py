@@ -37,6 +37,7 @@ from src.core.config import get_icon
 from src.core.qthelpers import OfSs, DataFrameViewWidget
 from src.core.utils.qthelpers import create_action, add_actions
 
+from src.core.utils_old import of_import
 
 from src import SRC_PATH
 from src.core.simulation import SurveySimulation
@@ -101,11 +102,24 @@ class Aggregates(object):
         else:
             raise Exception('Aggregates:  %s should be an instance of %s class'  %(simulation, SurveySimulation))
           
-    def set_data(self):
+    def set_data(self, entity = None):
         """
-        Generates aggregates at the household level ('men') and get weights
+        Generates aggregates at the entity level and get weights
+        
+        Parameters
+        ---------
+        
+        entity : string, default None 
+                 one of the entities which list can be found in countries.country.__init__.py
+                 when None the first entity of ENTITIES_INDEX is used
+
         """
-        self.data, self.data_default = self.simulation.aggregated_by_household(self.varlist)
+        
+        country = self.simulation.country
+        if entity is None:
+            ENTITIES_INDEX = of_import(None, 'ENTITIES_INDEX', country) # import ENTITIES_INDEX from country.__init__.py
+            entity = ENTITIES_INDEX[0]
+        self.data, self.data_default = self.simulation.aggregated_by_entity(entity, self.varlist)
         self.wght = self.data['wprm']
 
     def compute(self):
