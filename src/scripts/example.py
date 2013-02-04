@@ -19,10 +19,9 @@ if __name__ == '__main__':
 
     simu = ScenarioSimulation()
     simu.set_config(year = yr, country = country, 
-                    nmen = 11, maxrev = 100000, xaxis = 'sali')
+                    nmen = 1, maxrev = 100000, xaxis = 'sali')
     simu.set_param()
-    
-    simu.compute()
+#    simu.disable_prestations( ['aefa'])
     df = simu.get_results_dataframe()
 
     print df.to_string()
