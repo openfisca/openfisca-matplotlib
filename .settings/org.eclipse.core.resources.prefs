@@ -80,6 +80,7 @@ encoding//src/resources_rc.py=utf-8
 encoding//src/scripts/aggregates_all_years.py=utf-8
 encoding//src/scripts/avantage_enfant.py=utf-8
 encoding//src/scripts/example.py=utf-8
+encoding//src/scripts/test_psl.py=utf-8
 encoding//src/setup.py=utf-8
 encoding//src/setup_x64.py=utf-8
 encoding//src/spyder_widgets/pydocgui.py=utf-8

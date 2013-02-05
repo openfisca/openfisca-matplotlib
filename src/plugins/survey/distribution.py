@@ -83,7 +83,7 @@ class OpenfiscaPivotTable(object):
             self.data_default = default
         self.wght = self.data['wprm']
 
-    def get_table(self, by = None, vars = None, entity = None):
+    def get_table(self, by = None, vars = None, entity = None, champm = True, do_not_use_weights = False):
         '''
         Updated frame
         '''
@@ -94,7 +94,10 @@ class OpenfiscaPivotTable(object):
         if vars is None:
             raise Exception("OpenfiscaPivotTable : get_table needs a 'vars' variable")
 
-        initial_set = set([by_var, 'champm'] + list(vars))
+        if champm:
+            initial_set = set([by_var, 'champm'] + list(vars))
+        else:
+            initial_set = vars
         
         country = self.simulation.country
         if entity is None:
@@ -107,18 +110,19 @@ class OpenfiscaPivotTable(object):
             self.simulation.compute()
             data, data_default = self.simulation.aggregated_by_entity(entity, initial_set)
             
-        
-            
         self.set_data(data, data_default)        
         
-        dist_frame_dict = self.group_by(vars, by_var)
+        dist_frame_dict = self.group_by(vars, by_var, champm=champm, do_not_use_weights=do_not_use_weights)
         
         frame = None
         for dist_frame in dist_frame_dict.itervalues():
             if frame is None:
                 frame = dist_frame.copy()
             else:
-                dist_frame.pop('wprm')
+                try:
+                    dist_frame.pop('wprm')
+                except:
+                    pass
                 frame = merge(frame, dist_frame, on=by_var)
                 
         by_var_label = self.simulation.var2label[by_var]
@@ -132,9 +136,6 @@ class OpenfiscaPivotTable(object):
             if col[-6:] == "__init":
                 frame.rename(columns = { col : self.simulation.var2label[col[:-6]] + " init."}, inplace = True) 
             else:
-                print frame
-                print col
-                print self.simulation.var2label[col]
                 frame.rename(columns = { col : self.simulation.var2label[col] }, inplace = True)
         
         if enum is not None:
@@ -160,7 +161,7 @@ class OpenfiscaPivotTable(object):
             # Computes aggregates by category
             keep = [category, 'wprm', 'champm'] + cols
             temp_data = data[keep].copy()
-            temp_data['wprm'] = temp_data['wprm']*temp_data['champm']
+            temp_data['wprm']   = temp_data['wprm']*temp_data['champm']
             keep.remove('champm')
             del keep['champm']
             temp = []
@@ -188,7 +189,7 @@ class OpenfiscaPivotTable(object):
             
         return aggr_dict
 
-    def group_by(self, varlist, category):
+    def group_by(self, varlist, category, champm=True, do_not_use_weights=False):
         '''
         Computes grouped aggregates
         '''
@@ -449,7 +450,6 @@ class DistributionWidget(OpenfiscaPluginWidget):
 
         by_var = self.distribution_by_var
         selection = self.selected_vars
-        print self.openfisca_pivot_table.simulation
         if self.openfisca_pivot_table is not None:
             frame = self.openfisca_pivot_table.get_table(by = by_var, vars = selection)
             self.view.set_dataframe(frame)

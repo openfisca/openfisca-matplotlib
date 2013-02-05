@@ -153,6 +153,9 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         
         if not self.get_option('enable') or self.main.survey_simulation is None:
             return
+
+        if self.get_option('reform') is True: # Reinitialize to False
+            self.set_option('reforme', False)
                 
         simulation = self.main.survey_simulation
         country = CONF.get('parameters', 'country')
@@ -349,6 +352,9 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
             enable1 =  self.get_option('enable')
             enable2 = not self.get_option('bareme_only')
             self.main.register_survey_widgets( enable1 and enable2 )
+            
+        if 'data_file' in options:
+            self.initialize()
     
     #------ OpenfiscaPluginWidget API ---------------------------------------------
 
