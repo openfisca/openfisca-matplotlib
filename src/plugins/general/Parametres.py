@@ -181,8 +181,11 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
             
         if 'datesim' in options:
             
+            datesim = self.get_option('datesim')
+            self.main.scenario_simulation.set_config(year = datesim[0:4])
             if self.main.survey_explorer.get_option('enable'):
                 self.main.register_survey_widgets(True)
+            
             self.reset()
     
     
