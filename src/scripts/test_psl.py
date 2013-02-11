@@ -36,7 +36,7 @@ def get_structure(simulation, by_var):
     
     pivot_table = OpenfiscaPivotTable()
     pivot_table.set_simulation(simulation)
-    df = pivot_table.get_table(entity = 'ind', by = by_var, vars = [])
+    df = pivot_table.get_table(entity = 'ind', by = by_var, vars = [], champm=False)
     return df
 
 
@@ -48,11 +48,12 @@ def test():
     simu.set_param()
     filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'survey_psl.h5')
     simu.set_survey(filename = filename)
-
+    simu.compute()
     
-    df = get_structure(simu, 'sali')
+    df = get_structure(simu, 'br_al')
     print df.to_string()    
 
+    
 if __name__ == '__main__':
     
 

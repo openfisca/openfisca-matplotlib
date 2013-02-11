@@ -97,7 +97,7 @@ class OpenfiscaPivotTable(object):
         if champm:
             initial_set = set([by_var, 'champm'] + list(vars))
         else:
-            initial_set = vars
+            initial_set = set([by_var] + list(vars))
         
         country = self.simulation.country
         if entity is None:
@@ -105,7 +105,7 @@ class OpenfiscaPivotTable(object):
             entity = ENTITIES_INDEX[0]
 
         try:
-            data, data_default = self.simulation.aggregated_by_entity(entity,  initial_set)
+            data, data_default = self.simulation.aggregated_by_entity(entity, initial_set)
         except:
             self.simulation.compute()
             data, data_default = self.simulation.aggregated_by_entity(entity, initial_set)
@@ -200,11 +200,17 @@ class OpenfiscaPivotTable(object):
 
         for name, data in datasets.iteritems():
             # Computes aggregates by category
-            keep = [category, 'wprm', 'champm'] 
-            temp_data = data[keep].copy()
-            temp_data['wprm'] = temp_data['wprm']*temp_data['champm']
-            keep.remove('champm')
-            del temp_data['champm']
+            if champm:
+                keep = [category, 'wprm', 'champm'] 
+                temp_data = data[keep].copy()
+                temp_data['wprm'] = temp_data['wprm']*temp_data['champm']
+                keep.remove('champm')
+                del temp_data['champm']
+            else:
+                keep = [category, 'wprm']
+                print data.columns
+                temp_data = data[keep].copy()
+
             temp = []
             for var in varlist:
                 temp_data[var] = temp_data['wprm']*data[var]
