@@ -335,127 +335,23 @@ class Calibration(object):
             self.frame = df.reset_index()
 
         
-
-
-def test():
-    from src.core.simulation import SurveySimulation
-    yr = 2006
-    country = 'france'
-    simu = SurveySimulation()
-    simu.set_config(year = yr, country = country)
-    simu.set_param()
-    simu.set_survey()
-
-    cal = Calibration()
-    cal.set_simulation(simu)
-
-    filename = "../countries/france/calibrations/calib_2006.csv"
-    cal.set_inputs_margins_from_file(filename, 2006)
-    
-    
-    cal.set_param('invlo', 3)
-    cal.set_param('up', 3)
-    cal.set_param('method', 'logit')
-
-    print cal.input_margins_df
-    print cal.frame
-    cal.calibrate()
-    print cal.frame
-    
-    
-from src.qt.QtGui import (QWidget, QMenu, QGroupBox, QButtonGroup)
-from src.plugins import OpenfiscaPluginWidget, PluginConfigPage
-from src.core.baseconfig import get_translation
-_ = get_translation("src")
-    
-class CalibrationConfigPage(PluginConfigPage):
-    def __init__(self, plugin, parent):
-        PluginConfigPage.__init__(self, plugin, parent)
-        self.get_name = lambda: _("Calibration")
-        
-    def setup_page(self):
-
-        import_group = QGroupBox(_("Calibration data")) # "Données d'enquête" 
-        import_bg = QButtonGroup(self)
-        import_label = QLabel(_("Location of calibration data for microsimulation")) # u"Emplacement des données d'enquête pour la microsimulation")
-
-        bareme_only_radio = self.create_radiobutton(_("Test case only"),  #u"Mode barème uniquement",
-                                                    'calibration/automatic', False,
-                                                    tip = u"Calibration systématique",    
-                                                    button_group= import_bg)
-        import_radio = self.create_radiobutton(_("The following file"),  # le fichier suivant",
-                                               'enable', True,
-                                               _("Calibration data file for micrsosimulation"), # "Fichier de données pour la microsimulation",
-                                               button_group=import_bg)
-        import_file = self.create_browsefile("", 'data_file',
-                                             filters='*.h5')
-        
-        self.connect(bareme_only_radio, SIGNAL("toggled(bool)"),
-                     import_file.setDisabled)
-        self.connect(import_radio, SIGNAL("toggled(bool)"),
-                     import_file.setEnabled)
-        import_file_layout = QHBoxLayout()
-        import_file_layout.addWidget(import_radio)
-        import_file_layout.addWidget(import_file)
-
-        import_layout = QVBoxLayout()
-        import_layout.addWidget(import_label)
-        import_layout.addWidget(bareme_only_radio)
-        import_layout.addLayout(import_file_layout)
-        import_group.setLayout(import_layout)
-
-        export_group = QGroupBox(_("Export"))
-        export_dir = self.create_browsedir(_("Export directory"), "table/export_dir")
-        choices = [('cvs', 'csv'),
-                   ('xls', 'xls'),]
-        table_format = self.create_combobox(_('Table export format'), choices, 'table/format') 
-        export_layout = QVBoxLayout()
-        export_layout.addWidget(export_dir)
-        export_layout.addWidget(table_format)
-        export_group.setLayout(export_layout)
-
-#        variables_group = QGroupBox(_("Columns")) 
-#        show_dep = self.create_checkbox(_("Display expenses"),
-#                                        'show_dep')
-#        show_benef = self.create_checkbox(_("Display beneficiaries"),
-#                                        'show_benef')
-#        show_real = self.create_checkbox(_("Display actual values"),
-#                                        'show_real')
-#        show_diff = self.create_checkbox(_("Display differences"),
-#                                        'show_diff')
-#        show_diff_rel = self.create_checkbox(_("Display relative differences"),
-#                                        'show_diff_rel')
-#        show_diff_abs = self.create_checkbox(_("Display absolute differences"),
-#                                        'show_diff_abs')                
-#        show_default = self.create_checkbox(_("Display default values"),
-#                                        'show_default')
-#
-#        variables_layout = QVBoxLayout()
-#        for combo in [show_dep, show_benef, show_real, show_diff, show_diff_abs,
-#                       show_diff_rel, show_default]:
-#            variables_layout.addWidget(combo)
-#        variables_group.setLayout(variables_layout)
-        
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(export_group)
-#        vlayout.addWidget(variables_group)
-        vlayout.addStretch(1)
-        self.setLayout(vlayout)
-
-class CalibrationWidget(OpenfiscaPluginWidget):
-    """
-    Aggregates Widget
-    """
-    CONF_SECTION = 'calibration'
-    CONFIGWIDGET_CLASS = CalibrationConfigPage
-
-    def __init__(self, parent = None):
+class CalibrationWidget(QDialog):
+    def __init__(self,  inputs, outputs = None, parent = None):
         super(CalibrationWidget, self).__init__(parent)
 
         self.aggregate_calculated = False
 
-        self.calibraton = None
+        if outputs:
+            self.aggregate_calculated = True
 
+        self.param = {}
+        self.inputs = None
+        self.frame = None
+        self.input_margins_df = None
+        self.output_margins_df   = None
+
+        self.totalpop = None
+        self.ini_totalpop = 0
         
         ## Create geometry
         self.setWindowTitle("Calibration")
@@ -550,10 +446,10 @@ class CalibrationWidget(OpenfiscaPluginWidget):
 
         self.calibration = None
         self.init_totalpop()
-
+        self.set_inputs(inputs)                
         self.init_param()
         self.set_inputs_margins_from_file()
-
+        self.outputs = outputs
     
     def add_toolbar_btn(self, tooltip = None, icon = None):
         btn = QPushButton(self)
@@ -566,19 +462,25 @@ class CalibrationWidget(OpenfiscaPluginWidget):
         return btn
         
     def init_totalpop(self):
-        if self.calibration is not None:
+        if self.totalpop:
             self.pop_checkbox.setChecked(True)
             self.pop_spinbox.setEnabled(True)
             self.pop_spinbox.spin.setEnabled(True)
-            self.pop_spinbox.spin.setValue(self.calibration.totalpop)
+            self.pop_spinbox.spin.setValue(self.totalpop)
         else:
             self.pop_checkbox.setChecked(False)
             self.pop_spinbox.setDisabled(True)
             self.pop_spinbox.spin.setDisabled(True)
 
-    def set_calibration(self, calibration):
-
-        label_str = u"Population initiale totale :" + str(int(round(self.calibration.ini_totalpop))) + u" ménages"
+    def set_inputs(self, inputs):
+#        self.inputs = inputs
+#        self.unit = 'men'
+#        self.weights = 1*self.inputs.get_value("wprm", inputs.index[self.unit])
+#        self.weights_init = self.inputs.get_value("wprm_init", inputs.index[self.unit])
+#        self.champm =  self.inputs.get_value("champm", self.inputs.index[self.unit])
+#        
+#        self.ini_totalpop = sum(self.weights_init*self.champm)
+        label_str = u"Population initiale totale :" + str(int(round(self.ini_totalpop))) + u" ménages"
         self.ini_totalpop_label.setText(label_str)
 
     def init_param(self):
@@ -590,7 +492,7 @@ class CalibrationWidget(OpenfiscaPluginWidget):
             if isinstance(widget, QComboBox):
                 for index in range(widget.count()):
                     if unicode(widget.itemData(index).toString()
-                               ) == unicode( self.get_option('method')):
+                               ) == unicode(CONF.get('calibration', 'method')):
                         break
                 widget.setCurrentIndex(index)
 
@@ -962,73 +864,31 @@ class CalibrationWidget(OpenfiscaPluginWidget):
 
         QDialog.accept(self)
 
-    #------ OpenfiscaPluginMixin API ---------------------------------------------
 
-    def apply_plugin_settings(self, options):
-        """
-        Apply configuration file's plugin settings
-        """
-        show_options = ['show_default', 'show_real', 'show_diff_abs',
-                        'show_diff_abs', 'show_diff_rel', 'show_dep', 'show_benef']
-        
-        for option in options:
-            if option in show_options:
-                self.toggle_option(option, self.get_option(option))
+def test():
+    from src.core.simulation import SurveySimulation
+    yr = 2006
+    country = 'france'
+    simu = SurveySimulation()
+    simu.set_config(year = yr, country = country)
+    simu.set_param()
+    simu.set_survey()
 
-    
-    #------ OpenfiscaPluginWidget API ---------------------------------------------
+    cal = Calibration()
+    cal.set_simulation(simu)
 
-    def get_plugin_title(self):
-        """
-        Return plugin title
-        Note: after some thinking, it appears that using a method
-        is more flexible here than using a class attribute
-        """
-        return "Aggregates"
-
-    
-    def get_plugin_icon(self):
-        """
-        Return plugin icon (QIcon instance)
-        Note: this is required for plugins creating a main window
-              (see SpyderPluginMixin.create_mainwindow)
-              and for configuration dialog widgets creation
-        """
-        return get_icon('OpenFisca22.png')
-            
-    def get_plugin_actions(self):
-        """
-        Return a list of actions related to plugin
-        Note: these actions will be enabled when plugin's dockwidget is visible
-              and they will be disabled when it's hidden
-        """
-        raise NotImplementedError
-    
-    def register_plugin(self):
-        """
-        Register plugin in OpenFisca's main window
-        """
-        self.main.add_dockwidget(self)
-
-
-    def refresh_plugin(self):
-        '''
-        Update aggregate outputs and refresh view
-        '''
-        
-        simulation = self.main.survey_simulation
-        self.starting_long_process(_("Refreshing calibration table ..."))
-
-        self.ending_long_process(_("Calibration table updated"))
+    filename = "../countries/france/calibrations/calib_2006.csv"
+    cal.set_inputs_margins_from_file(filename, 2006)
     
     
-    def closing_plugin(self, cancelable=False):
-        """
-        Perform actions before parent main window is closed
-        Return True or False whether the plugin may be closed immediately or not
-        Note: returned value is ignored if *cancelable* is False
-        """
-        return True    
+    cal.set_param('invlo', 3)
+    cal.set_param('up', 3)
+    cal.set_param('method', 'logit')
+
+    print cal.input_margins_df
+    print cal.frame
+    cal.calibrate()
+    print cal.frame
     
     
 if __name__ == '__main__':
