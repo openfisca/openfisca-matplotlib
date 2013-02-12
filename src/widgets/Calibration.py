@@ -32,14 +32,309 @@ from PyQt4.QtGui import (QLabel, QDialog, QHBoxLayout, QVBoxLayout, QPushButton,
                          QSpinBox, QDoubleSpinBox, QCheckBox, QInputDialog, QFileDialog, 
                          QMessageBox, QApplication, QCursor, QSpacerItem, QSizePolicy,
                          QDialogButtonBox)
-from core.qthelpers import MyComboBox, MySpinBox, MyDoubleSpinBox, DataFrameViewWidget, _fromUtf8, get_icon
-from widgets.matplotlibwidget import MatplotlibWidget
-from Config import CONF
-from core.columns import EnumCol, BoolCol, AgesCol, DateCol, BoolPresta, IntPresta
-from core.calmar import calmar
+from src.core.qthelpers import MyComboBox, MySpinBox, MyDoubleSpinBox, DataFrameViewWidget, _fromUtf8
+from src.widgets.matplotlibwidget import MatplotlibWidget
+from src.core.config import CONF
+from src.core.guiconfig import get_icon
+from src.core.columns import EnumCol, BoolCol, AgesCol, DateCol, BoolPresta, IntPresta
+from src.core.calmar import calmar
 
 MODCOLS = [EnumCol, BoolCol, BoolPresta, IntPresta, AgesCol, DateCol]
 
+
+class Calibration(object):
+    """
+    An object to calibrate survey data of a SurveySimulation
+    """
+    def __init__(self):
+        super(Calibration, self).__init__()
+
+        self.simulation = None
+        self.param = {}
+#        self.inputs = None
+        self.frame = None
+        self.input_margins_df = None
+        self.output_margins_df   = None
+
+        self.totalpop = None
+        self.ini_totalpop = None
+
+        self.param = {'use_proportions' : True, 'pondini': 'wprm_init', 'method' : None, 'up' : None, 'lo':None}
+        
+        
+    def __repr__(self):
+        return '%s \n simulation %s ' % (self.__class__.__name__, self.simulation)
+        
+    def set_totalpop(self, totalpop):
+        """
+        Sets total population
+        """
+        self.totalpop = totalpop
+        
+        
+    def set_simulation(self, simulation):
+        """
+        Set simulation 
+        """
+        self.simulation = simulation
+        inputs = self.simulation.survey
+        self.unit = 'men'
+        self.weights = 1*inputs.get_value("wprm", inputs.index[self.unit])
+        self.weights_init = inputs.get_value("wprm_init", inputs.index[self.unit])
+        self.champm =  inputs.get_value("champm", inputs.index[self.unit])
+        
+        self.ini_totalpop = sum(self.weights_init*self.champm)
+        
+        
+    def set_param(self, parameter, value):
+        """
+        Set parmeter
+        """
+        if parameter == 'lo':
+            self.param['lo'] = 1/value
+        else:
+            self.param[parameter] = value
+
+    def set_inputs_margins_from_file(self, filename, year):
+        self.set_margins_from_file(filename, year, source="input")
+
+    def set_margins_from_file(self, filename, year, source):
+        '''
+        Sets margins for inputs variable from file
+        '''
+        
+        # TODO read from h5 files
+        with open(filename) as f_tot:
+            totals = read_csv(f_tot,index_col = (0,1))
+        # if data for the configured year is not availbale leave margins empty
+        print totals.to_string()
+        year = str(year)
+        if year not in totals:
+            return
+        marges = {}
+        if source == 'input':
+            print 'coucou'
+            self.input_margins_df = totals.rename(columns = {year : 'target'}, inplace = False) 
+        elif source =='output':
+            self.output_margins_df = totals.rename(columns = {year : 'target'}, inplace = False) 
+            
+        for var, mod in totals.index:
+            if not marges.has_key(var):
+                marges[var] = {}
+            marges[var][mod] =  totals.get_value((var,mod),year)
+            
+        for var in marges.keys():
+            if var == 'totalpop': 
+                if source == "input" or source == "config" :
+                    totalpop = marges.pop('totalpop')[0]
+                    marges['totalpop'] = totalpop
+                    self.totalpop = totalpop
+            else:
+                self.add_var2(var, marges[var], source = source)
+
+
+
+
+
+    def add_var2(self, varname, target=None, source = 'free'):
+        '''
+        Add a variable in the dataframe
+        '''
+        w_init = self.weights_init*self.champm
+        w = self.weights*self.champm
+        inputs = self.simulation.survey
+        outputs = self.simulation.outputs
+
+        varcol = self.simulation.get_col(varname)
+        idx = inputs.index[self.unit]
+        enum = inputs.description.get_col('qui'+self.unit).enum
+        people = [x[1] for x in enum]
+
+        if inputs.description.has_col(varname):
+            value = inputs.get_value(varname, index = idx)
+        elif outputs.description.has_col(varname):
+            value = outputs.get_value(varname, index = idx, opt = people, sum_ = True)
+
+        label = varcol.label
+        # TODO: rewrite this using pivot table
+        items = [ ('marge'    , w[self.champm]  ), ('marge initiale' , w_init[self.champm] )]        
+        if varcol.__class__  in MODCOLS:
+            items.append(('mod',   value[self.champm]))
+            df = DataFrame.from_items(items)
+            res = df.groupby('mod', sort= True).sum()
+        else:
+            res = DataFrame(index = ['total'], 
+                            data = {'marge' : (value*w).sum(),
+                                    'marge initiale' : (value*w_init).sum()  } )
+        res.insert(0, u"modalités",u"")
+        res.insert(2, "cible", 0)
+        res.insert(2, u"cible ajustée", 0)
+        res.insert(4, "source", source)
+        mods = res.index
+    
+        if target is not None:
+            if len(mods) != len(target.keys()):
+                print 'Problem with variable : ', varname
+                print len(target.keys()), ' target keys for ', len(mods), ' modalities' 
+                print "modalities"
+                print mods
+                print "targets"
+                print target.keys()
+                print 'Skipping the variable'
+                drop_indices = [ (varname, mod) for mod in target.keys()]
+                if source == 'input':                    
+                    self.input_margins_df = self.input_margins_df.drop(drop_indices)
+                    self.input_margins_df.index.names = ['var','mod']
+                if source == 'output':
+                    self.output_margins_df = self.output_margins_df.drop(drop_indices)
+                    self.output_margins_df.index.names = ['var','mod']
+                return
+
+        if isinstance(varcol, EnumCol):
+            if varcol.enum:
+                enum = varcol.enum
+                res[u'modalités'] = [enum._vars[mod] for mod in mods]
+                res['mod'] = mods
+            else:
+                res[u'modalités'] = [mod for mod in mods]
+                res['mod'] = mods
+        elif isinstance(varcol, BoolCol) or isinstance(varcol, BoolPresta):
+            res[u'modalités'] = bool(mods)
+            res['mod']        = mods
+        elif isinstance(varcol, IntPresta):
+            res[u'modalités'] = mods
+            res['mod']        = mods
+        elif isinstance(varcol, AgesCol):
+            res[u'modalités'] = mods
+            res['mod'] = mods
+        else:
+            res[u'modalités'] = "total"
+            res['mod']  = 0
+
+        if label is not None:
+            res['variable'] = label
+        else:
+            res['variable'] = varname
+        res['var'] = varname
+
+        if target is not None: 
+            for mod, margin in target.iteritems():
+                if mod == varname:    # dirty to deal with non catgorical data
+                    res['cible'][0] = margin
+                else:
+                    res['cible'][mod] = margin     
+                        
+        if self.frame is None:
+            self.frame = res
+        else: 
+            self.frame = concat([self.frame, res])
+        
+        self.frame = self.frame.reset_index(drop=True)
+
+
+    def get_param(self):
+        p = {}
+        p['method'] = self.param['method']
+        p['lo']     = 1/self.param['invlo']
+        p['up']     = self.param['up']
+        p['use_proportions'] = True
+        p['pondini']  = 'wprm_init'
+        return p
+
+    def build_calmar_data(self, marges, weights_in):
+        '''
+        Builds the data dictionnary used as calmar input argument
+        '''
+        
+        # Select only champm ménages by nullifying weight for irrelevant ménages
+        inputs = self.simulation.survey
+        outputs = self.simulation.outputs
+        
+        data = {weights_in: self.weights_init*self.champm}
+        for var in marges:
+            if inputs.description.has_col(var):
+                data[var] = inputs.get_value(var, inputs.index[self.unit])
+            else:
+                if outputs:
+                    if outputs.description.has_col(var):
+                        idx = outputs.index[self.unit]
+                        enum = inputs.description.get_col('qui'+self.unit).enum
+                        people = [x[1] for x in enum]
+                        data[var] = outputs.get_value(var, index=idx, opt=people, sum_=True)        
+        return data
+
+    
+    def update_weights(self, marges, param = {}, weights_in='wprm_init'):
+        '''
+        Lauches calmar, stores new weights and returns adjusted margins
+        '''
+        data = self.build_calmar_data(marges, weights_in)
+        try:
+            val_pondfin, lambdasol, marge_new = calmar(data, marges, param = param, pondini=weights_in)
+        except Exception, e:
+            raise Exception("Calmar returned error '%s'" % e)
+
+        # Updating only champm weights
+        self.weights = val_pondfin*self.champm + self.weights*(logical_not(self.champm))
+        return marge_new    
+
+    def calibrate(self):
+        """
+        Calibrate according to margins found in frame
+        """
+
+        df = self.frame
+        inputs = self.simulation.survey
+        outputs = self.simulation.outputs
+        margins = {}
+        
+        if df is not None:
+            df = df.reset_index(drop=True)
+            df = df.set_index(['var','mod'], inplace = True)        
+            for var, mod in df.index:
+                # Dealing with non categorical vars ...
+                if df.get_value((var,mod), u"modalités") == 'total':
+                    margins[var] =  df.get_value((var,mod), 'cible')
+                #  ... and categorical vars
+                else:
+                    if not margins.has_key(var):
+                        margins[var] = {}
+                    margins[var][mod] =  df.get_value((var,mod), 'cible')
+                
+        param = self.get_param()
+
+        if self.totalpop is not None:
+            margins['totalpop'] = self.totalpop
+        adjusted_margins = self.update_weights(margins, param=param)
+        
+        if 'totalpop' in margins.keys():
+            del margins['totalpop']
+        
+        w = self.weights
+        for var in margins.keys():
+            if inputs.description.has_col(var):
+                value = inputs.get_value(var, inputs.index[self.unit])
+            else:
+                idx = outputs.index[self.unit]
+                enum = outputs._inputs.description.get_col('qui'+self.unit).enum
+                people = [x[1] for x in enum]
+                value = outputs.get_value(var, index=idx, opt=people, sum_=True)
+                
+            if isinstance(margins[var], dict):
+                items = [('marge', w  ),('mod', value)]
+                updated_margins = DataFrame.from_items(items).groupby('mod', sort= True).sum()                
+                for mod in margins[var].keys():
+                    df.set_value((var,mod), u"cible ajustée", adjusted_margins[var][mod])
+                    df.set_value((var,mod), u"marge", updated_margins['marge'][mod])
+            else:
+                updated_margin = (w*value).sum()
+                df.set_value((var,0), u"cible ajustée", adjusted_margins[var])
+                df.set_value((var,0), u"marge", updated_margin)
+        
+        if self.frame is not None:
+            self.frame = df.reset_index()
+
+        
 class CalibrationWidget(QDialog):
     def __init__(self,  inputs, outputs = None, parent = None):
         super(CalibrationWidget, self).__init__(parent)
@@ -149,7 +444,7 @@ class CalibrationWidget(QDialog):
 
 #        self.connect(self, SIGNAL('param_or_margins_changed()'), self)
 
-
+        self.calibration = None
         self.init_totalpop()
         self.set_inputs(inputs)                
         self.init_param()
@@ -178,13 +473,13 @@ class CalibrationWidget(QDialog):
             self.pop_spinbox.spin.setDisabled(True)
 
     def set_inputs(self, inputs):
-        self.inputs = inputs
-        self.unit = 'men'
-        self.weights = 1*self.inputs.get_value("wprm", inputs.index[self.unit])
-        self.weights_init = self.inputs.get_value("wprm_init", inputs.index[self.unit])
-        self.champm =  self.inputs.get_value("champm", self.inputs.index[self.unit])
-        
-        self.ini_totalpop = sum(self.weights_init*self.champm)
+#        self.inputs = inputs
+#        self.unit = 'men'
+#        self.weights = 1*self.inputs.get_value("wprm", inputs.index[self.unit])
+#        self.weights_init = self.inputs.get_value("wprm_init", inputs.index[self.unit])
+#        self.champm =  self.inputs.get_value("champm", self.inputs.index[self.unit])
+#        
+#        self.ini_totalpop = sum(self.weights_init*self.champm)
         label_str = u"Population initiale totale :" + str(int(round(self.ini_totalpop))) + u" ménages"
         self.ini_totalpop_label.setText(label_str)
 
@@ -369,98 +664,7 @@ class CalibrationWidget(QDialog):
         self.view.reset()
         self.plotWeightsRatios()   
                                         
-    def add_var2(self, varname, target=None, source = 'free'):
-        '''
-        Add a variable in the dataframe
-        '''
-        w_init = self.weights_init*self.champm
-        w = self.weights*self.champm
 
-        varcol = self.get_col(varname)
-        idx = self.inputs.index[self.unit]
-        enum = self.inputs.description.get_col('qui'+self.unit).enum
-        people = [x[1] for x in enum]
-
-        if self.inputs.description.has_col(varname):
-            value = self.inputs.get_value(varname, index = idx)
-        elif self.outputs.description.has_col(varname):
-            value = self.outputs.get_value(varname, index = idx, opt = people, sum_ = True)
-
-        label = varcol.label
-        # TODO: rewrite this using pivot table
-        items = [ ('marge'    , w[self.champm]  ), ('marge initiale' , w_init[self.champm] )]        
-        if varcol.__class__  in MODCOLS:
-            items.append(('mod',   value[self.champm]))
-            df = DataFrame.from_items(items)
-            res = df.groupby('mod', sort= True).sum()
-        else:
-            res = DataFrame(index = ['total'], 
-                            data = {'marge' : (value*w).sum(),
-                                    'marge initiale' : (value*w_init).sum()  } )
-        res.insert(0, u"modalités",u"")
-        res.insert(2, "cible", 0)
-        res.insert(2, u"cible ajustée", 0)
-        res.insert(4, "source", source)
-        mods = res.index
-    
-        if target is not None:
-            if len(mods) != len(target.keys()):
-                print 'Problem with variable : ', varname
-                print len(target.keys()), ' target keys for ', len(mods), ' modalities' 
-                print "modalities"
-                print mods
-                print "targets"
-                print target.keys()
-                print 'Skipping the variable'
-                drop_indices = [ (varname, mod) for mod in target.keys()]
-                if source == 'input':                    
-                    self.input_margins_df = self.input_margins_df.drop(drop_indices)
-                    self.input_margins_df.index.names = ['var','mod']
-                if source == 'output':
-                    self.output_margins_df = self.output_margins_df.drop(drop_indices)
-                    self.output_margins_df.index.names = ['var','mod']
-                return
-
-        if isinstance(varcol, EnumCol):
-            if varcol.enum:
-                enum = varcol.enum
-                res[u'modalités'] = [enum._vars[mod] for mod in mods]
-                res['mod'] = mods
-            else:
-                res[u'modalités'] = [mod for mod in mods]
-                res['mod'] = mods
-        elif isinstance(varcol, BoolCol) or isinstance(varcol, BoolPresta):
-            res[u'modalités'] = bool(mods)
-            res['mod']        = mods
-        elif isinstance(varcol, IntPresta):
-            res[u'modalités'] = mods
-            res['mod']        = mods
-        elif isinstance(varcol, AgesCol):
-            res[u'modalités'] = mods
-            res['mod'] = mods
-        else:
-            res[u'modalités'] = "total"
-            res['mod']  = 0
-
-        if label is not None:
-            res['variable'] = label
-        else:
-            res['variable'] = varname
-        res['var'] = varname
-
-        if target is not None: 
-            for mod, margin in target.iteritems():
-                if mod == varname:    # dirty to deal with non catgorical data
-                    res['cible'][0] = margin
-                else:
-                    res['cible'][mod] = margin     
-                        
-        if self.frame is None:
-            self.frame = res
-        else: 
-            self.frame = concat([self.frame, res])
-        
-        self.frame = self.frame.reset_index(drop=True)
 
              
     def set_param(self):
@@ -491,50 +695,9 @@ class CalibrationWidget(QDialog):
 #            else:
 #                self.margins._output_vars[varname] = sum(w*(value))
     
-    def get_param(self):
-        p = {}
-        p['method'] = self.param['method']
-        p['lo']     = 1/self.param['invlo']
-        p['up']     = self.param['up']
-        p['use_proportions'] = True
-        p['pondini']  = 'wprm_init'
-        return p
 
 
-    def build_calmar_data(self, marges, weights_in):
-        '''
-        Builds the data dictionnary used as calmar input argument
-        '''
-        
-        # Select only champm ménages by nullifying weght for irrelevant ménages
-        
-        data = {weights_in: self.weights_init*self.champm}
-        for var in marges:
-            if self.inputs.description.has_col(var):
-                data[var] = self.inputs.get_value(var, self.inputs.index[self.unit])
-            else:
-                if self.outputs:
-                    if self.outputs.description.has_col(var):
-                        idx = self.outputs.index[self.unit]
-                        enum = self.inputs.description.get_col('qui'+self.unit).enum
-                        people = [x[1] for x in enum]
-                        data[var] = self.outputs.get_value(var, index=idx, opt=people, sum_=True)        
-        return data
 
-    
-    def update_weights(self, marges, param = {}, weights_in='wprm_init'):
-        '''
-        Lauches calmar, stores new weights and returns adjusted margins
-        '''
-        data = self.build_calmar_data(marges, weights_in)
-        try:
-            val_pondfin, lambdasol, marge_new = calmar(data, marges, param = param, pondini=weights_in)
-        except Exception, e:
-            raise Exception("Calmar returned error '%s'" % e)
-
-        # Updating only champm weights
-        self.weights = val_pondfin*self.champm + self.weights*(logical_not(self.champm))
-        return marge_new    
     
     def calibrate(self):
         '''
@@ -606,34 +769,7 @@ class CalibrationWidget(QDialog):
         ax.set_ylabel(u"Densité")
         self.mplwidget.draw()
         
-    def set_margins_from_file(self, filename, year, source):
-        '''
-        Sets margins for inputs variable from file
-        '''
-        with open(filename) as f_tot:
-            totals = read_csv(f_tot,index_col = (0,1))
-        # if data for the configured year is not availbale leave margins empty
-        if year not in totals:
-            return
-        marges = {}
-        if source == 'input':
-            self.input_margins_df = DataFrame({'target':totals[year]})
-        elif source =='output':
-            self.output_margins_df = DataFrame({'target':totals[year]})
-            
-        for var, mod in totals.index:
-            if not marges.has_key(var):
-                marges[var] = {}
-            marges[var][mod] =  totals.get_value((var,mod),year)
-            
-        for var in marges.keys():
-            if var == 'totalpop': 
-                if source == "input" or source == "config" :
-                    totalpop = marges.pop('totalpop')[0]
-                    marges['totalpop'] = totalpop
-                    self.totalpop = totalpop
-            else:
-                self.add_var2(var, marges[var], source = source)
+
 
     def get_name_label_dict(self, variables_list):
         '''
@@ -650,17 +786,7 @@ class CalibrationWidget(QDialog):
             
         return varnames
     
-    def get_col(self, varname):
-        '''
-        Looks for a column in inputs description, then in outputs description
-        '''
-        if self.inputs.description.has_col(varname):
-            return self.inputs.description.get_col(varname)
-        elif self.outputs.description.has_col(varname):
-            return self.outputs.description.get_col(varname)
-        else:
-            print "Variable %s is absent from both inputs and outputs" % varname
-            return None
+
 
     def get_var_datatable(self, varname):
         if self.inputs.description.has_col(varname):
@@ -737,3 +863,36 @@ class CalibrationWidget(QDialog):
         self.parent().emit(SIGNAL('weights_changed()'))
 
         QDialog.accept(self)
+
+
+def test():
+    from src.core.simulation import SurveySimulation
+    yr = 2006
+    country = 'france'
+    simu = SurveySimulation()
+    simu.set_config(year = yr, country = country)
+    simu.set_param()
+    simu.set_survey()
+
+    cal = Calibration()
+    cal.set_simulation(simu)
+
+    filename = "../countries/france/calibrations/calib_2006.csv"
+    cal.set_inputs_margins_from_file(filename, 2006)
+    
+    
+    cal.set_param('invlo', 3)
+    cal.set_param('up', 3)
+    cal.set_param('method', 'logit')
+
+    print cal.input_margins_df
+    print cal.frame
+    cal.calibrate()
+    print cal.frame
+    
+    
+if __name__ == '__main__':
+
+
+    test()
+    
