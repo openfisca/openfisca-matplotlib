@@ -104,16 +104,29 @@ def get_age_structure(simulation):
     return df
 
 
-def test():
-    yr = 2006
-    country = 'france'
-    simu = SurveySimulation()
-    simu.set_config(year = yr, country = country)
-    simu.set_param()
-    simu.set_survey()
-    df = get_age_structure(simu)
-    print df.to_string()    
+from pandas import DataFrame
 
+def test():
+    for yr in range(2008,2009):
+        country = 'france'
+        simu = SurveySimulation()
+        simu.set_config(year = yr, country = country)
+        simu.set_param()
+        simu.set_survey()
+        df = get_age_structure(simu)
+        print df.to_string()
+        df = DataFrame({'x' : simu.survey.get_value("wprm", simu.survey.index['men'], sum_=True)})
+
+        print df.describe()
+
+        df2 = DataFrame({'y' : simu.survey.get_value("wprm", simu.survey.index['ind'], sum_=False)})
+        print df2.describe()
+
+        df3 = DataFrame({'z' : simu.survey.get_value("idmen", simu.survey.index['men'], sum_=True)})
+        df4 = DataFrame({'t' : simu.survey.get_value("noi", simu.survey.index['ind'])})
+        
+        print (df3.z==0).sum()
+        print (df4.t==1).describe()
 if __name__ == '__main__':
 
 

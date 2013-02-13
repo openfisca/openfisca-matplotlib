@@ -28,7 +28,7 @@ from numpy import logical_not, unique
 from pandas import read_csv, DataFrame, concat
 
 from PyQt4.QtCore import SIGNAL, Qt, QSize 
-from PyQt4.QtGui import (QLabel, QDialog, QHBoxLayout, QVBoxLayout, QPushButton, QComboBox, 
+from PyQt4.QtGui import (QLabel, QHBoxLayout, QVBoxLayout, QPushButton, QComboBox, 
                          QSpinBox, QDoubleSpinBox, QCheckBox, QInputDialog, QFileDialog, 
                          QMessageBox, QApplication, QCursor, QSpacerItem, QSizePolicy,
                          QDialogButtonBox)
@@ -39,7 +39,7 @@ from src.core.guiconfig import get_icon
 from src.core.columns import EnumCol, BoolCol, AgesCol, DateCol, BoolPresta, IntPresta
 from src.core.calmar import calmar
 
-from src.qt.compat import to_qvariant, from_qvariant
+from src.qt.compat import to_qvariant
 
 
 MODCOLS = [EnumCol, BoolCol, BoolPresta, IntPresta, AgesCol, DateCol]
@@ -58,7 +58,7 @@ class Calibration(object):
         self.param = {}
         self.frame = None
         self.input_margins_df = None
-        self.output_margins_df   = None
+        self.output_margins_df = None
 
         self.totalpop = None
         self.ini_totalpop = None
@@ -78,7 +78,13 @@ class Calibration(object):
         
         
     def reset(self):
+        """
+        Reset the calibration to it initial state
+        """
         self.frame = None
+        self.simulation.survey.set_value('wprm', self.weights_init, self.simulation.survey.index[self.unit])
+        self.simulation.survey.propagate_to_members( unit=self.unit, col='wprm')
+        
         
     def set_simulation(self, simulation):
         """
@@ -96,7 +102,7 @@ class Calibration(object):
         
     def set_param(self, parameter, value):
         """
-        Set parmeter
+        Set parameter
         """
         if parameter == 'lo':
             self.param['lo'] = 1/value
@@ -107,15 +113,13 @@ class Calibration(object):
         self.set_margins_from_file(filename, year, source="input")
 
     def set_margins_from_file(self, filename, year, source):
-        '''
+        """
         Sets margins for inputs variable from file
-        '''
-        
+        """
         # TODO read from h5 files
         with open(filename) as f_tot:
             totals = read_csv(f_tot,index_col = (0,1))
         # if data for the configured year is not availbale leave margins empty
-        
         year = str(year)
         if year not in totals:
             return
@@ -134,18 +138,27 @@ class Calibration(object):
             
         for var in marges.keys():
             if var == 'totalpop': 
-                if source == "input" or source == "config" :
+                if source == "input" or source == "config":
                     totalpop = marges.pop('totalpop')[0]
                     marges['totalpop'] = totalpop
                     self.totalpop = totalpop
             else:
                 self.add_var2(var, marges[var], source = source)
 
-
     def add_var2(self, varname, target=None, source = 'free'):
-        '''
+        """
         Add a variable in the dataframe
-        '''
+        
+        Parameters
+        ----------
+        
+        varname : str
+                  name of the variable
+        target : float
+                 target for the margin of the variable
+        source : str, default 'free'
+                 database source
+        """
         w_init = self.weights_init*self.champm
         w = self.weights*self.champm
         inputs = self.simulation.survey
@@ -258,12 +271,11 @@ class Calibration(object):
                  categories key and population        
         weights_in : str
                      name of the original weight variable
-                     
+                               
         Returns
         -------
         data : TODO:
         """
-        
         # Select only champm ménages by nullifying weight for irrelevant ménages
         inputs = self.simulation.survey
         outputs = self.simulation.outputs
