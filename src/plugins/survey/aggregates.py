@@ -108,11 +108,9 @@ class Aggregates(object):
         
         Parameters
         ---------
-        
         entity : string, default None 
                  one of the entities which list can be found in countries.country.__init__.py
                  when None the first entity of ENTITIES_INDEX is used
-
         """
         
         country = self.simulation.country

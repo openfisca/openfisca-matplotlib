@@ -51,7 +51,6 @@ class Calibration(object):
 
         self.simulation = None
         self.param = {}
-#        self.inputs = None
         self.frame = None
         self.input_margins_df = None
         self.output_margins_df   = None
@@ -61,6 +60,7 @@ class Calibration(object):
 
         self.param = {'use_proportions' : True, 'pondini': 'wprm_init', 'method' : None, 'up' : None, 'lo':None}
         
+        # TODO: add a champm option
         
     def __repr__(self):
         return '%s \n simulation %s ' % (self.__class__.__name__, self.simulation)
@@ -242,9 +242,23 @@ class Calibration(object):
         return p
 
     def build_calmar_data(self, marges, weights_in):
-        '''
+        """
         Builds the data dictionnary used as calmar input argument
-        '''
+        
+        Parameters
+        ----------
+        marges : dict
+                 Variables and their margins. A scalar var for numeric variables and a dict with 
+                 categories key and population        
+    
+        weights_in : str
+                     name of the original weight variable
+                     
+        Returns
+        -------
+        data : TODO:             
+        
+        """
         
         # Select only champm ménages by nullifying weight for irrelevant ménages
         inputs = self.simulation.survey
@@ -266,7 +280,22 @@ class Calibration(object):
     
     def update_weights(self, marges, param = {}, weights_in='wprm_init'):
         '''
-        Lauches calmar, stores new weights and returns adjusted margins
+        Runs calmar, stores new weights and returns adjusted margins
+        
+        Parameters
+        ----------
+        marges : dict
+                 Variables and their margins. A scalar var for numeric variables and a dict with 
+                 categories key and population        
+        param : dict
+                parameters of the calibration
+        weights_in : str
+                     name of the original weight variable
+                     
+        Returns
+        -------
+        marge_new : dict
+                    computed values of the margins             
         '''
         data = self.build_calmar_data(marges, weights_in)
         try:
@@ -335,7 +364,6 @@ class Calibration(object):
             self.frame = df.reset_index()
 
         
-
 
 def test():
     from src.core.simulation import SurveySimulation

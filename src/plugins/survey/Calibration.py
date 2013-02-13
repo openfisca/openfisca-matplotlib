@@ -39,8 +39,13 @@ from src.core.guiconfig import get_icon
 from src.core.columns import EnumCol, BoolCol, AgesCol, DateCol, BoolPresta, IntPresta
 from src.core.calmar import calmar
 
+from src.qt.compat import to_qvariant, from_qvariant
+
+
 MODCOLS = [EnumCol, BoolCol, BoolPresta, IntPresta, AgesCol, DateCol]
 
+
+from src import SRC_PATH
 
 class Calibration(object):
     """
@@ -51,7 +56,6 @@ class Calibration(object):
 
         self.simulation = None
         self.param = {}
-#        self.inputs = None
         self.frame = None
         self.input_margins_df = None
         self.output_margins_df   = None
@@ -61,6 +65,7 @@ class Calibration(object):
 
         self.param = {'use_proportions' : True, 'pondini': 'wprm_init', 'method' : None, 'up' : None, 'lo':None}
         
+        # TODO: add a champm option
         
     def __repr__(self):
         return '%s \n simulation %s ' % (self.__class__.__name__, self.simulation)
@@ -71,6 +76,9 @@ class Calibration(object):
         """
         self.totalpop = totalpop
         
+        
+    def reset(self):
+        self.frame = None
         
     def set_simulation(self, simulation):
         """
@@ -107,14 +115,15 @@ class Calibration(object):
         with open(filename) as f_tot:
             totals = read_csv(f_tot,index_col = (0,1))
         # if data for the configured year is not availbale leave margins empty
-        print totals.to_string()
+        
         year = str(year)
         if year not in totals:
             return
         marges = {}
-        if source == 'input':
-            print 'coucou'
+        if source == "input":
+            print 'Loading input margins'
             self.input_margins_df = totals.rename(columns = {year : 'target'}, inplace = False) 
+            print self.input_margins_df
         elif source =='output':
             self.output_margins_df = totals.rename(columns = {year : 'target'}, inplace = False) 
             
@@ -131,9 +140,6 @@ class Calibration(object):
                     self.totalpop = totalpop
             else:
                 self.add_var2(var, marges[var], source = source)
-
-
-
 
 
     def add_var2(self, varname, target=None, source = 'free'):
@@ -242,9 +248,21 @@ class Calibration(object):
         return p
 
     def build_calmar_data(self, marges, weights_in):
-        '''
+        """
         Builds the data dictionnary used as calmar input argument
-        '''
+        
+        Parameters
+        ----------
+        marges : dict
+                 Variables and their margins. A scalar var for numeric variables and a dict with 
+                 categories key and population        
+        weights_in : str
+                     name of the original weight variable
+                     
+        Returns
+        -------
+        data : TODO:
+        """
         
         # Select only champm ménages by nullifying weight for irrelevant ménages
         inputs = self.simulation.survey
@@ -265,9 +283,24 @@ class Calibration(object):
 
     
     def update_weights(self, marges, param = {}, weights_in='wprm_init'):
-        '''
-        Lauches calmar, stores new weights and returns adjusted margins
-        '''
+        """
+        Runs calmar, stores new weights and returns adjusted margins
+        
+        Parameters
+        ----------
+        marges : dict
+                 Variables and their margins. A scalar var for numeric variables and a dict with 
+                 categories key and population        
+        param : dict
+                parameters of the calibration
+        weights_in : str
+                     name of the original weight variable
+                     
+        Returns
+        -------
+        marge_new : dict
+                    computed values of the margins             
+        """
         data = self.build_calmar_data(marges, weights_in)
         try:
             val_pondfin, lambdasol, marge_new = calmar(data, marges, param = param, pondini=weights_in)
@@ -334,35 +367,98 @@ class Calibration(object):
         if self.frame is not None:
             self.frame = df.reset_index()
 
+    def set_calibrated_weights(self):
+        """
+        Modify the weights to use the calibrated weight
+        """
+        self.simulation.survey.set_value('wprm', self.weights, self.simulation.survey.index[self.unit])
+        self.simulation.survey.propagate_to_members( unit=self.unit, col='wprm')        
+
+
+from src.qt.QtGui import (QGroupBox, QButtonGroup)
+from src.plugins import OpenfiscaPluginWidget, PluginConfigPage
+from src.core.baseconfig import get_translation
+_ = get_translation("src")
+    
+class CalibrationConfigPage(PluginConfigPage):
+    def __init__(self, plugin, parent):
+        PluginConfigPage.__init__(self, plugin, parent)
+        self.get_name = lambda: _("Calibration")
         
-class CalibrationWidget(QDialog):
-    def __init__(self,  inputs, outputs = None, parent = None):
+    def setup_page(self):
+
+        import_group = QGroupBox(_("Calibration data")) # "Données d'enquête" 
+        import_bg = QButtonGroup(self)
+        import_label = QLabel(_("Location of calibration data for microsimulation")) # u"Emplacement des données d'enquête pour la microsimulation")
+
+        syst_calib_radio = self.create_radiobutton(_("Calibration systématique"),  #u"Mode barème uniquement",
+                                                    'automatic', False,
+                                                    tip = u"Calibration systématique",    
+                                                    button_group= import_bg)
+        import_radio = self.create_radiobutton(_("The following file"),  # le fichier suivant",
+                                               'enable', True,
+                                               _("Calibration data file for micrsosimulation"), # "Fichier de données pour la microsimulation",
+                                               button_group=import_bg)
+        import_file = self.create_browsefile("", 'inputs_filename',
+                                             filters='*.h5')
+        
+        self.connect(syst_calib_radio, SIGNAL("toggled(bool)"),
+                     import_file.setDisabled)
+        self.connect(import_radio, SIGNAL("toggled(bool)"),
+                     import_file.setEnabled)
+        import_file_layout = QHBoxLayout()
+        import_file_layout.addWidget(import_radio)
+        import_file_layout.addWidget(import_file)
+
+        import_layout = QVBoxLayout()
+        import_layout.addWidget(import_label)
+        import_layout.addWidget(syst_calib_radio)
+        import_layout.addLayout(import_file_layout)
+        import_group.setLayout(import_layout)
+
+#        export_group = QGroupBox(_("Export"))
+#        export_dir = self.create_browsedir(_("Export directory"), "table/export_dir")
+#        choices = [('cvs', 'csv'),
+#                   ('xls', 'xls'),]
+#        table_format = self.create_combobox(_('Table export format'), choices, 'table/format') 
+#        export_layout = QVBoxLayout()
+#        export_layout.addWidget(export_dir)
+#        export_layout.addWidget(table_format)
+#        export_group.setLayout(export_layout)
+
+
+        
+        vlayout = QVBoxLayout()
+        vlayout.addWidget(import_group)
+#        vlayout.addWidget(export_group)
+        vlayout.addStretch(1)
+        self.setLayout(vlayout)
+
+class CalibrationWidget(OpenfiscaPluginWidget):
+    """
+    Calibration Widget
+    """
+    CONF_SECTION = 'calibration'
+    CONFIGWIDGET_CLASS = CalibrationConfigPage
+
+    def __init__(self, parent = None):
         super(CalibrationWidget, self).__init__(parent)
 
         self.aggregate_calculated = False
 
-        if outputs:
-            self.aggregate_calculated = True
+        self.calibraton = None
 
-        self.param = {}
-        self.inputs = None
-        self.frame = None
-        self.input_margins_df = None
-        self.output_margins_df   = None
-
-        self.totalpop = None
-        self.ini_totalpop = 0
         
         ## Create geometry
-        self.setWindowTitle("Calibration")
-        self.setObjectName("Calibration")
+        self.setWindowTitle(_("Calibration"))
+        self.setObjectName(_("Calibration"))
 
-        # Parameters widgets
+        # Parameters widgets TODO: use _() 
         up_spinbox      = MyDoubleSpinBox(self, 'Ratio maximal','','',min_=1, max_=100, step=1, value = CONF.get('calibration', 'up'), changed = self.set_param)
         invlo_spinbox   = MyDoubleSpinBox(self, 'Inverse du ratio minimal','','',min_=1, max_=100, step=1, value = CONF.get('calibration', 'invlo'), changed = self.set_param)                 
         method_choices  = [(u'Linéaire', 'linear'),(u'Raking ratio', 'raking ratio'), (u'Logit', 'logit')]
         method_combo     = MyComboBox(self, u'Choix de la méthode', method_choices)
-        self.param_widgets = {'up': up_spinbox.spin, 'invlo': invlo_spinbox.spin, 'method': method_combo.box}        
+        self.param_widgets = {'up': up_spinbox.spin, 'invlo': invlo_spinbox.spin, 'method': method_combo.box}
 
         # Total population widget
         self.ini_totalpop_label = QLabel("", parent = self) 
@@ -370,7 +466,6 @@ class CalibrationWidget(QDialog):
         self.pop_spinbox = MySpinBox(self, u" Cible :", "", option = None ,min_=15e6, max_=30e6, step=5e6, changed = self.set_totalpop)
         self.pop_spinbox.setDisabled(True)
 
-        
         # Margins table view
         self.view = DataFrameViewWidget(self)
         
@@ -424,11 +519,9 @@ class CalibrationWidget(QDialog):
         # weights ratio plot        
         self.mplwidget = MatplotlibWidget(self)
         verticalLayout.addWidget(self.mplwidget)
-
-        
+       
         button_box = QDialogButtonBox(QDialogButtonBox.Cancel| QDialogButtonBox.Ok, parent = self)
         verticalLayout.addWidget(button_box)
-
 
         # Connect signals
         self.connect(method_combo.box, SIGNAL('currentIndexChanged(int)'), self.set_param)        
@@ -445,11 +538,9 @@ class CalibrationWidget(QDialog):
 #        self.connect(self, SIGNAL('param_or_margins_changed()'), self)
 
         self.calibration = None
-        self.init_totalpop()
-        self.set_inputs(inputs)                
-        self.init_param()
-        self.set_inputs_margins_from_file()
-        self.outputs = outputs
+
+    def reject(self):
+        pass
     
     def add_toolbar_btn(self, tooltip = None, icon = None):
         btn = QPushButton(self)
@@ -462,25 +553,28 @@ class CalibrationWidget(QDialog):
         return btn
         
     def init_totalpop(self):
-        if self.totalpop:
+        """
+        Sets intial value for the population spinbox
+        """
+        if self.calibration is not None:
+            if self.calibration.totalpop is None:
+                self.calibration.totalpop = 1*self.calibration.ini_totalpop
             self.pop_checkbox.setChecked(True)
             self.pop_spinbox.setEnabled(True)
             self.pop_spinbox.spin.setEnabled(True)
-            self.pop_spinbox.spin.setValue(self.totalpop)
+            self.pop_spinbox.spin.setValue(self.calibration.totalpop)
         else:
             self.pop_checkbox.setChecked(False)
             self.pop_spinbox.setDisabled(True)
             self.pop_spinbox.spin.setDisabled(True)
 
-    def set_inputs(self, inputs):
-#        self.inputs = inputs
-#        self.unit = 'men'
-#        self.weights = 1*self.inputs.get_value("wprm", inputs.index[self.unit])
-#        self.weights_init = self.inputs.get_value("wprm_init", inputs.index[self.unit])
-#        self.champm =  self.inputs.get_value("champm", self.inputs.index[self.unit])
-#        
-#        self.ini_totalpop = sum(self.weights_init*self.champm)
-        label_str = u"Population initiale totale :" + str(int(round(self.ini_totalpop))) + u" ménages"
+    def set_calibration(self, calibration):
+        """
+        Set calibration and initialize totalpop
+        """
+        
+        self.calibration = calibration
+        label_str = u"Population initiale totale :" + str(int(round(self.calibration.ini_totalpop))) + u" ménages"
         self.ini_totalpop_label.setText(label_str)
 
     def init_param(self):
@@ -491,30 +585,39 @@ class CalibrationWidget(QDialog):
             widget = self.param_widgets[parameter]
             if isinstance(widget, QComboBox):
                 for index in range(widget.count()):
-                    if unicode(widget.itemData(index).toString()
-                               ) == unicode(CONF.get('calibration', 'method')):
+                    if unicode(to_qvariant(widget.itemData(index))
+                               ) == unicode( self.get_option('method')):
                         break
                 widget.setCurrentIndex(index)
 
     
     def set_inputs_margins_from_file(self, filename = None, year = None):
+        
+        if self.calibration is None:
+            return
         if year is None:
-            year     = str(CONF.get('simulation','datesim').year)
+            year     = str(self.calibration.simulation.datesim.year)
         if filename is None:
-            fname    = CONF.get('calibration','inputs_filename')
-            data_dir = CONF.get('paths', 'data_dir')
-            filename = os.path.join(data_dir, fname)
-        self.set_margins_from_file(filename, year, source="input")
+            fname    = self.get_option('inputs_filename')
+#            country = self.calibration.simulation.country
+#            data_dir = os.path.join(SRC_PATH, 'countries', country, 'calibrations')
+            filename = os.path.join(SRC_PATH, fname)
+        self.calibration.set_margins_from_file(filename, year, source="input")
         self.init_totalpop()
     
-    def add_var(self, source = 'free'):
+    def add_var(self, source = 'input'):
         '''
         Adds a variable to the margins
-        source can be 'free' (default), 'input' or 'output'
+        
+        Parameters
+        ----------
+        source : str, default to 'free'
+                 Can be 'free' (default), 'input' or 'output' according to the variable
         '''
-#        if   result == "add_input_margin" : self.add_input_margin()
-#        elif result == "add_output_margin": self.add_output_margin()
-        lists      = {'input': self.input_vars_list, 'output': self.output_vars_list, 'free': self.free_vars_list}        
+
+#        TODO: fix this lists      = {'input': self.input_vars_list, 'output': self.output_vars_list, 'free': self.free_vars_list}        
+        
+        lists      = {'input': self.input_vars_list}
         
         variables_list = lists[source]
         varnames = self.get_name_label_dict(variables_list) # {varname: varlabel}
@@ -522,7 +625,7 @@ class CalibrationWidget(QDialog):
         varlabel, ok = QInputDialog.getItem(self.parent(), "Ajouter une variable", "Nom de la variable", 
                                            sorted(varnames.keys()))
         
-        insertion = ok and not(varlabel.isEmpty()) and (varlabel in sorted(varnames.keys()))
+        insertion = ok and (varlabel in sorted(varnames.keys()))
         if insertion:
             varname = varnames[varlabel]
             datatable_name = self.get_var_datatable(varname)
@@ -559,30 +662,30 @@ class CalibrationWidget(QDialog):
                             return
                     
             if target:
-                self.add_var2(varname, target = target, source=source)
+                self.calibration.add_var2(varname, target = target, source=source)
                 self.param_or_margins_changed()
         
     def rmv_var(self):
         '''
         Removes variable from the margins
         '''
-        vars_in_table = self.frame['var'].unique() 
+        vars_in_table = self.calibration.frame['var'].unique() 
         varnames = self.get_name_label_dict(vars_in_table)        
         varlabel, ok = QInputDialog.getItem(self.parent(), "Ajouter une variable", "Nom de la variable", 
                                            sorted(varnames.keys()))
         varname = varnames[varlabel]
-        deletion = ok and not(varlabel.isEmpty())
+        deletion = ok and (varlabel)
         if deletion:
-            df =  self.frame.reset_index(drop=True)
+            df =  self.calibration.frame.reset_index(drop=True)
             cleaned = df[df['var'] != varname]
-            self.frame = cleaned 
+            self.calibration.frame = cleaned 
         self.param_or_margins_changed()
         
     def rst_var(self):
         '''
         Removes all variables from the margins
         '''
-        self.frame = None
+        self.calibration.reset()
         self.pop_checkbox.setChecked(False)        
         self.pop_spinbox.setDisabled(True)
         self.pop_spinbox.spin.setDisabled(True)
@@ -594,8 +697,8 @@ class CalibrationWidget(QDialog):
         '''
         List of the variables appearing in the table (and the dataframe)
         '''
-        if self.frame:
-            df = self.frame
+        df = self.calibration.frame
+        if df is not None:
             if 'var' in df.columns: 
                 return list(df['var'].unique())
         else:
@@ -606,11 +709,13 @@ class CalibrationWidget(QDialog):
         '''
         List of the input variable with available margins
         '''
-        if self.input_margins_df:
-            df = self.input_margins_df.reset_index()
+        input_margins_df = self.calibration.input_margins_df
+        inputs = self.calibration.simulation.survey
+        if input_margins_df is not None:
+            df = input_margins_df.reset_index()
             #  TODO 'config' 
             set_ic = set(df['var'].unique())
-            lic = set_ic.intersection( set(self.inputs.description.col_names))
+            lic = set_ic.intersection( set(inputs.description.col_names))
             return sorted(list(lic - set(self.table_vars_list)))
         else:
             return []
@@ -620,18 +725,27 @@ class CalibrationWidget(QDialog):
         '''
         Builds the sorted list of all accessible variables
         '''
-        outset = set(self.inputs.col_names) - set(self.table_vars_list)
+        inputs = self.calibartion.simulation.inputs
+        outputs = self.calibartion.simulation.outputs
+        outset = set(inputs.col_names) - set(self.table_vars_list)
         if self.aggregate_calculated:
-            outset = outset.union(set(self.outputs.col_names)) - set(self.table_vars_list)
+            outset = outset.union(set(outputs.col_names)) - set(self.table_vars_list)
         return sorted(list(outset))
     
     @property
     def output_vars_list(self):
-        if self.output_margins_df is not None:
-            df = self.output_margins_df.reset_index() 
+        
+
+        output_margins_df = self.output_margins_df
+        try:
+            outputs = self.calibartion.simulation.outputs
+        except:
+            return []
+        if output_margins_df is not None:
+            df = output_margins_df.reset_index() 
             #   data_oc = df[ df['source'] == 'output'] # + df['source'] == 'config']
             set_oc = set(df['var'].unique())
-            loc = set_oc.intersection( set(self.outputs.col_names))
+            loc = set_oc.intersection( set(outputs.col_names))
             return sorted(list(loc - set(self.table_vars_list)))
         else:
             return []
@@ -657,26 +771,28 @@ class CalibrationWidget(QDialog):
         
     def update_view(self):
         self.view.clear()
-        if self.frame is not None:
-            df = self.frame.reset_index(drop=True)
+        if self.calibration.frame is not None:
+            df = self.calibration.frame.reset_index(drop=True)
             df_view = df[ ["var", u"modalités", "cible", u"cible ajustée", "marge", "marge initiale", "variable" ]]            
             self.view.set_dataframe(df_view)
         self.view.reset()
         self.plotWeightsRatios()   
                                         
-
-
-             
     def set_param(self):
         '''
         Set parameters from box widget values
         '''
+        if self.calibration is None:
+            return
+        elif self.calibration.simulation is None:
+            return
+         
         for parameter, widget in self.param_widgets.iteritems():
             if isinstance(widget, QComboBox):
                 data = widget.itemData(widget.currentIndex())                
-                self.param[parameter] = unicode(data.toString())
+                self.calibration.param[parameter] = unicode(to_qvariant(data))
             if isinstance(widget, QSpinBox) or isinstance(widget, QDoubleSpinBox):
-                self.param[parameter] = widget.value()
+                self.calibration.param[parameter] = widget.value()
         self.param_or_margins_changed()        
         return True
                 
@@ -694,82 +810,30 @@ class CalibrationWidget(QDialog):
 #                self.margins._output_vars[varname][False] = sum(w*(value == False))
 #            else:
 #                self.margins._output_vars[varname] = sum(w*(value))
-    
-
-
-
-    
+        
     def calibrate(self):
-        '''
+        """
         Calibrate accoding to margins found in frame
-        '''
-        if self.frame is None and self.totalpop is None:
-            self.update_view()
-            return
-
-
-        df = self.frame
-        inputs = self.inputs
-        margins = {}
-        
-        if df is not None:
-            df = df.reset_index(drop=True)
-            df = df.set_index(['var','mod'], inplace = True)        
-            for var, mod in df.index:
-                # Dealing with non categorical vars ...
-                if df.get_value((var,mod), u"modalités") == 'total':
-                    margins[var] =  df.get_value((var,mod), 'cible')
-                #  ... and categorical vars
-                else:
-                    if not margins.has_key(var):
-                        margins[var] = {}
-                    margins[var][mod] =  df.get_value((var,mod), 'cible')
-                
-        param = self.get_param()
-
-        if self.totalpop is not None:
-            margins['totalpop'] = self.totalpop
-        adjusted_margins = self.update_weights(margins, param=param)
-        
-        if 'totalpop' in margins.keys():
-            del margins['totalpop']
-        
-        w = self.weights
-        for var in margins.keys():
-            if inputs.description.has_col(var):
-                value = inputs.get_value(var, inputs.index[self.unit])
-            else:
-                idx = self.outputs.index[self.unit]
-                enum = self.outputs._inputs.description.get_col('qui'+self.unit).enum
-                people = [x[1] for x in enum]
-                value = self.outputs.get_value(var, index=idx, opt=people, sum_=True)
-                
-            if isinstance(margins[var], dict):
-                items = [('marge', w  ),('mod', value)]
-                updated_margins = DataFrame.from_items(items).groupby('mod', sort= True).sum()                
-                for mod in margins[var].keys():
-                    df.set_value((var,mod), u"cible ajustée", adjusted_margins[var][mod])
-                    df.set_value((var,mod), u"marge", updated_margins['marge'][mod])
-            else:
-                updated_margin = (w*value).sum()
-                df.set_value((var,0), u"cible ajustée", adjusted_margins[var])
-                df.set_value((var,0), u"marge", updated_margin)
-        
-        if self.frame is not None:
-            self.frame = df.reset_index()
+        """
+        self.starting_long_process(_("Starting calibration"))
+        self.calibration.calibrate()
         self.update_view()
+        self.ending_long_process(_("Microsimulation data calibrated"))
         self.calibrate_btn.setDisabled(True)
+    
                     
     def plotWeightsRatios(self):
         ax = self.mplwidget.axes
         ax.clear()
-        weight_ratio = self.weights/self.weights_init
-        ax.hist(weight_ratio, 50, normed=1, histtype='stepfilled')
-        ax.set_xlabel(u"Poids relatifs")
-        ax.set_ylabel(u"Densité")
-        self.mplwidget.draw()
         
-
+        try:
+            weight_ratio = self.calibration.weights/self.calibration.weights_init
+            ax.hist(weight_ratio, 50, normed=1, histtype='stepfilled')
+            ax.set_xlabel(u"Poids relatifs")
+            ax.set_ylabel(u"Densité")
+            self.mplwidget.draw()
+        except:
+            pass
 
     def get_name_label_dict(self, variables_list):
         '''
@@ -777,7 +841,7 @@ class CalibrationWidget(QDialog):
         '''
         varnames = {}
         for varname in variables_list:
-            varcol = self.get_col(varname)
+            varcol = self.calibration.simulation.get_col(varname)
             if varcol:
                 if varcol.label:
                     varnames[_fromUtf8(varcol.label)] = varname
@@ -789,9 +853,9 @@ class CalibrationWidget(QDialog):
 
 
     def get_var_datatable(self, varname):
-        if self.inputs.description.has_col(varname):
+        if self.calibration.simulation.survey.description.has_col(varname):
             return 'inputs'
-        elif self.outputs.description.has_col(varname):
+        elif self.self.calibration.simulation.outputs.description.has_col(varname):
             return 'outputs'
         else:
             print "Variable %s is absent from both inputs and outputs" % varname
@@ -803,8 +867,8 @@ class CalibrationWidget(QDialog):
         '''
         # TODO: add  param
         # param_dict = self.get_param()
-        year     = str(CONF.get('simulation','datesim').year)
-        df = self.frame
+        year     = CONF.get('parameters','datesim')[:4]
+        df = self.calibration.frame
         
         if df is None:
             QMessageBox.critical(
@@ -849,50 +913,143 @@ class CalibrationWidget(QDialog):
 
         if fileName:
             QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-            self.set_margins_from_file(fileName, year = year, source='config')
+            self.set_margins_from_file(fileName, year=year, source='config')
             self.init_totalpop()
             QApplication.restoreOverrideCursor()    
             self.param_or_margins_changed()
 
     def accept(self):
         '''
-        Updates inputs weights and close dialog
+        Updates inputs weights
         '''
-        self.inputs.set_value('wprm', self.weights, self.inputs.index[self.unit])
-        self.inputs.propagate_to_members( unit=self.unit, col = 'wprm')
-        self.parent().emit(SIGNAL('weights_changed()'))
+        self.starting_long_process(_("Setting calibrated weights ..."))
+        self.calibration.set_calibrated_weights()
+        self.ending_long_process(_("Calibration weights set"))
+        self.main.refresh_survey_plugins()
+# TODO: remove me when done
+#        self.parent().emit(SIGNAL('weights_changed()'))
 
-        QDialog.accept(self)
+#        QDialog.accept(self)
+
+    #------ OpenfiscaPluginMixin API ---------------------------------------------
+
+    def apply_plugin_settings(self, options):
+        """
+        Apply configuration file's plugin settings
+        """
+        pass
+
+    
+    #------ OpenfiscaPluginWidget API ---------------------------------------------
+
+    def get_plugin_title(self):
+        """
+        Return plugin title
+        Note: after some thinking, it appears that using a method
+        is more flexible here than using a class attribute
+        """
+        return _("Calibration")
+
+    
+    def get_plugin_icon(self):
+        """
+        Return plugin icon (QIcon instance)
+        Note: this is required for plugins creating a main window
+              (see SpyderPluginMixin.create_mainwindow)
+              and for configuration dialog widgets creation
+        """
+        return get_icon('OpenFisca22.png')
+            
+    def get_plugin_actions(self):
+        """
+        Return a list of actions related to plugin
+        Note: these actions will be enabled when plugin's dockwidget is visible
+              and they will be disabled when it's hidden
+        """
+        raise NotImplementedError
+    
+    def register_plugin(self):
+        """
+        Register plugin in OpenFisca's main window
+        """
+        self.main.add_dockwidget(self)
+        simulation = self.main.survey_simulation
+        calibration = Calibration()
+        if simulation is not None: 
+            calibration.set_simulation(simulation)         
+    
+
+            calibration.set_param('invlo', 2)
+            calibration.set_param('up', 2)
+            calibration.set_param('method', 'linear')
+
+            self.set_calibration(calibration)
+            self.set_inputs_margins_from_file()
+            self.init_totalpop()
+            self.init_param()
+            
+        
+    def refresh_plugin(self):
+        '''
+        Update aggregate outputs and refresh view
+        '''
+        
+        self.starting_long_process(_("Refreshing calibration table ..."))
+        self.ending_long_process(_("Calibration table updated"))
+    
+    
+    def closing_plugin(self, cancelable=False):
+        """
+        Perform actions before parent main window is closed
+        Return True or False whether the plugin may be closed immediately or not
+        Note: returned value is ignored if *cancelable* is False
+        """
+        return True    
+
 
 
 def test():
     from src.core.simulation import SurveySimulation
     yr = 2006
     country = 'france'
-    simu = SurveySimulation()
-    simu.set_config(year = yr, country = country)
-    simu.set_param()
-    simu.set_survey()
+    simulation = SurveySimulation()
+    simulation.set_config(year = yr, country = country)
+    simulation.set_param()
+    simulation.set_survey()
 
-    cal = Calibration()
-    cal.set_simulation(simu)
+    calibration = Calibration()
+    calibration.set_simulation(simulation)
 
-    filename = "../countries/france/calibrations/calib_2006.csv"
-    cal.set_inputs_margins_from_file(filename, 2006)
+    filename = "../../countries/france/calibrations/calib_2006.csv"
+    calibration.set_inputs_margins_from_file(filename, 2006)
+    
+    calibration.set_param('invlo', 3)
+    calibration.set_param('up', 3)
+    calibration.set_param('method', 'logit')
+
+    print calibration.input_margins_df
+    #print calibration.frame
+    calibration.calibrate()
+    #print calibration.frame
     
     
-    cal.set_param('invlo', 3)
-    cal.set_param('up', 3)
-    cal.set_param('method', 'logit')
+    from src.plugins.survey.aggregates import Aggregates
+    aggregates = Aggregates()
+    aggregates.set_simulation(simulation)
+    simulation.compute()
+    aggregates.compute()
+    print 'couc'
+    print aggregates.aggr_frame.to_string()
 
-    print cal.input_margins_df
-    print cal.frame
-    cal.calibrate()
-    print cal.frame
+    calibration.set_calibrated_weights()    
+    simulation.compute()
+    aggregates.compute()
+
+    print aggregates.aggr_frame.to_string()
+
     
     
 if __name__ == '__main__':
-
 
     test()
     

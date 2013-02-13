@@ -46,7 +46,7 @@ class SurveyExplorerConfigPage(PluginConfigPage):
         survey_label = QLabel(_("Location of survey data for microsimulation")) # u"Emplacement des données d'enquête pour la microsimulation")
 
         bareme_only_radio = self.create_radiobutton(_("Test case only"),  #u"Mode barème uniquement",
-                                                    'survey/bareme_only', False,
+                                                    'bareme_only', False,
                                                     tip = u"Mode barème uniquement",
                                                     
                                 button_group = survey_bg)
