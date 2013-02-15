@@ -11,24 +11,24 @@
 from os import path
 from pandas import DataFrame
 
-from src.qt.QtGui import (QWidget, QLabel, QVBoxLayout, QHBoxLayout, QPushButton,
+from src.gui.qt.QtGui import (QWidget, QLabel, QVBoxLayout, QHBoxLayout, QPushButton,
                          QSpacerItem, QSizePolicy, QInputDialog, 
                          QGroupBox, QButtonGroup, QDockWidget)
-from src.qt.QtCore import SIGNAL, Signal,Qt
-from src.qt.compat import to_qvariant
+from src.gui.qt.QtCore import SIGNAL, Signal,Qt
+from src.gui.qt.compat import to_qvariant
 
-from src.core.utils.qthelpers import create_action
-from src.core.qthelpers import OfSs, DataFrameViewWidget, MyComboBox
+from src.gui.utils.qthelpers import create_action
+from src.gui.qthelpers import OfSs, DataFrameViewWidget, MyComboBox
 
-from src.core.columns import EnumCol
+from src.lib.columns import EnumCol
 
-from src.core.config import CONF, get_icon
+from src.gui.config import CONF, get_icon
 from src.plugins.__init__ import OpenfiscaPluginWidget, PluginConfigPage
-from src.core.baseconfig import get_translation
+from src.gui.baseconfig import get_translation
 _ = get_translation('src')
 
 from datetime import datetime
-from src.qt.compat import from_qvariant
+from src.gui.qt.compat import from_qvariant
 
 
 class SurveyExplorerConfigPage(PluginConfigPage):

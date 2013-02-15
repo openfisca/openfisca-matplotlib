@@ -23,7 +23,7 @@ This file is part of openFisca.
 
 from PyQt4.QtGui import QDockWidget, QFileDialog, QMessageBox
 from PyQt4.QtCore import SIGNAL
-from src.views.ui_parametres import Ui_Parametres
+from src.gui.views.ui_parametres import Ui_Parametres
 from src.parametres.paramData import XmlReader, Tree2Object
 from src.parametres.paramModel import PrestationModel
 from src.parametres.Delegate import CustomDelegate, ValueColumnDelegate

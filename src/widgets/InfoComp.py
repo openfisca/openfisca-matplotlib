@@ -20,11 +20,11 @@ This file is part of openFisca.
     You should have received a copy of the GNU General Public License
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
-from src.qt.QtGui import (QDialog, QSizePolicy, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, 
+from src.gui.qt.QtGui import (QDialog, QSizePolicy, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, 
                          QComboBox, QCheckBox, QSpacerItem, QDialogButtonBox)
-from src.qt.QtCore import SIGNAL
-from src.core.qthelpers import OfSs
-from src.core.utils.qthelpers import get_icon
+from src.gui.qt.QtCore import SIGNAL
+from src.gui.qthelpers import OfSs
+from src.gui.utils.qthelpers import get_icon
 
 
 class InfoComp(QDialog):

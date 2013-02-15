@@ -10,13 +10,13 @@
 
 from __future__ import division
 
-from src.qt.QtCore import QAbstractItemModel, QModelIndex, Qt
-from src.qt.QtGui import  QFileDialog, QMessageBox, QWidget, QAbstractItemView
-from src.qt.compat import to_qvariant
+from src.gui.qt.QtCore import QAbstractItemModel, QModelIndex, Qt
+from src.gui.qt.QtGui import  QFileDialog, QMessageBox, QWidget, QAbstractItemView
+from src.gui.qt.compat import to_qvariant
 
 
 from datetime import datetime
-from src.core.qthelpers import OfTreeView
+from src.gui.qthelpers import OfTreeView
 import csv
 import os
 import codecs
@@ -25,12 +25,12 @@ import locale
 import numpy as np
 from pandas import DataFrame, ExcelWriter
 
-from src.qt.QtGui import  QVBoxLayout
-from src.core.config import get_icon
+from src.gui.qt.QtGui import  QVBoxLayout
+from src.gui.config import get_icon
 from src.plugins.__init__ import OpenfiscaPluginWidget
 
-from src.core.utils_old import of_import
-from src.core.baseconfig import get_translation
+from src.lib.utils import of_import
+from src.gui.baseconfig import get_translation
 locale.setlocale(locale.LC_ALL, '')
 _ = get_translation('src')
 

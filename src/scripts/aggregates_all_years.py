@@ -8,7 +8,7 @@
 
 # Script to compute the aggregates for all the referenced years
 
-from src.core.simulation import SurveySimulation 
+from src.lib.simulation import SurveySimulation 
 from src.plugins.survey.aggregates import Aggregates
 from pandas import ExcelWriter, ExcelFile
 import os

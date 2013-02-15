@@ -24,15 +24,15 @@ This file is part of openFisca.
 from __future__ import division
 import os
 
-from src.qt.QtCore import SIGNAL, Qt, QSize 
-from src.qt.QtGui import (QLabel, QDialog, QHBoxLayout, QVBoxLayout, QPushButton, QComboBox, 
+from src.gui.qt.QtCore import SIGNAL, Qt, QSize 
+from src.gui.qt.QtGui import (QLabel, QDialog, QHBoxLayout, QVBoxLayout, QPushButton, QComboBox, 
                          QSpinBox, QDoubleSpinBox, QCheckBox, QInputDialog, QFileDialog, 
                          QMessageBox, QApplication, QCursor, QSpacerItem, QSizePolicy,
                          QDialogButtonBox)
 from numpy import logical_and, unique, NaN
 from pandas import  DataFrame, concat, HDFStore
 from Config import CONF
-from src.core.qthelpers import DataFrameViewWidget, get_icon, _fromUtf8
+from src.gui.qthelpers import DataFrameViewWidget, get_icon, _fromUtf8
 
 
 

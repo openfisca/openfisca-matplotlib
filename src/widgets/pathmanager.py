@@ -8,20 +8,20 @@
 
 from __future__ import with_statement
 
-from src.qt.QtGui import (QDialog, QListWidget, QDialogButtonBox,
+from src.gui.qt.QtGui import (QDialog, QListWidget, QDialogButtonBox,
                                 QVBoxLayout, QHBoxLayout, QMessageBox,
                                 QListWidgetItem)
-from src.qt.QtCore import Qt, SIGNAL, SLOT
-from src.qt.compat import getexistingdirectory
+from src.gui.qt.QtCore import Qt, SIGNAL, SLOT
+from src.gui.qt.compat import getexistingdirectory
 
 import os
 import sys
 import os.path as osp
 
 # Local imports
-from src.core.utils.qthelpers import get_std_icon, create_toolbutton
-from src.core.baseconfig import _
-from src.core.guiconfig import get_icon
+from src.gui.utils.qthelpers import get_std_icon, create_toolbutton
+from src.gui.baseconfig import _
+from src.gui.guiconfig import get_icon
 
 
 class PathManager(QDialog):

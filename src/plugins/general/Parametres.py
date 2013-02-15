@@ -22,20 +22,20 @@ This file is part of openFisca.
 """
 
 
-from src.qt.QtGui import QFileDialog, QMessageBox
-from src.qt.QtCore import SIGNAL, QDate
+from src.gui.qt.QtGui import QFileDialog, QMessageBox
+from src.gui.qt.QtCore import SIGNAL, QDate
 
-from src.views.ui_parametres import Ui_Parametres
+from src.gui.views.ui_parametres import Ui_Parametres
 from src.parametres.paramData import XmlReader, Tree2Object
 from src.parametres.paramModel import PrestationModel
 from src.parametres.Delegate import CustomDelegate, ValueColumnDelegate
 
-from src.core.baseconfig import get_translation
-from src.core.utils.qthelpers import get_icon
+from src.gui.baseconfig import get_translation
+from src.gui.utils.qthelpers import get_icon
 import os
 _ = get_translation('src')
 
-from src.qt.QtGui import QGroupBox, QVBoxLayout
+from src.gui.qt.QtGui import QGroupBox, QVBoxLayout
 from src.plugins.__init__ import OpenfiscaPluginWidget, PluginConfigPage
 
 
@@ -55,7 +55,7 @@ class ParametersConfigPage(PluginConfigPage):
                                         choices, 'country')
 
         # Date
-        from src.core.config import CONF
+        from src.gui.config import CONF
         default = CONF.get('parameters', 'datesim')
         date_dateedit = self.create_dateedit(prefix=_("Legislation date"),
                                              option= 'datesim', 

@@ -9,9 +9,9 @@
 
 # Exemple of a simple simualtion
 
-from src.core.simulation import ScenarioSimulation 
+from src.lib.simulation import ScenarioSimulation 
 
-from src.core.simulation import SurveySimulation 
+from src.lib.simulation import SurveySimulation 
 from src.plugins.survey.aggregates import Aggregates
 from pandas import ExcelWriter
 import os

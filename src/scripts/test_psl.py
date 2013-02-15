@@ -17,7 +17,7 @@
 
 # Script to compute the aggregates for all the referenced years
 
-from src.core.simulation import SurveySimulation 
+from src.lib.simulation import SurveySimulation 
 from src import SRC_PATH
 import os
 country = 'france'

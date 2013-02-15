@@ -6,13 +6,13 @@
 
 """Online Help Plugin"""
 
-from src.qt.QtCore import Signal
+from src.gui.qt.QtCore import Signal
 
 import os.path as osp
 
 # Local imports
-from src.core.baseconfig import get_conf_path, _
-from src.spyder_widgets.pydocgui import PydocBrowser
+from src.gui.baseconfig import get_conf_path, _
+from src.gui.spyder_widgets.pydocgui import PydocBrowser
 from src.plugins.__init__ import OpenfiscaPluginMixin
 
 

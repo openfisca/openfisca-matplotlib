@@ -23,26 +23,26 @@ This file is part of openFisca.
 
 from __future__ import division
 
-from src.qt.QtCore import (QAbstractItemModel, QModelIndex, Qt, 
+from src.gui.qt.QtCore import (QAbstractItemModel, QModelIndex, Qt, 
                           SIGNAL, QSize)
-from src.qt.QtGui import (QFileDialog, QColor, QVBoxLayout, QDialog, 
+from src.gui.qt.QtGui import (QFileDialog, QColor, QVBoxLayout, QDialog, 
                          QMessageBox, QTreeView, QIcon, QPixmap, QHBoxLayout, 
                          QPushButton)
-from src.qt.compat import to_qvariant
+from src.gui.qt.compat import to_qvariant
 
 
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle, FancyArrow
 from matplotlib.ticker import FuncFormatter
-from src.views.ui_graph import Ui_Graph
-from src.core.config import get_icon, CONF
+from src.gui.views.ui_graph import Ui_Graph
+from src.gui.config import get_icon, CONF
 import os
 import locale
 import numpy as np
 
-from src.core.utils_old import of_import
+from src.lib.utils import of_import
 
-from src.core.baseconfig import get_translation
+from src.gui.baseconfig import get_translation
 from src.plugins.__init__ import OpenfiscaPluginWidget
 _ = get_translation('src')
 

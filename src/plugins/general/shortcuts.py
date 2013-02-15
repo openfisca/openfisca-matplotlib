@@ -6,17 +6,17 @@
 
 """Shortcut management"""
 
-from src.qt.QtGui import (QVBoxLayout, QComboBox, QItemDelegate,
+from src.gui.qt.QtGui import (QVBoxLayout, QComboBox, QItemDelegate,
                                 QTableView, QMessageBox, QPushButton)
-from src.qt.QtCore import (Qt, QSize, QAbstractTableModel, QModelIndex,
+from src.gui.qt.QtCore import (Qt, QSize, QAbstractTableModel, QModelIndex,
                                SIGNAL)
-from src.qt.compat import to_qvariant, from_qvariant
+from src.gui.qt.compat import to_qvariant, from_qvariant
 
 import sys
 
 # Local imports
-from src.core.baseconfig import _
-from src.core.guiconfig import (get_icon, get_shortcut, set_shortcut,
+from src.gui.baseconfig import _
+from src.gui.guiconfig import (get_icon, get_shortcut, set_shortcut,
                                  iter_shortcuts, reset_shortcuts)
 from src.plugins.general.configdialog import GeneralConfigPage
 

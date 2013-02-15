@@ -9,14 +9,14 @@
 import os
 import os.path as osp
 
-from src.core.baseconfig import _
-from src.core.config import (get_icon, CONF, CUSTOM_COLOR_SCHEME_NAME,
+from src.gui.baseconfig import _
+from src.gui.config import (get_icon, CONF, CUSTOM_COLOR_SCHEME_NAME,
                               set_default_color_scheme, COLOR_SCHEME_NAMES)
-from src.core.utils.qthelpers import get_std_icon
-from src.core.userconfig import NoDefault
+from src.gui.utils.qthelpers import get_std_icon
+from src.gui.userconfig import NoDefault
 from src.widgets.colors import ColorLayout
 
-from src.qt.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
+from src.gui.qt.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
                                 QVBoxLayout, QStackedWidget, QListView,
                                 QHBoxLayout, QDialogButtonBox, QCheckBox,
                                 QMessageBox, QLabel, QLineEdit, QSpinBox,
@@ -24,8 +24,8 @@ from src.qt.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
                                 QComboBox, QColor, QGridLayout, QTabWidget,
                                 QRadioButton, QButtonGroup, QSplitter,
                                 QStyleFactory, QScrollArea, QDateEdit)
-from src.qt.QtCore import Qt, QSize, SIGNAL, SLOT, Slot, QDate
-from src.qt.compat import (to_qvariant, from_qvariant,
+from src.gui.qt.QtCore import Qt, QSize, SIGNAL, SLOT, Slot, QDate
+from src.gui.qt.compat import (to_qvariant, from_qvariant,
                                  getexistingdirectory, getopenfilename)
 
 
@@ -264,7 +264,7 @@ class OpenfiscaConfigPage(ConfigPage):
                 data = from_qvariant(combobox.itemData(index), unicode)
                 # For PyQt API v2, it is necessary to convert `data` to 
                 # unicode in case the original type was not a string, like an 
-                # integer for example (see src.qt.compat.from_qvariant):
+                # integer for example (see src.gui.qt.compat.from_qvariant):
                 if unicode(data) == unicode(value):
                     break
             combobox.setCurrentIndex(index)

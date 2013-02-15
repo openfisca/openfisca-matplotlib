@@ -24,22 +24,22 @@ This file is part of openFisca.
 
 from pandas import DataFrame
 
-from src.qt.QtGui import (QWidget, QApplication, QCursor, QDockWidget)
-from src.qt.QtCore import SIGNAL, Qt
+from src.gui.qt.QtGui import (QWidget, QApplication, QCursor, QDockWidget)
+from src.gui.qt.QtCore import SIGNAL, Qt
 
-from src.core.qthelpers import OfSs
-from src.core.utils_old import lorenz, gini
+from src.gui.qthelpers import OfSs
+from src.lib.utils import lorenz, gini
 
 from src.widgets.matplotlibwidget import MatplotlibWidget
 from matplotlib.lines import Line2D
 
-from src.core.qthelpers import DataFrameViewWidget
+from src.gui.qthelpers import DataFrameViewWidget
 
-from src.qt.QtGui import QGroupBox, QVBoxLayout
+from src.gui.qt.QtGui import QGroupBox, QVBoxLayout
 from src.plugins.__init__ import OpenfiscaPluginWidget, PluginConfigPage
-from src.core.config import get_icon
-from src.core.baseconfig import get_translation
-from src.core.utils_old import mark_weighted_percentiles
+from src.gui.config import get_icon
+from src.gui.baseconfig import get_translation
+from src.lib.utils import mark_weighted_percentiles
 _ = get_translation('inequality', 'src.plugins.survey')
 
 

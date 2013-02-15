@@ -8,7 +8,7 @@ The impact of any modification in the legislation can also be computed
 and displayed.
 When plugged on a survey, OpenFisca can also compute the budgetary consequences 
 of a reform and its distributionnal impact.
-The current version implements a large set of taxes, social beenfit
+The current version implements a large set of taxes, social benefits
 and housing provision for France for the last 10 years.
 Informations are available on www.openfisca.fr
 

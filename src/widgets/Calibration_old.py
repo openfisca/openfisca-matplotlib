@@ -32,12 +32,12 @@ from PyQt4.QtGui import (QLabel, QDialog, QHBoxLayout, QVBoxLayout, QPushButton,
                          QSpinBox, QDoubleSpinBox, QCheckBox, QInputDialog, QFileDialog, 
                          QMessageBox, QApplication, QCursor, QSpacerItem, QSizePolicy,
                          QDialogButtonBox)
-from src.core.qthelpers import MyComboBox, MySpinBox, MyDoubleSpinBox, DataFrameViewWidget, _fromUtf8
+from src.gui.qthelpers import MyComboBox, MySpinBox, MyDoubleSpinBox, DataFrameViewWidget, _fromUtf8
 from src.widgets.matplotlibwidget import MatplotlibWidget
-from src.core.config import CONF
-from src.core.guiconfig import get_icon
-from src.core.columns import EnumCol, BoolCol, AgesCol, DateCol, BoolPresta, IntPresta
-from src.core.calmar import calmar
+from src.gui.config import CONF
+from src.gui.guiconfig import get_icon
+from src.lib.columns import EnumCol, BoolCol, AgesCol, DateCol, BoolPresta, IntPresta
+from src.lib.calmar import calmar
 
 MODCOLS = [EnumCol, BoolCol, BoolPresta, IntPresta, AgesCol, DateCol]
 
@@ -366,7 +366,7 @@ class Calibration(object):
         
 
 def test():
-    from src.core.simulation import SurveySimulation
+    from src.lib.simulation import SurveySimulation
     yr = 2006
     country = 'france'
     simu = SurveySimulation()
@@ -391,9 +391,9 @@ def test():
     print cal.frame
     
     
-from src.qt.QtGui import (QWidget, QMenu, QGroupBox, QButtonGroup)
+from src.gui.qt.QtGui import (QWidget, QMenu, QGroupBox, QButtonGroup)
 from src.plugins import OpenfiscaPluginWidget, PluginConfigPage
-from src.core.baseconfig import get_translation
+from src.gui.baseconfig import get_translation
 _ = get_translation("src")
     
 class CalibrationConfigPage(PluginConfigPage):

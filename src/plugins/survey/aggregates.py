@@ -28,22 +28,22 @@ from datetime import datetime
 from pandas import ExcelWriter
 
 
-from src.qt.QtGui import (QWidget, QVBoxLayout, QSizePolicy, QMenu,
+from src.gui.qt.QtGui import (QWidget, QVBoxLayout, QSizePolicy, QMenu,
                          QGroupBox, QFileDialog, QMessageBox)
-from src.qt.QtCore import SIGNAL, Qt
+from src.gui.qt.QtCore import SIGNAL, Qt
 
-from src.core.config import get_icon
+from src.gui.config import get_icon
 
-from src.core.qthelpers import OfSs, DataFrameViewWidget
-from src.core.utils.qthelpers import create_action, add_actions
+from src.gui.qthelpers import OfSs, DataFrameViewWidget
+from src.gui.utils.qthelpers import create_action, add_actions
 
-from src.core.utils_old import of_import
+from src.lib.utils import of_import
 
 from src import SRC_PATH
-from src.core.simulation import SurveySimulation
+from src.lib.simulation import SurveySimulation
 
 from src.plugins import OpenfiscaPluginWidget, PluginConfigPage
-from src.core.baseconfig import get_translation
+from src.gui.baseconfig import get_translation
 _ = get_translation("src")
 
     

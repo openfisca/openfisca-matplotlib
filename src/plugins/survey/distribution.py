@@ -24,21 +24,21 @@ from __future__ import division
 import numpy as np
 from pandas import DataFrame, merge
 
-from src.qt.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QSortFilterProxyModel,
+from src.gui.qt.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QSortFilterProxyModel,
                          QSpacerItem, QSizePolicy, QPushButton, QInputDialog, QGroupBox)
-from src.qt.QtCore import SIGNAL, QSize
-from src.qt.compat import from_qvariant
+from src.gui.qt.QtCore import SIGNAL, QSize
+from src.gui.qt.compat import from_qvariant
 
-from src.core.qthelpers import OfSs, DataFrameViewWidget, MyComboBox
-from src.core.utils.qthelpers import  get_icon
-from src.core.simulation import SurveySimulation
+from src.gui.qthelpers import OfSs, DataFrameViewWidget, MyComboBox
+from src.gui.utils.qthelpers import  get_icon
+from src.lib.simulation import SurveySimulation
 
 
 
 from src.plugins.__init__ import OpenfiscaPluginWidget, PluginConfigPage
 
-from src.core.utils_old import of_import
-from src.core.baseconfig import get_translation
+from src.lib.utils import of_import
+from src.gui.baseconfig import get_translation
 _ = get_translation('src')
 
 

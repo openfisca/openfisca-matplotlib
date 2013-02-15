@@ -18,18 +18,18 @@ These plugins inherit the following classes
 (OpenfiscaPluginMixin & OpenfiscaPluginWidget)
 """
 
-from src.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
+from src.gui.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
                                 QKeySequence, QMainWindow, QApplication)
-from src.qt.QtCore import SIGNAL, Qt, QObject
-from src.qt.QtCore import pyqtSignal as Signal
+from src.gui.qt.QtCore import SIGNAL, Qt, QObject
+from src.gui.qt.QtCore import pyqtSignal as Signal
 
 # Local imports
 
-from src.core.utils.qthelpers import toggle_actions
-from src.core.config import CONF
-from src.core.userconfig import NoDefault
+from src.gui.utils.qthelpers import toggle_actions
+from src.gui.config import CONF
+from src.gui.userconfig import NoDefault
 
-from src.core.guiconfig import get_font, set_font, get_icon
+from src.gui.guiconfig import get_font, set_font, get_icon
 from src.plugins.general.configdialog import OpenfiscaConfigPage
   
 get_font = None

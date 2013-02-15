@@ -40,9 +40,9 @@ from src.widgets.Calibration import CalibrationWidget
 from src.widgets.Inflation import InflationWidget
 from src.widgets.ExploreData import ExploreDataWidget
 from src.widgets.Inequality import InequalityWidget
-from src.core.utils import of_import
-from src.core.qthelpers import create_action, add_actions, get_icon
-from src.core.simulation import SurveySimulation, ScenarioSimulation
+from src.gui.utils import of_import
+from src.gui.qthelpers import create_action, add_actions, get_icon
+from src.lib.simulation import SurveySimulation, ScenarioSimulation
 import gc
 
 
