@@ -361,7 +361,7 @@ class ShortcutsConfigPage(GeneralConfigPage):
 
 
 def test():
-    from spyderlib.utils.qthelpers import qapplication
+    from src.gui.utils.qthelpers import qapplication
     app = qapplication()
     table = ShortcutsTable()
     table.show()

@@ -1046,7 +1046,7 @@ class DictEditorTableView(BaseTableView):
     def plot(self, key, funcname):
         """Plot item"""
         data = self.model.get_data()
-        import spyderlib.pyplot as plt
+        import src.gui.pyplot as plt
         plt.figure()
         getattr(plt, funcname)(data[key])
         plt.show()
@@ -1054,7 +1054,7 @@ class DictEditorTableView(BaseTableView):
     def imshow(self, key):
         """Show item's image"""
         data = self.model.get_data()
-        import spyderlib.pyplot as plt
+        import src.gui.pyplot as plt
         plt.figure()
         plt.imshow(data[key])
         plt.show()
@@ -1292,7 +1292,8 @@ class RemoteDictEditorTableView(BaseTableView):
 def get_test_data():
     """Create test data"""
     import numpy as np
-    from spyderlib.pil_patch import Image
+#    from spyderlib.pil_patch import Image
+    import Image
     image = Image.fromarray(np.random.random_integers(255, size=(100, 100)))
     testdict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]}
     testdate = datetime.date(1945, 5, 8)
@@ -1341,7 +1342,7 @@ def test():
     
 def remote_editor_test():
     """Remote dictionary editor test"""
-    from spyderlib.plugins.variableexplorer import VariableExplorer
+    from src.gui.plugins.variableexplorer import VariableExplorer
     from src.gui.spyder_widgets.externalshell.monitor import make_remote_view
     remote = make_remote_view(get_test_data(), VariableExplorer.get_settings())
     from pprint import pprint

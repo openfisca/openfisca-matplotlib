@@ -22,7 +22,7 @@ import sre_constants
 import os.path as osp
 import time
 
-from spyderlib.qt import is_pyqt46
+from src.gui.qt import is_pyqt46
 from src.gui.qt.QtGui import (QMouseEvent, QColor, QMenu, QApplication,
                                 QSplitter, QFont, QTextEdit, QTextFormat,
                                 QPainter, QTextCursor, QPlainTextEdit, QBrush,
@@ -39,14 +39,14 @@ from src.gui.qt.compat import to_qvariant
 # Local import
 #TODO: Try to separate this module from spyderlib to create a self
 #      consistent editor module (Qt source code and shell widgets library)
-from spyderlib.baseconfig import get_conf_path, _, DEBUG
-from spyderlib.config import CONF
-from spyderlib.guiconfig import get_font, get_icon, get_image_path
-from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
+from src.gui.baseconfig import get_conf_path, _, DEBUG
+from src.gui.config import CONF
+from src.gui.guiconfig import get_font, get_icon, get_image_path
+from src.gui.utils.qthelpers import (add_actions, create_action, keybinding,
                                        mimedata2url)
-from spyderlib.utils.dochelpers import getobj
-from spyderlib.utils import encoding, sourcecode
-from spyderlib.utils.debug import log_last_error, log_dt
+from src.gui.utils.dochelpers import getobj
+from src.gui.utils import encoding, sourcecode
+from src.gui.utils.debug import log_last_error, log_dt
 from src.gui.spyder_widgets.editortools import PythonCFM
 from src.gui.spyder_widgets.sourcecode.base import TextEditBaseWidget
 from src.gui.spyder_widgets.sourcecode import syntaxhighlighters as sh
@@ -2452,7 +2452,7 @@ class TestWidget(QSplitter):
         self.classtree.set_current_editor(self.editor, filename, False, False)
 
 def test(fname):
-    from spyderlib.utils.qthelpers import qapplication
+    from sr.gui.utils.qthelpers import qapplication
     app = qapplication()
     app.setStyle('Plastique')
     win = TestWidget(None)
@@ -2460,7 +2460,7 @@ def test(fname):
     win.load(fname)
     win.resize(1000, 800)
 
-    from spyderlib.utils.codeanalysis import (check_with_pyflakes,
+    from src.gui.utils.codeanalysis import (check_with_pyflakes,
                                               check_with_pep8)
     source_code = unicode(win.editor.toPlainText()).encode('utf-8')
     res = check_with_pyflakes(source_code, fname)#+\

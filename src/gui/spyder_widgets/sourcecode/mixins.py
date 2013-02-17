@@ -20,10 +20,10 @@ from src.gui.qt.QtGui import (QTextCursor, QTextDocument, QApplication,
 from src.gui.qt.QtCore import Qt, QRegExp, SIGNAL
 
 # Local imports
-from spyderlib.baseconfig import _
-from spyderlib.utils import encoding, sourcecode
-from spyderlib.utils.misc import get_error_match
-from spyderlib.utils.dochelpers import getobj
+from src.gui.baseconfig import _
+from src.gui.utils import encoding, sourcecode
+from src.gui.utils.misc import get_error_match
+from src.gui.utils.dochelpers import getobj
 
 
 HISTORY_FILENAMES = []

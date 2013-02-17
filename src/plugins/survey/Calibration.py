@@ -984,13 +984,10 @@ class CalibrationWidget(OpenfiscaPluginWidget):
         """
         Register plugin in OpenFisca's main window
         """
-        self.main.add_dockwidget(self)
         simulation = self.main.survey_simulation
         calibration = Calibration()
         if simulation is not None: 
             calibration.set_simulation(simulation)         
-    
-
             calibration.set_param('invlo', 2)
             calibration.set_param('up', 2)
             calibration.set_param('method', 'linear')
@@ -999,7 +996,8 @@ class CalibrationWidget(OpenfiscaPluginWidget):
             self.set_inputs_margins_from_file()
             self.init_totalpop()
             self.init_param()
-            
+        
+        self.main.add_dockwidget(self)
         
     def refresh_plugin(self):
         '''
