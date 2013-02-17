@@ -10,7 +10,7 @@
 import os
 
 # Local imports
-from spyderlib.utils import programs
+from src.gui.utils import programs
 
 
 def windows_memory_usage():

@@ -22,7 +22,7 @@ from src.gui.qt.QtGui import QLabel, QIcon, QPixmap, QFont, QFontDatabase
 from src.gui.baseconfig import get_module_data_path
 from src.gui.config import CONF
 from src.gui.userconfig import NoDefault
-from spyderlib.widgets.sourcecode.syntaxhighlighters import (
+from src.gui.spyder_widgets.sourcecode.syntaxhighlighters import (
                                  COLOR_SCHEME_KEYS, COLOR_SCHEME_NAMES, COLORS)
 
 IMG_PATH = []
@@ -35,7 +35,7 @@ def add_image_path(path):
         for dir in dirs:
             IMG_PATH.append(osp.join(path, dir))
 
-add_image_path(get_module_data_path('src', relpath='images'))
+add_image_path(get_module_data_path('src.gui', relpath='images'))
 
 from spyderlib.otherplugins import PLUGIN_PATH
 if PLUGIN_PATH is not None:

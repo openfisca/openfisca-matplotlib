@@ -14,7 +14,7 @@ import os
 
 # Local imports
 from src.gui.baseconfig import _
-from spyderlib.widgets.dicteditor import DictEditor
+from src.gui.spyder_widgets.dicteditor import DictEditor
 
 def envdict2listdict(envdict):
     """Dict --> Dict of lists"""
@@ -128,7 +128,7 @@ except ImportError:
 
 def main():
     """Run Windows environment variable editor"""
-    from spyderlib.utils.qthelpers import qapplication
+    from src.gui.utils.qthelpers import qapplication
     app = qapplication()
     dialog = WinUserEnvDialog()
     dialog.show()

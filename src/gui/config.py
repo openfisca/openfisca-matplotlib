@@ -321,7 +321,7 @@ def reset_shortcuts():
     CONF.remove_section('shortcuts')
 
 
-from spyderlib.widgets.sourcecode.syntaxhighlighters import (
+from src.gui.spyder_widgets.sourcecode.syntaxhighlighters import (
                                 COLOR_SCHEME_KEYS, COLOR_SCHEME_NAMES, COLORS)
 def get_color_scheme(name):
     """Get syntax color scheme"""

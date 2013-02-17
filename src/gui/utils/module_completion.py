@@ -23,7 +23,7 @@ import sys
 from zipimport import zipimporter
 
 from src.gui.baseconfig import get_conf_path
-from spyderlib.utils.external.pickleshare import PickleShareDB
+from src.gui.utils.external.pickleshare import PickleShareDB
 
 MODULES_PATH = get_conf_path('db')
 TIMEOUT_GIVEUP = 20 #Time in seconds after which we give up

@@ -11,9 +11,8 @@ import subprocess
 
 # Local imports
 from src.gui.baseconfig import _
-from spyderlib.utils import programs
-from spyderlib.utils.misc import abspardir
-
+from src.gui.utils import programs
+from src.gui.utils.misc import abspardir
 
 VCS_INFOS = {
              '.hg':  dict(name="Mercurial",

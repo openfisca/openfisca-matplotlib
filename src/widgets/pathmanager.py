@@ -152,7 +152,7 @@ class PathManager(QDialog):
             remove = True
         else:
             remove = False
-        from spyderlib.utils.environ import (get_user_env, set_user_env,
+        from src.gui.utils.environ import (get_user_env, set_user_env,
                                              listdict2envdict)
         env = get_user_env()
         if remove:
@@ -237,7 +237,7 @@ class PathManager(QDialog):
 
 def test():
     """Run path manager test"""
-    from spyderlib.utils.qthelpers import qapplication
+    from src.gui.utils.qthelpers import qapplication
     _app = qapplication()
     test = PathManager(None, sys.path[:-10], sys.path[-10:])
     test.exec_()
