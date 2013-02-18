@@ -38,14 +38,17 @@ from src.gui.config import CONF
 from src.gui.guiconfig import get_icon
 from src.lib.columns import EnumCol, BoolCol, AgesCol, DateCol, BoolPresta, IntPresta
 from src.lib.calmar import calmar
-
 from src.gui.qt.compat import to_qvariant
+
 
 
 MODCOLS = [EnumCol, BoolCol, BoolPresta, IntPresta, AgesCol, DateCol]
 
 
 from src import SRC_PATH
+from src.lib.utils import of_import
+
+
 
 class Calibration(object):
     """
@@ -63,7 +66,7 @@ class Calibration(object):
         self.totalpop = None
         self.ini_totalpop = None
 
-        self.param = {'use_proportions' : True, 'pondini': 'wprm_init', 'method' : None, 'up' : None, 'lo':None}
+        self.param = {'use_proportions' : True, 'pondini': None, 'method' : None, 'up' : None, 'lo':None}
         
         # TODO: add a champm option
         
@@ -82,19 +85,25 @@ class Calibration(object):
         Reset the calibration to it initial state
         """
         self.frame = None
-        self.simulation.survey.set_value('wprm', self.weights_init, self.simulation.survey.index[self.unit])
-        self.simulation.survey.propagate_to_members( unit=self.unit, col='wprm')
+        WEIGHT = of_import("","WEIGHT", self.simulation.country)
+        self.simulation.survey.set_value(WEIGHT, self.weights_init, self.simulation.survey.index[self.unit])
+        self.simulation.survey.propagate_to_members( unit=self.unit, col=WEIGHT)
         
         
     def set_simulation(self, simulation):
         """
         Set simulation 
         """
+
+        
         self.simulation = simulation
         inputs = self.simulation.survey
-        self.unit = 'men'
-        self.weights = 1*inputs.get_value("wprm", inputs.index[self.unit])
-        self.weights_init = inputs.get_value("wprm_init", inputs.index[self.unit])
+        self.unit = 'men' # TODO: shoud not be france specific
+        WEIGHT = of_import("","WEIGHT", self.simulation.country)
+        WEIGHT_INI = of_import("","WEIGHT_INI", self.simulation.country)
+        
+        self.weights = 1*inputs.get_value(WEIGHT, inputs.index[self.unit])
+        self.weights_init = inputs.get_value(WEIGHT_INI, inputs.index[self.unit])
         self.champm =  inputs.get_value("champm", inputs.index[self.unit])
         
         self.ini_totalpop = sum(self.weights_init*self.champm)
@@ -257,7 +266,8 @@ class Calibration(object):
         p['lo']     = 1/self.param['invlo']
         p['up']     = self.param['up']
         p['use_proportions'] = True
-        p['pondini']  = 'wprm_init'
+        WEIGHT = of_import("","WEIGHT", self.simulation.country)
+        p['pondini']  = WEIGHT + ""
         return p
 
     def build_calmar_data(self, marges, weights_in):
@@ -294,7 +304,7 @@ class Calibration(object):
         return data
 
     
-    def update_weights(self, marges, param = {}, weights_in='wprm_init'):
+    def update_weights(self, marges, param = {}, weights_in=None):
         """
         Runs calmar, stores new weights and returns adjusted margins
         
@@ -313,6 +323,10 @@ class Calibration(object):
         marge_new : dict
                     computed values of the margins             
         """
+        if weights_in is None:
+            WEIGHT = of_import("","WEIGHT", self.simulation.country)
+            weights_in = WEIGHT + "_ini" 
+            
         data = self.build_calmar_data(marges, weights_in)
         try:
             val_pondfin, lambdasol, marge_new = calmar(data, marges, param = param, pondini=weights_in)
@@ -383,8 +397,9 @@ class Calibration(object):
         """
         Modify the weights to use the calibrated weight
         """
-        self.simulation.survey.set_value('wprm', self.weights, self.simulation.survey.index[self.unit])
-        self.simulation.survey.propagate_to_members( unit=self.unit, col='wprm')        
+        WEIGHT = of_import("","WEIGHT", self.simulation.country)
+        self.simulation.survey.set_value(WEIGHT, self.weights, self.simulation.survey.index[self.unit])
+        self.simulation.survey.propagate_to_members( unit=self.unit, col=WEIGHT)        
 
 
 from src.gui.qt.QtGui import (QGroupBox, QButtonGroup)

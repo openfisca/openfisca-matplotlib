@@ -42,6 +42,8 @@ from src.gui.baseconfig import get_translation
 from src.lib.utils import mark_weighted_percentiles
 _ = get_translation('inequality', 'src.plugins.survey')
 
+from src.lib.utils import of_import
+
 
 class InequalityConfigPage(PluginConfigPage):
     def __init__(self, plugin, parent):
@@ -80,7 +82,6 @@ class InequalityWidget(OpenfiscaPluginWidget):
         self.dockWidgetContents = QWidget()
         
         widget_list = []
-
 
         self.lorenzWidget = MatplotlibWidget(self.dockWidgetContents,
                                               title= _("Lorenz curve"), # 'Courbe de Lorenz',
@@ -124,6 +125,7 @@ class InequalityWidget(OpenfiscaPluginWidget):
         axes.clear()
         output = self.output
         
+        
         idx_weight = {'ind': output._inputs.index['ind'],
                       'men': output._inputs.index['men']}
         weights = {}
@@ -161,11 +163,13 @@ class InequalityWidget(OpenfiscaPluginWidget):
     def update_frame(self):
         output = self.output
         final_df = None
+        
+        WEIGHT = of_import(None, 'WEIGHT', self.simulation.country)
         for varname, units in self.vars.iteritems():
             for unit in units:
                 idx =  output.index[unit]
                 val  = output.get_value(varname, idx)
-                weights = output._inputs.get_value('wprm', idx)
+                weights = output._inputs.get_value(WEIGHT, idx)
                 champm = output._inputs.get_value('champm', idx)
 
             items = []

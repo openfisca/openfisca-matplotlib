@@ -81,12 +81,28 @@ class OpenfiscaPivotTable(object):
         self.data = output_data
         if default is not None:
             self.data_default = default
-        self.wght = self.data['wprm']
+
+        WEIGHT = of_import(None, 'WEIGHT', self.simulation.country)
+        self.wght = self.data[WEIGHT]
 
     def get_table(self, by = None, vars = None, entity = None, champm = True, do_not_use_weights = False):
-        '''
+        """
         Updated frame
-        '''
+        
+        Parameters
+        ----------
+        
+        by : string, default None
+             Name of the variable against which the selected variables are distributed 
+        vars : list, default None
+               Varaibles to be distributed
+        entity : string, default TODO:
+                 Name of the entity at which level varaibles are summed
+        champm : bool default, default True
+                 Use filtering variable champm
+        do_not_use_weights : bool default False          
+                             Do not use weights to compute the statistics
+        """
         by_var = by
         if by_var is None:
             raise Exception("OpenfiscaPivotTable : get_table needs a 'by' variable")
@@ -100,6 +116,8 @@ class OpenfiscaPivotTable(object):
             initial_set = set([by_var] + list(vars))
         
         country = self.simulation.country
+        WEIGHT = of_import(None, 'WEIGHT', country) # import WEIGHT from country.__init__.py
+        
         if entity is None:
             ENTITIES_INDEX = of_import(None, 'ENTITIES_INDEX', country) # import ENTITIES_INDEX from country.__init__.py
             entity = ENTITIES_INDEX[0]
@@ -120,7 +138,7 @@ class OpenfiscaPivotTable(object):
                 frame = dist_frame.copy()
             else:
                 try:
-                    dist_frame.pop('wprm')
+                    dist_frame.pop(WEIGHT)
                 except:
                     pass
                 frame = merge(frame, dist_frame, on=by_var)
@@ -156,17 +174,19 @@ class OpenfiscaPivotTable(object):
             
         cols = self.cols
         # cols = []
-
+        
+        WEIGHT = of_import(None, 'WEIGHT', self.simulation.country) # import WEIGHT from country.__init__.py
+        
         for name, data in datasets.iteritems():
             # Computes aggregates by category
-            keep = [category, 'wprm', 'champm'] + cols
+            keep = [category, WEIGHT, 'champm'] + cols
             temp_data = data[keep].copy()
-            temp_data['wprm']   = temp_data['wprm']*temp_data['champm']
+            temp_data[WEIGHT]   = temp_data[WEIGHT]*temp_data['champm']
             keep.remove('champm')
             del keep['champm']
             temp = []
             for var in varlist:
-                temp_data[var] = temp_data['wprm']*data[var]
+                temp_data[var] = temp_data[WEIGHT]*data[var]
                 temp.append(var)
                 keep.append(var)
                     
@@ -178,10 +198,10 @@ class OpenfiscaPivotTable(object):
                 for varname in varlist:
                     if name=='default':
                         label = varname + '__init'
-                        df[label] = df[varname]/df['wprm']
+                        df[label] = df[varname]/df[WEIGHT]
                         del df[varname]
                     else:
-                        df[varname] = df[varname]/df['wprm']
+                        df[varname] = df[varname]/df[WEIGHT]
             
             aggr_dict[name].index.names[0] = 'variable'
             aggr_dict[name] = aggr_dict[name].reset_index().unstack(cols.insert(0, 'variable'))
@@ -198,22 +218,23 @@ class OpenfiscaPivotTable(object):
         if self.data_default is not None:
             datasets['default'] = self.data_default
 
+        WEIGHT = of_import(None, 'WEIGHT', self.simulation.country) # import WEIGHT from country.__init__.py
         for name, data in datasets.iteritems():
             # Computes aggregates by category
             if champm:
-                keep = [category, 'wprm', 'champm'] 
+                keep = [category, WEIGHT, 'champm'] 
                 temp_data = data[keep].copy()
-                temp_data['wprm'] = temp_data['wprm']*temp_data['champm']
+                temp_data[WEIGHT] = temp_data[WEIGHT]*temp_data['champm']
                 keep.remove('champm')
                 del temp_data['champm']
             else:
-                keep = [category, 'wprm']
+                keep = [category, WEIGHT]
                 print data.columns
                 temp_data = data[keep].copy()
 
             temp = []
             for var in varlist:
-                temp_data[var] = temp_data['wprm']*data[var]
+                temp_data[var] = temp_data[WEIGHT]*data[var]
                 temp.append(var)
                 keep.append(var)
                 
@@ -225,10 +246,10 @@ class OpenfiscaPivotTable(object):
             for varname in temp:
                 if name=='default':
                     label = varname + '__init'
-                    aggr_dict[name][label] = aggr_dict[name][varname]/aggr_dict[name]['wprm']
+                    aggr_dict[name][label] = aggr_dict[name][varname]/aggr_dict[name][WEIGHT]
                     del aggr_dict[name][varname]
                 else:
-                    aggr_dict[name][varname] = aggr_dict[name][varname]/aggr_dict[name]['wprm']
+                    aggr_dict[name][varname] = aggr_dict[name][varname]/aggr_dict[name][WEIGHT]
                               
         return aggr_dict
 

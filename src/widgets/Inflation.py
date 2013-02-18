@@ -136,9 +136,13 @@ class InflationWidget(QDialog):
         '''
         Sets inputs datatable
         '''
+        from src.lib.utils import of_import
+
+        WEIGHT = of_import("","WEIGHT", self.simulation.country)
+
         self.inputs = inputs
-        self.unit = 'ind'
-        self.weights = 1*self.inputs.get_value("wprm", inputs.index[self.unit]) # 1* to deal with pointer nature
+        self.unit = 'ind' # TODO: COUNTRY SPECIFIC
+        self.weights = 1*self.inputs.get_value(WEIGHT, inputs.index[self.unit]) # 1* to deal with pointer nature
 
     def set_targets_from_file(self, filename = None, year = None):
         '''

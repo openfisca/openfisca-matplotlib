@@ -118,7 +118,9 @@ class Aggregates(object):
             ENTITIES_INDEX = of_import(None, 'ENTITIES_INDEX', country) # import ENTITIES_INDEX from country.__init__.py
             entity = ENTITIES_INDEX[0]
         self.data, self.data_default = self.simulation.aggregated_by_entity(entity, self.varlist)
-        self.wght = self.data['wprm']
+
+        WEIGHT = of_import("","WEIGHT", self.simulation.country)
+        self.wght = self.data[WEIGHT]
 
     def compute(self):
         self.set_data()
