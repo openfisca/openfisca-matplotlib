@@ -63,7 +63,19 @@ class Aggregates(object):
         self.show_real = True
         self.show_diff = True
 
+
+    def set_var_list(self, var_list):
+        """
+        Set list of variables to be aggregated 
+        """
+        self.varlist = var_list
+
     def set_default_var_list(self):
+        """
+        Set list of variables to be aggregated 
+        TODO: move away because france specific
+        """
+        
         self.varlist = ['cotsoc_noncontrib', 'csg', 'crds',
             'irpp', 'ppe',
             'af', 'af_base', 'af_majo','af_forf', 'cf',
