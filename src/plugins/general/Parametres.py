@@ -204,7 +204,7 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
         """
         Return plugin icon (QIcon instance)
         Note: this is required for plugins creating a main window
-              (see SpyderPluginMixin.create_mainwindow)
+              (see OpenfiscaPluginMixin.create_mainwindow)
               and for configuration dialog widgets creation
         """
         return get_icon('OpenFisca22.png')

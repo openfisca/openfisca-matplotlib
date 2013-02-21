@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""Spyder path manager"""
+"""Openfisca path manager"""
 
 from __future__ import with_statement
 
@@ -127,7 +127,7 @@ class PathManager(QDialog):
             self.sync_button = create_toolbutton(self,
                   text=_("Synchronize..."),
                   icon=get_icon('synchronize.png'), triggered=self.synchronize,
-                  tip=_("Synchronize Spyder's path list with PYTHONPATH "
+                  tip=_("Synchronize Openfisca's path list with PYTHONPATH "
                               "environment variable"),
                   text_beside_icon=True)
             layout.addWidget(self.sync_button)

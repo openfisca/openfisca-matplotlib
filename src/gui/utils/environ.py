@@ -111,7 +111,7 @@ try:
                           "Use it with precautions, at your own risks.<br>"
                           "<br>Note that for changes to take effect, you will "
                           "need to restart the parent process of this applica"
-                          "tion (simply restart Spyder if you have executed it "
+                          "tion (simply restart Openfisca if you have executed it "
                           "from a Windows shortcut, otherwise restart any "
                           "application from which you may have executed it, "
                           "like <i>Python(x,y) Home</i> for example)"))

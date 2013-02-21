@@ -5,8 +5,8 @@
 # (see spyderlib/__init__.py for details)
 
 """
-Spyder GUI-related configuration management
-(for non-GUI configuration, see spyderlib/baseconfig.py)
+Openfisca GUI-related configuration management
+(for non-GUI configuration, see src/gui/baseconfig.py)
 
 Important note regarding shortcuts:
     For compatibility with QWERTZ keyboards, one must avoid using the following

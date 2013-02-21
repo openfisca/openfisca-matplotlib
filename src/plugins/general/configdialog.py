@@ -85,7 +85,7 @@ class ConfigPage(QWidget):
 
 
 class ConfigDialog(QDialog):
-    """Spyder configuration ('Preferences') dialog box"""
+    """Openfisca configuration ('Preferences') dialog box"""
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
         

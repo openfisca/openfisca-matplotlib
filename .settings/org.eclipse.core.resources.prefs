@@ -2,8 +2,6 @@
 <<<<<<<=HEAD
 >>>>>>>=spyder_dirty
 eclipse.preferences.version=1
-encoding//doc/conf.py=utf-8
-encoding//doc/sphinxext/ipython_directive.py=utf-8
 encoding//src/countries/__init__.py=utf-8
 encoding//src/countries/france/__init__.py=utf-8
 encoding//src/countries/france/data/codeAplReader.py=utf-8
@@ -34,6 +32,8 @@ encoding//src/countries/tunisia/model/pfam.py=utf-8
 encoding//src/countries/tunisia/utils.py=utf-8
 encoding//src/countries/tunisia/views/ui_composition.py=utf-8
 encoding//src/countries/tunisia/widgets/Composition.py=utf-8
+encoding//src/doc/conf.py=utf-8
+encoding//src/doc/sphinxext/ipython_directive.py=utf-8
 encoding//src/gui/baseconfig.py=utf-8
 encoding//src/gui/buildUi.py=utf-8
 encoding//src/gui/config.py=utf-8
