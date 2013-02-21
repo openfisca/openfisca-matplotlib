@@ -218,7 +218,7 @@ def add_image_path(path):
         for dir in dirs:
             IMG_PATH.append(osp.join(path, dir))
 
-add_image_path(get_module_data_path('src', relpath='images'))
+add_image_path(get_module_data_path('src.gui', relpath='images'))
 
 # TODO: from spyderlib.otherplugins import PLUGIN_PATH
 PLUGIN_PATH = None
