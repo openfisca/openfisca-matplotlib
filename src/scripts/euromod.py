@@ -18,7 +18,7 @@ fname_all = os.path.join(destination_dir, fname_all)
 
 def build_aggregates():
 #    writer = None
-    years = range(2006,2010)
+    years = range(2009,2010)
     for year in years:        
         yr = str(year)
 #        fname = "Agg_%s.%s" %(str(yr), "xls")
@@ -38,7 +38,8 @@ def build_aggregates():
         agg.show_diff = False
         agg.set_var_list(var_list)
         agg.compute()
-        print agg.aggr_frame.to_string()
+        cols = agg.aggr_frame.columns[:4]
+        print agg.aggr_frame[cols].to_string()
 #        if writer is None:
 #            writer = ExcelWriter(str(fname_all))
 #        agg.aggr_frame.to_excel(writer, yr, index= False, header= True)
@@ -50,9 +51,24 @@ def build_aggregates():
 #    writer.save()
 
 
+def test():
+
+    for year in range(2006,2010):
+        yr = str(year)
+    #        fname = "Agg_%s.%s" %(str(yr), "xls")
+        simu = SurveySimulation()
+        simu.set_config(year = yr, country = country)
+        simu.set_param()
+        simu.set_survey()
+        for var in ["f4ga", "f4gb", "f4gc", "f4ge", "f4gf", "f4gg"]:
+            print var
+            df = simu.survey.get_value(var)
+            print df.max()
+            print df.min()
+
 if __name__ == '__main__':
     build_aggregates()
-
+#    test()
 
 
 
