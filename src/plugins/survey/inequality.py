@@ -31,7 +31,6 @@ from src.gui.qthelpers import OfSs
 from src.lib.utils import lorenz, gini
 
 from src.widgets.matplotlibwidget import MatplotlibWidget
-from matplotlib.lines import Line2D
 
 from src.gui.qthelpers import DataFrameViewWidget
 
@@ -108,6 +107,8 @@ class InequalityWidget(OpenfiscaPluginWidget):
                      'nivvie_net':  ['men'],                    
                      'nivvie' : ['men']}
 
+
+        self.simulation = None
 #        self.vars = {'nivvie_prim': ['ind', 'men'],
 #                     'nivvie_init': ['ind', 'men'],
 #                     'nivvie_net':  ['ind', 'men'],                    
@@ -123,17 +124,15 @@ class InequalityWidget(OpenfiscaPluginWidget):
         '''        
         axes = self.lorenzWidget.axes
         axes.clear()
-        output = self.output
-        
-        
+            
+        output = self.simulation.outputs
+        WEIGHT = of_import(None, 'WEIGHT', self.simulation.country)
+
         idx_weight = {'ind': output._inputs.index['ind'],
                       'men': output._inputs.index['men']}
         weights = {}
         for unit, idx in idx_weight.iteritems():
-            weights[unit] = output._inputs.get_value('wprm', idx)
-        
-        p = []
-        l = []
+            weights[unit] = output._inputs.get_value(WEIGHT, idx)
         
         for varname, units in self.vars.iteritems():
             for unit in units:
@@ -146,22 +145,26 @@ class InequalityWidget(OpenfiscaPluginWidget):
                 axes.plot(x,y, linewidth = 2, label = label)
                 
         axes.plot(x,x, label ="")
-
         axes.legend(loc= 2, prop = {'size':'medium'})
         axes.set_xlim([0,1])
-        axes.set_ylim([0,1])   
-        
+        axes.set_ylim([0,1])
+        self.lorenzWidget.update()
             
-    def set_data(self, output, default=None):
+    def set_simulation(self, simulation):
         '''
-        Sets the tables
+        Set the simulation
+        
+        Parameters
+        ----------
+        
+        simulation : SurveySimulation
+                     the simualtion object to extract the data from
         '''
-        self.output = output
-        if default is not None:
-            self.data_default = default
+        self.simulation = simulation 
+
         
     def update_frame(self):
-        output = self.output
+        output = self.simulation.outputs
         final_df = None
         
         WEIGHT = of_import(None, 'WEIGHT', self.simulation.country)
@@ -203,12 +206,6 @@ class InequalityWidget(OpenfiscaPluginWidget):
         final_df = final_df[['index','nivvie_ini', u"Initial à net", 'nivvie_net',u"Net à disponible",'nivvie']]
         self.ineqFrameWidget.set_dataframe(final_df)
         self.ineqFrameWidget.reset()
-        
-    def update_view(self):
-        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-        self.plot()
-        self.update_frame()
-        QApplication.restoreOverrideCursor()
         
     def calculated(self):
         self.emit(SIGNAL('calculated()'))
@@ -253,9 +250,9 @@ class InequalityWidget(OpenfiscaPluginWidget):
         Update Inequality Table
         '''
         self.starting_long_process(_("Refreshing inequality widget ..."))
-        self.set_data(self.main.survey_simulation.outputs)
-        self.plot()
+        self.set_simulation(self.main.survey_simulation)
         self.update_frame()
+        self.plot()
         self.ending_long_process(_("Inequality widget refreshed"))
     
     def closing_plugin(self, cancelable=False):
