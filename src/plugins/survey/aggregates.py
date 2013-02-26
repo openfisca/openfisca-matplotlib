@@ -114,28 +114,9 @@ class Aggregates(object):
         else:
             raise Exception('Aggregates:  %s should be an instance of %s class'  %(simulation, SurveySimulation))
           
-    def set_data(self, entity = None):
-        """
-        Generates aggregates at the entity level and get weights
-        
-        Parameters
-        ---------
-        entity : string, default None 
-                 one of the entities which list can be found in countries.country.__init__.py
-                 when None the first entity of ENTITIES_INDEX is used
-        """
-        
-        country = self.simulation.country
-        if entity is None:
-            ENTITIES_INDEX = of_import(None, 'ENTITIES_INDEX', country) # import ENTITIES_INDEX from country.__init__.py
-            entity = ENTITIES_INDEX[0]
-        self.data, self.data_default = self.simulation.aggregated_by_entity(entity, self.varlist)
 
-        WEIGHT = of_import("","WEIGHT", self.simulation.country)
-        self.wght = self.data[WEIGHT]
 
     def compute(self):
-        self.set_data()
         self.compute_aggregates()
         self.load_amounts_from_file()
         self.compute_real()
@@ -200,23 +181,43 @@ class Aggregates(object):
 
 
 
-    def get_aggregate(self, var):
-        '''
-        Returns aggregate spending, nb of beneficiaries
-        '''
-        datasets = {'data': self.data}
-        m_b = {}
+    def get_aggregate(self, variable):
+        """
+        Returns aggregate spending, and number of beneficiaries
+        for the relevant entity level
         
-        if self.data_default is not None:
-            datasets['default'] = self.data_default
-
-        for name, data in datasets.iteritems():
-            montants = data[var]
-            beneficiaires = data[var].values != 0
-            m_b[name] = [int(round(sum(montants*self.wght)/10**6)),
-                        int(round(sum(beneficiaires*self.wght)/10**3))]
-        return m_b
-
+        Parameters
+        ----------
+        variable : string
+                   name of the variable aggregated according to its entity  
+        """
+        
+        country = self.simulation.country
+        WEIGHT = of_import("","WEIGHT", country)
+        simulation = self.simulation
+        description = simulation.outputs.description
+        
+        def aggregate(var):  # TODO: should be a method of Presta
+            varcol  = description.get_col(var)            
+            entity = varcol._unit
+            # amounts and beneficiaries from current data and default data if exists
+            data, data_default = simulation.aggregated_by_entity(entity, [var], all_output_vars = False, force_sum = True)
+                                                
+            datasets = {'data': data}
+            m_b = {}
+            weight = data[WEIGHT]
+            if data_default is not None:
+                datasets['default'] = data_default
+        
+            for name, data in datasets.iteritems():
+                montants = data[var]
+                beneficiaires = data[var].values != 0
+                m_b[name] = [int(round(sum(montants*weight)/10**6)),
+                            int(round(sum(beneficiaires*weight)/10**3))]
+            return m_b
+        
+        return aggregate(variable)
+        
 
     def compute_real(self):
         '''

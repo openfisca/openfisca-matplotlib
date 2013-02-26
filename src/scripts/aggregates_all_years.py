@@ -104,16 +104,38 @@ def get_age_structure(simulation):
     return df
 
 
+def get_agem_structure(simulation):
+    
+    pivot_table = OpenfiscaPivotTable()
+    pivot_table.set_simulation(simulation)
+    df = pivot_table.get_table(entity = 'ind', by = "agem", vars = [])
+    return df
+
+
 from pandas import DataFrame
 
 def test():
+    
+    df_final = None
     for yr in range(2006,2010):
         country = 'france'
         simu = SurveySimulation()
         simu.set_config(year = yr, country = country)
         simu.set_param()
         simu.set_survey()
-        df = get_age_structure(simu)
+        df = get_agem_structure(simu)
+        df[yr] = df['wprm']
+        del df['wprm']
+        if df_final is None:
+            df_final = df
+        else:  
+            df_final = df_final.merge(df)
+    
+    destination_dir = "c:/users/utilisateur/documents/"
+    fname = os.path.join(destination_dir, "agem_structure.xlsx")              
+    writer = ExcelWriter(fname)
+    df_final.to_excel(writer, sheet_name="age", float_format="%.2f")
+    writer.save()
 
 
 def test2():
