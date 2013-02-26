@@ -17,7 +17,7 @@ from src.gui.qt.QtCore import (SIGNAL, QObject, Qt, QLocale, QTranslator,
 from src.gui.qt.compat import to_qvariant, from_qvariant
 
 # Local import
-from src.gui.guiconfig import get_icon
+from src.gui.config import get_icon
 from src.gui.utils import programs
 
 # Note: How to redirect a signal from widget *a* to widget *b* ?

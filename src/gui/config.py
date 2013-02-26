@@ -202,7 +202,7 @@ DEV = not __file__.startswith(sys.prefix)
 DEV = False
 CONF = UserConfig('openfisca', defaults=DEFAULTS, load=(not DEV), version='2.4.0',
                   subfolder=SUBFOLDER, backup=True, raw_mode=True)
-# Removing old .spyder.ini location:
+# Removing old .openfisca.ini location:
 old_location = osp.join(get_home_dir(), '.openfisca.ini')
 if osp.isfile(old_location):
     os.remove(old_location)
@@ -215,10 +215,11 @@ def add_image_path(path):
     global IMG_PATH
     IMG_PATH.append(path)
     for _root, dirs, _files in os.walk(path):
-        for dir in dirs:
-            IMG_PATH.append(osp.join(path, dir))
+        for directory in dirs:
+            IMG_PATH.append(osp.join(path, directory))
 
 add_image_path(get_module_data_path('src.gui', relpath='images'))
+
 
 # TODO: from spyderlib.otherplugins import PLUGIN_PATH
 PLUGIN_PATH = None
@@ -238,8 +239,11 @@ def get_image_path(name, default="not_found.png"):
 def get_icon( name, default=None ):
     """Return image inside a QIcon object"""
     if default is None:
+        print get_image_path(name)
         return QIcon(get_image_path(name))
     elif isinstance(default, QIcon):
+        print 'default is present'
+        print get_image_path(name)
         icon_path = get_image_path(name, default=None)
         return default if icon_path is None else QIcon(icon_path)
     else:

@@ -35,7 +35,7 @@ from PyQt4.QtGui import (QLabel, QHBoxLayout, QVBoxLayout, QPushButton, QComboBo
 from src.gui.qthelpers import MyComboBox, MySpinBox, MyDoubleSpinBox, DataFrameViewWidget, _fromUtf8
 from src.widgets.matplotlibwidget import MatplotlibWidget
 from src.gui.config import CONF
-from src.gui.guiconfig import get_icon
+from src.gui.config import get_icon
 from src.lib.columns import EnumCol, BoolCol, AgesCol, DateCol, BoolPresta, IntPresta
 from src.lib.calmar import calmar
 from src.gui.qt.compat import to_qvariant

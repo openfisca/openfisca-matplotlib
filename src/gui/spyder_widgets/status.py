@@ -11,7 +11,7 @@ from src.gui.qt.QtCore import QTimer, SIGNAL
 
 # Local import
 from src.gui.baseconfig import _
-from src.gui.guiconfig import get_font
+from src.gui.config import get_font
 
 
 class StatusBarWidget(QWidget):

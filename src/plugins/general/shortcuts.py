@@ -16,7 +16,7 @@ import sys
 
 # Local imports
 from src.gui.baseconfig import _
-from src.gui.guiconfig import (get_icon, get_shortcut, set_shortcut,
+from src.gui.config import (get_icon, get_shortcut, set_shortcut,
                                  iter_shortcuts, reset_shortcuts)
 from src.plugins.general.configdialog import GeneralConfigPage
 

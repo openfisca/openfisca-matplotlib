@@ -29,7 +29,7 @@ from src.gui.utils.qthelpers import toggle_actions
 from src.gui.config import CONF
 from src.gui.userconfig import NoDefault
 
-from src.gui.guiconfig import get_font, set_font, get_icon
+from src.gui.config import get_font, set_font, get_icon
 from src.plugins.general.configdialog import OpenfiscaConfigPage
   
 get_font = None

@@ -41,7 +41,7 @@ from src.gui.qt.compat import to_qvariant
 #      consistent editor module (Qt source code and shell widgets library)
 from src.gui.baseconfig import get_conf_path, _, DEBUG
 from src.gui.config import CONF
-from src.gui.guiconfig import get_font, get_icon, get_image_path
+from src.gui.config import get_font, get_icon, get_image_path
 from src.gui.utils.qthelpers import (add_actions, create_action, keybinding,
                                        mimedata2url)
 from src.gui.utils.dochelpers import getobj

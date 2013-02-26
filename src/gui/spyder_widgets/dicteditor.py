@@ -28,7 +28,7 @@ from src.gui.qt.compat import to_qvariant, from_qvariant, getsavefilename
 
 # Local import
 from src.gui.baseconfig import _
-from src.gui.guiconfig import get_icon, get_font
+from src.gui.config import get_icon, get_font
 from src.gui.utils.misc import fix_reference_name
 from src.gui.utils.qthelpers import add_actions, create_action, qapplication
 from src.gui.widgets.dicteditorutils import (sort_against, get_size,

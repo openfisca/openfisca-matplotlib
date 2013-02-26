@@ -21,7 +21,7 @@ import os.path as osp
 # Local imports
 from src.gui.utils.qthelpers import get_std_icon, create_toolbutton
 from src.gui.baseconfig import _
-from src.gui.guiconfig import get_icon
+from src.gui.config import get_icon
 
 
 class PathManager(QDialog):
