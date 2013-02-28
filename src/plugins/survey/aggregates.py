@@ -52,12 +52,9 @@ class Aggregates(object):
         super(Aggregates, self).__init__()
 
         self.simulation = None
-
-        self.simulation = None
         self.data = None
         self.data_default = None
         self.totals_df = None
-        self.set_default_var_list()
         self.set_header_labels()
         self.show_default = False
         self.show_real = True
@@ -75,15 +72,10 @@ class Aggregates(object):
         Set list of variables to be aggregated 
         TODO: move away because france specific
         """
+        country = self.simulation.country
+        AGGREGATES_DEFAULT_VARS = of_import("","AGGREGATES_DEFAULT_VARS", country)
+        self.varlist = AGGREGATES_DEFAULT_VARS
         
-        self.varlist = ['cotsoc_noncontrib', 'csg', 'crds',
-            'irpp', 'ppe',
-            'af', 'af_base', 'af_majo','af_forf', 'cf',
-            'paje_base', 'paje_nais', 'paje_colca', 'paje_clmg',
-            'ars', 'aeeh', 'asf', 'aspa',
-            'aah', 'caah', 
-            'rsa', 'rsa_act', 'aefa', 'api',
-            'logt', 'alf', 'als', 'apl']
 
     def set_header_labels(self):
         '''
@@ -113,7 +105,7 @@ class Aggregates(object):
             self.simulation = simulation
         else:
             raise Exception('Aggregates:  %s should be an instance of %s class'  %(simulation, SurveySimulation))
-          
+        self.set_default_var_list()
 
 
     def compute(self):
@@ -691,3 +683,5 @@ class AggregatesWidget(OpenfiscaPluginWidget):
         Note: returned value is ignored if *cancelable* is False
         """
         return True
+    
+    

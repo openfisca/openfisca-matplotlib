@@ -31,7 +31,6 @@ def get_loyer_inflator(year):
 
 def build_aggregates():
 
-
     writer = None
     years = range(2006,2010)
     for year in years:        
@@ -94,76 +93,59 @@ def diag_aggregates():
     df_final.to_excel(writer, sheet_name="diagnostics", float_format="%.2f")
     writer.save()
 
-from src.plugins.survey.distribution import OpenfiscaPivotTable
 
-def get_age_structure(simulation):
-    
-    pivot_table = OpenfiscaPivotTable()
-    pivot_table.set_simulation(simulation)
-    df = pivot_table.get_table(entity = 'ind', by = "age", vars = [])
-    return df
+def build_erf_aggregates():
+    DATA_DIR = 'C:/Users/Utilisateur/Documents/Data/'
+#    from src.lib.utils import of_import
+#    DATA_DIR = DATA_DIR
+#    R_USER = os.getenv("R_USER")
+#    if R_USER is None:
+#        import win32api
+#        R_USER = win32api.GetUserName()
+#
+#    os.environ['R_USER'] = R_USER    
+    import pandas.rpy.common as com 
+    import rpy2.rpy_classic as rpy
+    rpy.set_default_mode(rpy.NO_CONVERSION)
 
-
-def get_agem_structure(simulation):
-    
-    pivot_table = OpenfiscaPivotTable()
-    pivot_table.set_simulation(simulation)
-    df = pivot_table.get_table(entity = 'ind', by = "agem", vars = [])
-    return df
-
-
-from pandas import DataFrame
-
-def test():
-    
-    df_final = None
-    for yr in range(2006,2010):
-        country = 'france'
+    for year in range(2006,2010):
+        menageXX = "menage" + str(year)[2:]
+        menageRdata = menageXX + ".Rdata"
+        filename = os.path.join(os.path.dirname(DATA_DIR),'R','erf', str(year), menageRdata)
+        yr = str(year)
         simu = SurveySimulation()
         simu.set_config(year = yr, country = country)
         simu.set_param()
-        simu.set_survey()
-        df = get_agem_structure(simu)
-        df[yr] = df['wprm']
-        del df['wprm']
-        if df_final is None:
-            df_final = df
-        else:  
-            df_final = df_final.merge(df)
     
-    destination_dir = "c:/users/utilisateur/documents/"
-    fname = os.path.join(destination_dir, "agem_structure.xlsx")              
-    writer = ExcelWriter(fname)
-    df_final.to_excel(writer, sheet_name="age", float_format="%.2f")
-    writer.save()
+        agg = Aggregates()
+        agg.set_simulation(simu)
+        # print agg.varlist
+        rpy.r.load(filename)
 
+        menage = com.load_data(menageXX)
+        cols = []
+        print year
+        for col in agg.varlist:
+            #print col
+            erf_var = "m_" + col + "m" 
+            if erf_var in menage.columns:
+                cols += [erf_var] 
 
-def test2():
-        yr = 2008
-        country = 'france'
-        simu = SurveySimulation()
-        simu.set_config(year = yr, country = country)
-        simu.set_param()
-        simu.set_survey()
-        df = get_age_structure(simu)
+        df = menage[cols]
+        wprm = menage["wprm"]
+        for col in df.columns:
+            
+            tot = (df[col]*wprm).sum()/1e9
+            print col, tot
     
-        print df.to_string()
-        df = DataFrame({'x' : simu.survey.get_value("wprm", simu.survey.index['men'], sum_=True)})
+    
 
-        print df.describe()
-
-        df2 = DataFrame({'y' : simu.survey.get_value("wprm", simu.survey.index['ind'], sum_=False)})
-        print df2.describe()
-
-        df3 = DataFrame({'z' : simu.survey.get_value("idmen", simu.survey.index['men'], sum_=True)})
-        df4 = DataFrame({'t' : simu.survey.get_value("noi", simu.survey.index['ind'])})
-        
-        print (df3.z==0).sum()
-        print (df4.t==1).describe()
 
 if __name__ == '__main__':
 
 
 #    build_aggregates()
 #    diag_aggregates()
-    test()
+#    test()
+
+    build_erf_aggregates()

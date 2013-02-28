@@ -229,7 +229,6 @@ class OpenfiscaPivotTable(object):
                 del temp_data['champm']
             else:
                 keep = [category, WEIGHT]
-                print data.columns
                 temp_data = data[keep].copy()
 
             temp = []

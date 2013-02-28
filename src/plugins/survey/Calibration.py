@@ -134,9 +134,7 @@ class Calibration(object):
             return
         marges = {}
         if source == "input":
-            print 'Loading input margins'
             self.input_margins_df = totals.rename(columns = {year : 'target'}, inplace = False) 
-            print self.input_margins_df
         elif source =='output':
             self.output_margins_df = totals.rename(columns = {year : 'target'}, inplace = False) 
             
@@ -202,13 +200,6 @@ class Calibration(object):
     
         if target is not None:
             if len(mods) != len(target.keys()):
-                print 'Problem with variable : ', varname
-                print len(target.keys()), ' target keys for ', len(mods), ' modalities' 
-                print "modalities"
-                print mods
-                print "targets"
-                print target.keys()
-                print 'Skipping the variable'
                 drop_indices = [ (varname, mod) for mod in target.keys()]
                 if source == 'input':                    
                     self.input_margins_df = self.input_margins_df.drop(drop_indices)
@@ -1052,10 +1043,6 @@ def test():
     calibration.set_param('up', 3)
     calibration.set_param('method', 'logit')
 
-    print calibration.input_margins_df
-    #print calibration.frame
-    calibration.calibrate()
-    #print calibration.frame
     
     
     from src.plugins.survey.aggregates import Aggregates
@@ -1063,7 +1050,7 @@ def test():
     aggregates.set_simulation(simulation)
     simulation.compute()
     aggregates.compute()
-    print 'couc'
+
     print aggregates.aggr_frame.to_string()
 
     calibration.set_calibrated_weights()    

@@ -239,11 +239,8 @@ def get_image_path(name, default="not_found.png"):
 def get_icon( name, default=None ):
     """Return image inside a QIcon object"""
     if default is None:
-        print get_image_path(name)
         return QIcon(get_image_path(name))
     elif isinstance(default, QIcon):
-        print 'default is present'
-        print get_image_path(name)
         icon_path = get_image_path(name, default=None)
         return default if icon_path is None else QIcon(icon_path)
     else:
