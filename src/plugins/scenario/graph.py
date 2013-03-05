@@ -22,20 +22,33 @@ This file is part of openFisca.
 """
 
 from __future__ import division
-from src.Config import CONF
-from PyQt4.QtCore import QAbstractItemModel, QModelIndex, Qt, QVariant, SIGNAL, \
-    QSize
-from PyQt4.QtGui import QDockWidget, QFileDialog, QColor, QVBoxLayout, QDialog, \
-    QMessageBox, QTreeView, QIcon, QPixmap, QHBoxLayout, QPushButton
+
+from src.gui.qt.QtCore import (QAbstractItemModel, QModelIndex, Qt, 
+                          SIGNAL, QSize)
+from src.gui.qt.QtGui import (QFileDialog, QColor, QVBoxLayout, QDialog, 
+                         QMessageBox, QTreeView, QIcon, QPixmap, QHBoxLayout, 
+                         QPushButton)
+from src.gui.qt.compat import to_qvariant
+
+
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle, FancyArrow
 from matplotlib.ticker import FuncFormatter
-from src.views.ui_graph import Ui_Graph
+from src.gui.views.ui_graph import Ui_Graph
+from src.gui.config import get_icon, CONF
 import os
 import locale
 import numpy as np
 
-from src.core.utils import of_import
+from src.lib.utils import of_import
+
+from src.gui.baseconfig import get_translation
+from src.plugins.__init__ import OpenfiscaPluginWidget
+_ = get_translation('src')
+
+
+from src.countries.france import REVENUES_CATEGORIES # TODO: should be more general
+
 
 locale.setlocale(locale.LC_ALL, '')
 
@@ -64,7 +77,7 @@ class GraphFormater(QDialog):
         self.connect(allBtn, SIGNAL('clicked()'), self.checkAll)
         self.connect(noneBtn, SIGNAL('clicked()'), self.checkNone)
 
-        self.output_dir = CONF.get('paths', 'output_dir')
+#        self.output_dir = CONF.get('composition', 'graph/export_dir')
 
 
     def checkAll(self):
@@ -109,11 +122,12 @@ class DataModel(QAbstractItemModel):
             return None
         node = self.getNode(index)
         if role == Qt.DisplayRole or role == Qt.EditRole:
-            return QVariant(node.desc)
+            return to_qvariant(node.desc)
         if role == Qt.DecorationRole:
             return colorIcon(node.color)
         if role == Qt.CheckStateRole:
-            return QVariant(2*(node.visible>=1))
+            return to_qvariant(2*(node.visible>=1))
+
      
     def setData(self, index, value, role = Qt.EditRole):
         if not index.isValid():
@@ -173,9 +187,14 @@ class DataModel(QAbstractItemModel):
                 return node            
         return self._rootNode
 
-class Graph(QDockWidget, Ui_Graph):
+class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):    
+    """
+    Scenario Graph Widget
+    """
+    CONF_SECTION = 'composition'
+    
     def __init__(self, parent = None):
-        super(Graph, self).__init__(parent)
+        super(ScenarioGraphWidget, self).__init__(parent)
         self.setupUi(self)
         self._parent = parent
         self.mplwidget.mpl_connect('pick_event', self.on_pick)
@@ -186,6 +205,10 @@ class Graph(QDockWidget, Ui_Graph):
         self.taux = False
         self.legend = True
         self.simulation = None
+        
+        self.setLayout(self.verticalLayout)
+
+    #------ Public API ---------------------------------------------
 
     def set_taux(self, value):
         if value: self.taux = True
@@ -219,11 +242,13 @@ class Graph(QDockWidget, Ui_Graph):
         label = event.artist._label
         self.setToolTip(label)
 
-    def updateGraph(self, data, simulation, dataDefault = None):
+    def updateGraph(self, simulation):
         """
-        
+        Update the graph according to simulation
         """
         self.simulation = simulation
+        data = simulation.data
+        dataDefault = simulation.data_default
         reforme = simulation.reforme
         mode = simulation.mode
         xaxis = simulation.scenario.xaxis
@@ -244,7 +269,7 @@ class Graph(QDockWidget, Ui_Graph):
         self.populate_absBox(xaxis, mode)
         
         build_axes = of_import('utils','build_axes', country = self.simulation.country)
-        axes = build_axes()
+        axes = build_axes(self.simulation.country)
         
         for axe in axes:
             if axe.name == xaxis:
@@ -283,10 +308,9 @@ class Graph(QDockWidget, Ui_Graph):
         self.taux_btn.setEnabled(True)
         self.absBox.setEnabled(True)
         self.hidelegend_btn.setEnabled(True)
-        
-        
+            
         build_axes = of_import('utils','build_axes', country = self.simulation.country)
-        axes = build_axes()
+        axes = build_axes(self.simulation.country)
         for axe in axes:
             if axe.name == xaxis:
                 typ_revs_labels = axe.typ_tot.values()
@@ -301,7 +325,7 @@ class Graph(QDockWidget, Ui_Graph):
         
         country = self.simulation.country                
         build_axes = of_import('utils', 'build_axes', country = country)        
-        axes = build_axes()
+        axes = build_axes(country = country)
         mode = self.simulation.mode
         
         if mode == "bareme":
@@ -335,13 +359,68 @@ class Graph(QDockWidget, Ui_Graph):
         
         if fname:
             self.output_dir = os.path.dirname(str(fname))
-            CONF.set('paths', 'output_dir', self.output_dir)
+            self.set_option('graph/export_dir', self.output_dir)
             try:
                 self.mplwidget.print_figure( unicode(fname) )
             except Exception, e:
                 QMessageBox.critical(
                     self, "Erreur en enregistrant le fichier", str(e),
                     QMessageBox.Ok, QMessageBox.NoButton)
+
+
+    #------ OpenfiscaPluginMixin API ---------------------------------------------
+    #------ OpenfiscaPluginWidget API ---------------------------------------------
+
+    def get_plugin_title(self):
+        """
+        Return plugin title
+        Note: after some thinking, it appears that using a method
+        is more flexible here than using a class attribute
+        """
+        return _("Test case graphic")
+
+    
+    def get_plugin_icon(self):
+        """
+        Return plugin icon (QIcon instance)
+        Note: this is required for plugins creating a main window
+              (see OpenfiscaPluginMixin.create_mainwindow)
+              and for configuration dialog widgets creation
+        """
+        return get_icon('OpenFisca22.png')
+            
+    def get_plugin_actions(self):
+        """
+        Return a list of actions related to plugin
+        Note: these actions will be enabled when plugin's dockwidget is visible
+              and they will be disabled when it's hidden
+        """
+        raise NotImplementedError
+    
+    def register_plugin(self):
+        """
+        Register plugin in OpenFisca's main window
+        """
+        self.main.add_dockwidget(self)
+
+
+    def refresh_plugin(self):
+        '''
+        Update Graph
+        '''
+        if self.main.scenario_simulation.data is not None:
+            self.updateGraph(self.main.scenario_simulation)
+    
+    def closing_plugin(self, cancelable=False):
+        """
+        Perform actions before parent main window is closed
+        Return True or False whether the plugin may be closed immediately or not
+        Note: returned value is ignored if *cancelable* is False
+        """
+        return True
+
+
+
 
 def drawWaterfall(data, ax):
 
@@ -425,7 +504,7 @@ def drawBareme(data, ax, xaxis, reforme = False, dataDefault = None, legend = Tr
     NMEN = len(xdata.vals)
     xlabel = xdata.desc
     ax.set_xlabel(xlabel)
-    currency = of_import('utils', 'currency', country = country)
+    currency = of_import(None, 'CURRENCY', country = country)
     ax.set_ylabel(prefix + u"Revenu disponible (" + currency + " par an)")
     ax.set_xlim(np.amin(xdata.vals), np.amax(xdata.vals))
     if not reforme:
@@ -470,8 +549,8 @@ def drawBaremeCompareHouseholds(data, ax, xaxis, dataDefault = None, legend = Tr
     NMEN = len(xdata.vals)
     xlabel = xdata.desc
     ax.set_xlabel(xlabel)
-    currency = of_import('utils', 'currency', country = country)
-    ax.set_ylabel(prefix + u"Revenu disponible (" + currency + " par an)")
+    from src.countries.france import CURRENCY
+    ax.set_ylabel(prefix + u"Revenu disponible (" + CURRENCY + " par an)")
     ax.set_xlim(np.amin(xdata.vals), np.amax(xdata.vals))
     ax.plot(xdata.vals, np.zeros(NMEN), color = 'black', label = 'xaxis')
     
@@ -566,13 +645,13 @@ def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None, legend = True
     if dataDefault is None: 
         dataDefault = data
 
-    REV_TYPE = of_import('utils', 'REV_TYPE', country = country)
+    # TODO: the following is an ugly fix which is not general enough
     if xaxis == "rev_cap_brut":
         typ_rev = 'superbrut'
     elif xaxis == "rev_cap_net":
         typ_rev = 'net'
     else:
-        for typrev, vars in REV_TYPE.iteritems():
+        for typrev, vars in REVENUES_CATEGORIES.iteritems():
             if xaxis in vars:
                 typ_rev = typrev
         
@@ -620,18 +699,16 @@ def RevTot(data, typrev, country = None):
     
     if country is None:
         raise Exception('RevTot: country must be set')
-        
-    REV_TYPE = of_import('utils', 'REV_TYPE', country = country)
-    dct = REV_TYPE
-
+    
+    dct = REVENUES_CATEGORIES
     first = True
     try:
         for var in dct[typrev]:
             if first:
-                out = data[var].vals.copy() # Copy is needed to avoid pointers problems (do not remove this line)!!!!
+                out = data[var].vals.copy() # WARNING: Copy is needed to avoid pointers problems (do not remove this line)!!!!
                 first = False
             else:
                 out += data[var].vals
         return out 
     except:
-        raise Exception("typrev is %s but typrev should be one of the following: %s" %(str(typrev), str(REV_TYPE.keys())) )
+        raise Exception("typrev is %s but typrev should be one of the following: %s" %(str(typrev), str(dct.keys())) )

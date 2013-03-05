@@ -24,15 +24,15 @@ This file is part of openFisca.
 from __future__ import division
 import os
 
-from PyQt4.QtCore import SIGNAL, Qt, QSize 
-from PyQt4.QtGui import (QLabel, QDialog, QHBoxLayout, QVBoxLayout, QPushButton, QComboBox, 
+from src.gui.qt.QtCore import SIGNAL, Qt, QSize 
+from src.gui.qt.QtGui import (QLabel, QDialog, QHBoxLayout, QVBoxLayout, QPushButton, QComboBox, 
                          QSpinBox, QDoubleSpinBox, QCheckBox, QInputDialog, QFileDialog, 
                          QMessageBox, QApplication, QCursor, QSpacerItem, QSizePolicy,
                          QDialogButtonBox)
 from numpy import logical_and, unique, NaN
 from pandas import  DataFrame, concat, HDFStore
 from Config import CONF
-from core.qthelpers import DataFrameViewWidget, get_icon, _fromUtf8
+from src.gui.qthelpers import DataFrameViewWidget, get_icon, _fromUtf8
 
 
 
@@ -136,9 +136,13 @@ class InflationWidget(QDialog):
         '''
         Sets inputs datatable
         '''
+        from src.lib.utils import of_import
+
+        WEIGHT = of_import("","WEIGHT", self.simulation.country)
+
         self.inputs = inputs
-        self.unit = 'ind'
-        self.weights = 1*self.inputs.get_value("wprm", inputs.index[self.unit]) # 1* to deal with pointer nature
+        self.unit = 'ind' # TODO: COUNTRY SPECIFIC
+        self.weights = 1*self.inputs.get_value(WEIGHT, inputs.index[self.unit]) # 1* to deal with pointer nature
 
     def set_targets_from_file(self, filename = None, year = None):
         '''

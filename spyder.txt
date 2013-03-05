@@ -1,0 +1,8 @@
+The OpenFisca graphical user interface is largely inspired by spyder, the 
+interactive development environment for the Python (http://code.google.com/p/spyderlib/)
+licensed under the terms of the MIT License (http://opensource.org/licenses/mit-license.php).
+
+Complete reuse of spyder code can be found in:
+ - src.qt
+ - spyder_widgets
+ 

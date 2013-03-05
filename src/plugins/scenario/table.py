@@ -1,32 +1,22 @@
 # -*- coding:utf-8 -*-
+
+#
+# This file is part of OpenFisca.
+# OpenFisca is a socio-fiscal microsimulation software
 # Copyright © 2011 Clément Schaff, Mahdi Ben Jelloul
+# Licensed under the terms of the GVPLv3 or later license
+# (see openfisca/__init__.py for details)
 
-"""
-openFisca, Logiciel libre de simulation du système socio-fiscal français
-Copyright © 2011 Clément Schaff, Mahdi Ben Jelloul
-
-This file is part of openFisca.
-
-    openFisca is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    openFisca is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
-"""
 
 from __future__ import division
-from Config import CONF
-from PyQt4.QtCore import QAbstractItemModel, QModelIndex, Qt, QVariant
-from PyQt4.QtGui import QDockWidget, QFileDialog, QVBoxLayout, QMessageBox, QWidget, QAbstractItemView
+
+from src.gui.qt.QtCore import QAbstractItemModel, QModelIndex, Qt
+from src.gui.qt.QtGui import  QFileDialog, QMessageBox, QWidget, QAbstractItemView
+from src.gui.qt.compat import to_qvariant
+
+
 from datetime import datetime
-from core.qthelpers import OfTreeView
+from src.gui.qthelpers import OfTreeView
 import csv
 import os
 import codecs
@@ -35,15 +25,26 @@ import locale
 import numpy as np
 from pandas import DataFrame, ExcelWriter
 
-from core.utils import of_import
+from src.gui.qt.QtGui import  QVBoxLayout
+from src.gui.config import get_icon
+from src.plugins.__init__ import OpenfiscaPluginWidget
 
+from src.lib.utils import of_import
+from src.gui.baseconfig import get_translation
 locale.setlocale(locale.LC_ALL, '')
+_ = get_translation('src')
 
-class OutTable(QDockWidget):
+
+class ScenarioTableWidget(OpenfiscaPluginWidget):    
+    """
+    Scenario Table Widget
+    """
+    CONF_SECTION = 'composition'
+
     def __init__(self, parent = None):
-        super(OutTable, self).__init__(parent)
-        self.setObjectName("Table")
-        self.setWindowTitle("Table")
+        super(ScenarioTableWidget, self).__init__(parent)
+        self.setObjectName(_("Table"))
+        self.setWindowTitle(_("Table"))
         self.dockWidgetContents = QWidget(self)
         self.verticalLayout = QVBoxLayout(self.dockWidgetContents)
         self.treeView = OfTreeView(self.dockWidgetContents)
@@ -56,30 +57,30 @@ class OutTable(QDockWidget):
         self.treeView.setSelectionBehavior(selection_behavior)
         self.treeView.setSelectionMode(selection_mode)
         self.verticalLayout.addWidget(self.treeView)
-        self.setWidget(self.dockWidgetContents)
+        self.setLayout(self.verticalLayout)
 
-        self.table_format = CONF.get('paths', 'table')
-        self.output_dir = CONF.get('paths', 'output_dir')
+        self.table_format = self.get_option('table/format')
+        self.output_dir = self.get_option('table/export_dir')
 
 
+    #------ Public API ---------------------------------------------
     def clearModel(self):
         self.treeView.setModel(None)
 
-    def updateTable(self, data, simulation, dataDefault):
+    def updateTable(self, simulation):
         '''
         Updates table
         '''
-
+        data = simulation.data
+        dataDefault = simulation.data_default
+        
         if dataDefault is None:
             dataDefault = data
-            
-        reforme = simulation.reforme
+
         mode = simulation.mode
-        
-#        xaxis = CONF.get('simulation', 'xaxis')            
         xaxis = simulation.xaxis
         build_axes = of_import('utils','build_axes', simulation.country)
-        axes = build_axes()
+        axes = build_axes(simulation.country)
         for axe in axes:
             if axe.name == xaxis:
                 xaxis_typ_tot = axe.typ_tot_default
@@ -134,11 +135,11 @@ class OutTable(QDockWidget):
 
         extension = table_format.upper() + "   (*." + table_format + ")"
         fname = QFileDialog.getSaveFileName(self,
-                                               u"Exporter la table", user_path, extension)
+                                               _("Save table"), user_path, extension)
         
         if fname:
             self.output_dir = os.path.dirname(str(fname))
-            CONF.set('paths', 'output_dir', self.output_dir)
+            self.set_option('table/export_dir', self.output_dir)
             try:
                 if table_format == "xls":
                     writer = ExcelWriter(str(fname))
@@ -160,9 +161,9 @@ class OutTable(QDockWidget):
                                 outlist.append(locale.str(val))
                             writer.writerow(outlist)
                             
-                    writer.writerow([u'OpenFisca'])
-                    writer.writerow([u'Calculé le %s à %s' % (now.strftime('%d-%m-%Y'), now.strftime('%H:%M'))])
-                    writer.writerow([u'Système socio-fiscal au %s' % str(self.simulation.datesim)])
+                    writer.writerow(['OpenFisca'])
+                    writer.writerow([_('Computed on %s at %s') % (now.strftime('%d-%m-%Y'), now.strftime('%H:%M'))])
+                    writer.writerow([_('Socio-fiscal legislation of date %s') % str(self.simulation.datesim)])
                     writer.writerow([])
             
                     csvfile.close()                
@@ -171,6 +172,60 @@ class OutTable(QDockWidget):
                 QMessageBox.critical(
                     self, "Error saving file", str(e),
                     QMessageBox.Ok, QMessageBox.NoButton)
+
+
+    #------ OpenfiscaPluginMixin API ---------------------------------------------
+    #------ OpenfiscaPluginWidget API ---------------------------------------------
+
+    def get_plugin_title(self):
+        """
+        Return plugin title
+        Note: after some thinking, it appears that using a method
+        is more flexible here than using a class attribute
+        """
+        return "Table"
+
+    
+    def get_plugin_icon(self):
+        """
+        Return plugin icon (QIcon instance)
+        Note: this is required for plugins creating a main window
+              (see OpenfiscaPluginMixin.create_mainwindow)
+              and for configuration dialog widgets creation
+        """
+        return get_icon('OpenFisca22.png')
+            
+    def get_plugin_actions(self):
+        """
+        Return a list of actions related to plugin
+        Note: these actions will be enabled when plugin's dockwidget is visible
+              and they will be disabled when it's hidden
+        """
+        raise NotImplementedError
+    
+    def register_plugin(self):
+        """
+        Register plugin in OpenFisca's main window
+        """
+        self.main.add_dockwidget(self)
+
+    def refresh_plugin(self):
+        '''
+        Update Scenario Table
+        '''
+        # set the table model to None before changing data
+        if self.main.scenario_simulation.data is not None:
+            self.clearModel()
+            self.updateTable(self.main.scenario_simulation)
+    
+    def closing_plugin(self, cancelable=False):
+        """
+        Perform actions before parent main window is closed
+        Return True or False whether the plugin may be closed immediately or not
+        Note: returned value is ignored if *cancelable* is False
+        """
+        return True
+
 
 
 class OutputModel(QAbstractItemModel):
@@ -197,9 +252,10 @@ class OutputModel(QAbstractItemModel):
         col = index.column()
         if role == Qt.DisplayRole:
             if col == 0: 
-                return QVariant(node.desc)
+                return to_qvariant(node.desc)
             else:
-                return QVariant(int(np.round(node.vals[col-1])))
+                return to_qvariant(int(np.round(node.vals[col-1])))
+
         if role == Qt.TextAlignmentRole:
             if col == 0: 
                 return Qt.AlignLeft
@@ -207,9 +263,10 @@ class OutputModel(QAbstractItemModel):
 
     def headerData(self, section, orientation, role):
         if role == Qt.DisplayRole:
-            if   section == 0: return QVariant(self._headers.desc)
+            if   section == 0: return to_qvariant(self._headers.desc)
             else:
-                return QVariant(int(self._headers.vals[section-1]))
+                return to_qvariant(int(self._headers.vals[section-1]))
+
     
     def flags(self, index):
         node = self.getNode(index)

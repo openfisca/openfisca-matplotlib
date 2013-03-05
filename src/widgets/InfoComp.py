@@ -20,10 +20,12 @@ This file is part of openFisca.
     You should have received a copy of the GNU General Public License
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
-from PyQt4.QtGui import (QDialog, QSizePolicy, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, 
+from src.gui.qt.QtGui import (QDialog, QSizePolicy, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, 
                          QComboBox, QCheckBox, QSpacerItem, QDialogButtonBox)
-from PyQt4.QtCore import SIGNAL
-from core.qthelpers import get_icon, OfSs
+from src.gui.qt.QtCore import SIGNAL
+from src.gui.qthelpers import OfSs
+from src.gui.utils.qthelpers import get_icon
+
 
 class InfoComp(QDialog):
     '''
