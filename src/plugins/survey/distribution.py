@@ -87,7 +87,7 @@ class OpenfiscaPivotTable(object):
 
     def get_table(self, by = None, vars = None, entity = None, champm = True, do_not_use_weights = False):
         """
-        Updated frame
+        Build pivot table dataframe
         
         Parameters
         ----------
@@ -157,57 +157,10 @@ class OpenfiscaPivotTable(object):
                 frame.rename(columns = { col : self.simulation.var2label[col] }, inplace = True)
         
         if enum is not None:
-            frame[by_var_label] = frame[by_var_label].apply(lambda x: enum._vars[x])
-               
+            frame[by_var_label] = frame[by_var_label].apply(lambda x: enum._vars[x])       
+        
         return frame
      
-    
-    def group_by2(self, varlist, category):
-        '''
-        Computes grouped aggregates
-        '''
-        datasets = {'data': self.data}
-        aggr_dict = {}
-    
-        if self.data_default is not None:
-            datasets['default'] = self.data_default
-            
-        cols = self.cols
-        # cols = []
-        
-        WEIGHT = of_import(None, 'WEIGHT', self.simulation.country) # import WEIGHT from country.__init__.py
-        
-        for name, data in datasets.iteritems():
-            # Computes aggregates by category
-            keep = [category, WEIGHT, 'champm'] + cols
-            temp_data = data[keep].copy()
-            temp_data[WEIGHT]   = temp_data[WEIGHT]*temp_data['champm']
-            keep.remove('champm')
-            del keep['champm']
-            temp = []
-            for var in varlist:
-                temp_data[var] = temp_data[WEIGHT]*data[var]
-                temp.append(var)
-                keep.append(var)
-                    
-            from pandas import pivot_table
-            aggr_dict[name] = pivot_table(temp_data[keep], cols = cols,
-                                  rows = category, values=keep, aggfunc = np.sum)
-            
-            for cat, df in aggr_dict[name].iterrows():
-                for varname in varlist:
-                    if name=='default':
-                        label = varname + '__init'
-                        df[label] = df[varname]/df[WEIGHT]
-                        del df[varname]
-                    else:
-                        df[varname] = df[varname]/df[WEIGHT]
-            
-            aggr_dict[name].index.names[0] = 'variable'
-            aggr_dict[name] = aggr_dict[name].reset_index().unstack(cols.insert(0, 'variable'))
-
-            
-        return aggr_dict
 
     def group_by(self, varlist, category, champm=True, do_not_use_weights=False):
         '''
@@ -237,7 +190,7 @@ class OpenfiscaPivotTable(object):
                 temp.append(var)
                 keep.append(var)
                 
-            
+            # TODO: we may use the pandas pivot_table       
             grouped = temp_data[keep].groupby(category, as_index = False)
             aggr_dict[name] = grouped.aggregate(np.sum)
 

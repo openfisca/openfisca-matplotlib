@@ -13,6 +13,7 @@ from src.lib.simulation import ScenarioSimulation
 
 from src.lib.simulation import SurveySimulation 
 from src.plugins.survey.aggregates import Aggregates
+from datetime import datetime
 from pandas import ExcelWriter
 import os
 
@@ -27,12 +28,17 @@ def test_case():
     yr = 2009
     country = 'france'
 
-    simu = ScenarioSimulation()
-    simu.set_config(year = yr, country = country, 
+    simulation = ScenarioSimulation()
+    simulation.set_config(year = yr, country = country, 
                     nmen = 1, maxrev = 100000, xaxis = 'sali')
-    simu.set_param()
-#    simu.disable_prestations( ['aefa'])
-    df = simu.get_results_dataframe()
+    # Adding a husband/wife on the same tax sheet (foyer)
+    simulation.scenario.addIndiv(1, datetime(1975,1,1).date(), 'conj', 'part') 
+    simulation.set_param()
+
+    # A the aefa prestation can be disabled by uncommenting the following line
+    # simulation.disable_prestations( ['aefa'])
+    
+    df = simulation.get_results_dataframe()
 
     print df.to_string()
 
@@ -44,33 +50,43 @@ def test_case():
 
 def survey_case():
     
-    year = 2006 
+    year = 2009 
     yr = str(year)
 #        fname = "Agg_%s.%s" %(str(yr), "xls")
-    simu = SurveySimulation()
-    simu.set_config(year = yr, country = country)
-    simu.set_param()
-    simu.set_survey()
+    simulation = SurveySimulation()
+    simulation.set_config(year = yr, country = country)
+    simulation.set_param()
+    simulation.set_survey()
 
+#    Ignore this
 #    inflator = get_loyer_inflator(year)
-#    simu.inflate_survey({'loyer' : inflator})
-#    simu.compute()
-#    
-#    agg = Aggregates()
-#    agg.set_simulation(simu)
-#    agg.compute()
-#
-#    if writer is None:
-#        writer = ExcelWriter(str(fname_all))
-#    agg.aggr_frame.to_excel(writer, yr, index= False, header= True)
-#    del simu
-#    del agg
-#    import gc
-#    gc.collect()
+#    simulation.inflate_survey({'loyer' : inflator})
 
+    simulation.compute()
     
+
+# Compute aggregates
+    agg = Aggregates()
+    agg.set_simulation(simulation)
+    agg.compute()
     
+    df1 = agg.aggr_frame
+    print df1.to_string()
+    
+#    Saving aggregates
+#    if writer is None:
+#        writer = ExcelWriter(str(fname)
+#    agg.aggr_frame.to_excel(writer, yr, index= False, header= True)
+
+
+# Displaying a pivot table    
+    from src.plugins.survey.distribution import OpenfiscaPivotTable
+    pivot_table = OpenfiscaPivotTable()
+    pivot_table.set_simulation(simulation)
+    df2 = pivot_table.get_table(by ='so', vars=['nivvie']) 
+    print df2.to_string()
 
 if __name__ == '__main__':
 
+    test_case()
     survey_case()

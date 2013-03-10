@@ -95,9 +95,10 @@ class Calibration(object):
         Set simulation 
         """
 
-        
         self.simulation = simulation
         inputs = self.simulation.survey
+        if inputs is None:
+            return
         self.unit = 'men' # TODO: shoud not be france specific
         WEIGHT = of_import("","WEIGHT", self.simulation.country)
         WEIGHT_INI = of_import("","WEIGHT_INI", self.simulation.country)
@@ -991,6 +992,8 @@ class CalibrationWidget(OpenfiscaPluginWidget):
         Register plugin in OpenFisca's main window
         """
         simulation = self.main.survey_simulation
+        if simulation.survey is None:
+            return
         calibration = Calibration()
         if simulation is not None: 
             calibration.set_simulation(simulation)         
