@@ -109,16 +109,22 @@ class Aggregates(object):
 
 
     def compute(self):
+#        try:
         self.compute_aggregates()
+#        except Exception, e:
+#            raise Exception("Cannot compute aggregates.\n compute_aggregates returned error '%s'" % e)
         self.load_amounts_from_file()
         self.compute_real()
         self.compute_diff()
 
 
     def compute_aggregates(self):
-        '''
+        """
         Compute aggregate amounts
-        '''
+        """
+        if self.simulation.outputs is None:
+            raise Exception("No outputs found for the current survey_simulation")
+        
         V  = []    
         M = {'data': [], 'default': []}
         B = {'data': [], 'default': []}
