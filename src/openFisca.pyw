@@ -760,8 +760,12 @@ class MainWindow(QMainWindow):
             self.survey_explorer.initialize()
             self.survey_simulation.set_param()
 
-
-            
+            if self.survey_simulation.survey is None:
+                self.debug_print("No survey data, removing survey plugins")
+                self.register_survey_widgets(boolean=False)
+                self.removeDockWidget(self.survey_explorer.dockwidget)
+                return
+                
             # Calibration widget
             if CONF.get('calibration', 'enable'):
                 self.set_splash(_("Loading calibration widget ..."))
