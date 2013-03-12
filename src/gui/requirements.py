@@ -47,7 +47,7 @@ def check_qt():
     """
     Check Qt binding requirements
     """
-    qt_infos = dict(pyqt=("PyQt4", "4.4"), pyside=("PySide", "1.1.1"))
+    qt_infos = dict(pyqt=("PyQt4", "4.04"), pyside=("PySide", "1.1.1"))
     try:
         from src.gui import qt
         package_name, required_str = qt_infos[qt.API]
