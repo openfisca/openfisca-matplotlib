@@ -7,7 +7,7 @@
 # (see openfisca/__init__.py for details)
 
 
-# Exemple of a simple simualtion
+# Exemple of a simple simulation
 
 from src.lib.simulation import ScenarioSimulation 
 
@@ -17,10 +17,12 @@ from datetime import datetime
 from pandas import ExcelWriter
 import os
 
+
+
 country = 'france'
-destination_dir = "c:/users/utilisateur/documents/"
-fname_all = "aggregates_inflated_loyers.xlsx"
-fname_all = os.path.join(destination_dir, fname_all)              
+# destination_dir = "c:/users/utilisateur/documents/"
+# fname_all = "aggregates_inflated_loyers.xlsx"
+# fname_all = os.path.join(destination_dir, fname_all)              
 
 
 
@@ -30,7 +32,7 @@ def test_case():
 
     simulation = ScenarioSimulation()
     simulation.set_config(year = yr, country = country, 
-                    nmen = 1, maxrev = 100000, xaxis = 'sali')
+                    nmen = 3, maxrev = 100000, xaxis = 'sali')
     # Adding a husband/wife on the same tax sheet (foyer)
     simulation.scenario.addIndiv(1, datetime(1975,1,1).date(), 'conj', 'part') 
     simulation.set_param()
@@ -86,7 +88,8 @@ def survey_case():
     df2 = pivot_table.get_table(by ='so', vars=['nivvie']) 
     print df2.to_string()
 
+
 if __name__ == '__main__':
 
-    test_case()
+#    test_case()
     survey_case()
