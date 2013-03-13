@@ -4,6 +4,7 @@
 .project
 .settings
 
+build
 src/build
 src/main.cfg
 src/france/data/sources/final.csv
@@ -15,4 +16,4 @@ src/countries/france/data/sources/final.csv
 src/countries/france/data/sources/final*.csv
 src/countries/france/data/survey_old.h5
 src/countries/france/data/survey.h5
-rc/countries/france/data/survey_sparse.h5
+src/countries/france/data/survey_sparse.h5
