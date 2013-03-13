@@ -4,6 +4,7 @@
 .project
 .settings
 
+build
 src/build
 src/main.cfg
 src/france/data/sources/final.csv
