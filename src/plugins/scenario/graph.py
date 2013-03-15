@@ -35,7 +35,7 @@ from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle, FancyArrow
 from matplotlib.ticker import FuncFormatter
 from src.gui.views.ui_graph import Ui_Graph
-from src.gui.config import get_icon, CONF
+from src.gui.config import get_icon
 import os
 import locale
 import numpy as np
