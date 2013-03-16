@@ -94,50 +94,6 @@ def diag_aggregates():
     writer.save()
 
 
-def build_erf_aggregates():
-    DATA_DIR = 'C:/Users/Utilisateur/Documents/Data/'
-#    from src.lib.utils import of_import
-#    DATA_DIR = DATA_DIR
-#    R_USER = os.getenv("R_USER")
-#    if R_USER is None:
-#        import win32api
-#        R_USER = win32api.GetUserName()
-#
-#    os.environ['R_USER'] = R_USER    
-    import pandas.rpy.common as com 
-    import rpy2.rpy_classic as rpy
-    rpy.set_default_mode(rpy.NO_CONVERSION)
-
-    for year in range(2006,2010):
-        menageXX = "menage" + str(year)[2:]
-        menageRdata = menageXX + ".Rdata"
-        filename = os.path.join(os.path.dirname(DATA_DIR),'R','erf', str(year), menageRdata)
-        yr = str(year)
-        simu = SurveySimulation()
-        simu.set_config(year = yr, country = country)
-        simu.set_param()
-    
-        agg = Aggregates()
-        agg.set_simulation(simu)
-        # print agg.varlist
-        rpy.r.load(filename)
-
-        menage = com.load_data(menageXX)
-        cols = []
-        print year
-        for col in agg.varlist:
-            #print col
-            erf_var = "m_" + col + "m" 
-            if erf_var in menage.columns:
-                cols += [erf_var] 
-
-        df = menage[cols]
-        wprm = menage["wprm"]
-        for col in df.columns:
-            
-            tot = (df[col]*wprm).sum()/1e9
-            print col, tot
-    
     
 
 

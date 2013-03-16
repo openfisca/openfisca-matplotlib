@@ -17,3 +17,4 @@ src/countries/france/data/sources/final*.csv
 src/countries/france/data/survey_old.h5
 src/countries/france/data/survey.h5
 src/countries/france/data/survey_sparse.h5
+src/countries/france/data/sources/config.py
