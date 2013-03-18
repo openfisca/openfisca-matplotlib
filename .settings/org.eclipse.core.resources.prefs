@@ -6,6 +6,7 @@ encoding//src/countries/__init__.py=utf-8
 encoding//src/countries/france/__init__.py=utf-8
 encoding//src/countries/france/data/codeAplReader.py=utf-8
 encoding//src/countries/france/data/sources/build_actualisation_groups_from_sources.py=utf-8
+encoding//src/countries/france/data/sources/build_aggregates_from_sources.py=utf-8
 encoding//src/countries/france/data/sources/build_from_sources.py=utf-8
 encoding//src/countries/france/data/sources/build_survey_from_sources.py=utf-8
 encoding//src/countries/france/data/sources/config.py=utf-8

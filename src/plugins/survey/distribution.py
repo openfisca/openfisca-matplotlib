@@ -157,8 +157,11 @@ class OpenfiscaPivotTable(object):
                 frame.rename(columns = { col : self.simulation.var2label[col] }, inplace = True)
         
         if enum is not None:
-            frame[by_var_label] = frame[by_var_label].apply(lambda x: enum._vars[x])       
-        
+            try:
+                frame[by_var_label] = frame[by_var_label].apply(lambda x: enum._vars[x])       
+            except Exception as e:
+                print "Error in enum in distribution"
+                print e
         return frame
      
 

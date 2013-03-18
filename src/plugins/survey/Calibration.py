@@ -86,8 +86,8 @@ class Calibration(object):
         """
         self.frame = None
         WEIGHT = of_import("","WEIGHT", self.simulation.country)
-        self.simulation.survey.set_value(WEIGHT, self.weights_init, self.simulation.survey.index[self.unit])
-        self.simulation.survey.propagate_to_members( unit=self.unit, col=WEIGHT)
+        self.simulation.survey.set_value(WEIGHT, self.weights_init, self.simulation.survey.index[self.entity])
+        self.simulation.survey.propagate_to_members( entity=self.entity, col=WEIGHT)
         
         
     def set_simulation(self, simulation):
@@ -99,13 +99,13 @@ class Calibration(object):
         inputs = self.simulation.survey
         if inputs is None:
             return
-        self.unit = 'men' # TODO: shoud not be france specific
+        self.entity = 'men' # TODO: shoud not be france specific
         WEIGHT = of_import("","WEIGHT", self.simulation.country)
         WEIGHT_INI = of_import("","WEIGHT_INI", self.simulation.country)
         
-        self.weights = 1*inputs.get_value(WEIGHT, inputs.index[self.unit])
-        self.weights_init = inputs.get_value(WEIGHT_INI, inputs.index[self.unit])
-        self.champm =  inputs.get_value("champm", inputs.index[self.unit])
+        self.weights = 1*inputs.get_value(WEIGHT, inputs.index[self.entity])
+        self.weights_init = inputs.get_value(WEIGHT_INI, inputs.index[self.entity])
+        self.champm =  inputs.get_value("champm", inputs.index[self.entity])
         
         self.ini_totalpop = sum(self.weights_init*self.champm)
         
@@ -173,8 +173,8 @@ class Calibration(object):
         outputs = self.simulation.outputs
 
         varcol = self.simulation.get_col(varname)
-        idx = inputs.index[self.unit]
-        enum = inputs.description.get_col('qui'+self.unit).enum
+        idx = inputs.index[self.entity]
+        enum = inputs.description.get_col('qui'+self.entity).enum
         people = [x[1] for x in enum]
 
         if inputs.description.has_col(varname):
@@ -285,12 +285,12 @@ class Calibration(object):
         data = {weights_in: self.weights_init*self.champm}
         for var in marges:
             if inputs.description.has_col(var):
-                data[var] = inputs.get_value(var, inputs.index[self.unit])
+                data[var] = inputs.get_value(var, inputs.index[self.entity])
             else:
                 if outputs:
                     if outputs.description.has_col(var):
-                        idx = outputs.index[self.unit]
-                        enum = inputs.description.get_col('qui'+self.unit).enum
+                        idx = outputs.index[self.entity]
+                        enum = inputs.description.get_col('qui'+self.entity).enum
                         people = [x[1] for x in enum]
                         data[var] = outputs.get_value(var, index=idx, opt=people, sum_=True)        
         return data
@@ -364,10 +364,10 @@ class Calibration(object):
         w = self.weights
         for var in margins.keys():
             if inputs.description.has_col(var):
-                value = inputs.get_value(var, inputs.index[self.unit])
+                value = inputs.get_value(var, inputs.index[self.entity])
             else:
-                idx = outputs.index[self.unit]
-                enum = outputs._inputs.description.get_col('qui'+self.unit).enum
+                idx = outputs.index[self.entity]
+                enum = outputs._inputs.description.get_col('qui'+self.entity).enum
                 people = [x[1] for x in enum]
                 value = outputs.get_value(var, index=idx, opt=people, sum_=True)
                 
@@ -390,8 +390,8 @@ class Calibration(object):
         Modify the weights to use the calibrated weight
         """
         WEIGHT = of_import("","WEIGHT", self.simulation.country)
-        self.simulation.survey.set_value(WEIGHT, self.weights, self.simulation.survey.index[self.unit])
-        self.simulation.survey.propagate_to_members( unit=self.unit, col=WEIGHT)        
+        self.simulation.survey.set_value(WEIGHT, self.weights, self.simulation.survey.index[self.entity])
+        self.simulation.survey.propagate_to_members( entity=self.entity, col=WEIGHT)        
 
 
 from src.gui.qt.QtGui import (QGroupBox, QButtonGroup)
@@ -666,10 +666,10 @@ class CalibrationWidget(OpenfiscaPluginWidget):
                             target = {str(varname): val*1e6}
                 else:
                     if datatable_name =='outputs':
-                        idx = self.outputs.index[self.unit]
+                        idx = self.outputs.index[self.entity]
                         unique_values = unique(self.outputs.get_value(varname, idx))
                     elif datatable_name =='inputs':
-                        idx = self.inputs.index[self.unit]
+                        idx = self.inputs.index[self.entity]
                         unique_values = unique(self.inputs.get_value(varname, idx))
                     target = {}
                     

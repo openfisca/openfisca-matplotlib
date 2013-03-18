@@ -59,7 +59,7 @@ class Aggregates(object):
         self.show_default = False
         self.show_real = True
         self.show_diff = True
-
+        self.varlist = None
 
     def set_var_list(self, var_list):
         """
@@ -144,11 +144,11 @@ class Aggregates(object):
                         
             try:
                 varcol  = description.get_col(var)
-                unit = varcol._unit
+                entity = varcol._entity
             except:
-                unit = 'NA'
+                entity = 'NA'
                  
-            U.append(unit)
+            U.append(entity)
             for dataname in montant_benef:
                 M[dataname].append( montant_benef[dataname][0] )
                 B[dataname].append( montant_benef[dataname][1] )
@@ -197,7 +197,7 @@ class Aggregates(object):
         
         def aggregate(var):  # TODO: should be a method of Presta
             varcol  = description.get_col(var)            
-            entity = varcol._unit
+            entity = varcol._entity
             # amounts and beneficiaries from current data and default data if exists
             data, data_default = simulation.aggregated_by_entity(entity, [var], all_output_vars = False, force_sum = True)
                                                 
