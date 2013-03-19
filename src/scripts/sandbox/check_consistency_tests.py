@@ -52,6 +52,33 @@ def test():
         from numpy import max as max_
         print max_(idmen)
 
-if __name__ == '__main__':
 
-    test()
+from src.lib.columns import EnumCol
+
+def test_inputs_enumcol():
+    for yr in range(2006,2007):
+        country = 'france'
+        simulation = SurveySimulation()
+        simulation.set_config(year = yr, country = country)
+        simulation.set_param()
+        simulation.set_survey()
+        
+        survey = simulation.survey
+        for var in survey.col_names:
+                varcol  = survey.description.get_col(var)
+                if isinstance(varcol, EnumCol):
+                    print var
+                    from src.lib.columns import Enum
+                    print varcol.enum
+                    print sorted(survey.table[var].unique())
+                    try:
+                        print sorted(varcol.enum._nums.values())
+                    except:
+                        print "wrong nums"
+                    try:
+                        print varcol.enum._vars
+                    except:
+                        print "wrong vars"
+if __name__ == '__main__':
+    test_inputs_enumcol()
+    
