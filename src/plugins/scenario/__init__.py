@@ -49,20 +49,28 @@ class CompositionConfigPage(PluginConfigPage):
                    (_('center'), 10 )]
         legend_location = self.create_combobox( _('Legend location'), choices, 'graph/legend/location')
         
-        # xaxis  
-        
         layout = QVBoxLayout()
         layout.addWidget(legend_enable)
         layout.addWidget(legend_location)
         legend_group.setLayout(layout)
 
-
+        # Exports
         export_group = QGroupBox(_("Export"))
+
+        table_export_dir = self.create_browsedir(_("Tables Export directory"), "table/export_dir")
+        graph_export_dir = self.create_browsedir(_("Graphs Export directory"), "graph/export_dir")
+
         choices = [('cvs', 'csv'),
                    ('xls', 'xls'),]
         table_format = self.create_combobox(_('Table export format'), choices, 'table/format')
-        
         # TODO: export format for figure  
+        
+        layout = QVBoxLayout()
+        layout.addWidget(table_export_dir)
+        layout.addWidget(graph_export_dir)
+        layout.addWidget(table_format)
+        export_group.setLayout(layout)
+
         
         reform_group = QGroupBox(_("Reform"))
         reform = self.create_checkbox(_('Reform mode'), 'reform')
@@ -74,7 +82,7 @@ class CompositionConfigPage(PluginConfigPage):
         vlayout = QVBoxLayout()
         vlayout.addWidget(axis_group)
         vlayout.addWidget(legend_group)
-        vlayout.addWidget(table_format)
+        vlayout.addWidget(export_group)
         vlayout.addWidget(reform_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)

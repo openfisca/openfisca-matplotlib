@@ -174,17 +174,17 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
         """
         if 'country' in options:
             country = self.get_option('country')
-            NotImplementedError
-#            self.main.close()
-#            from src.of_test import main
-#            main()
+            self.reset()
+            self.main.register_test_case_widgets(country)
+            self.main.register_survey_widgets(country)
             
         if 'datesim' in options:
             
             datesim = self.get_option('datesim')
             self.main.scenario_simulation.set_config(year = datesim[0:4])
             if self.main.survey_explorer.get_option('enable'):
-                self.main.register_survey_widgets(True)
+                country = self.get_option('country')
+                self.main.register_survey_widgets(True, country=country)
             
             self.reset()
     

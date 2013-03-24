@@ -24,24 +24,23 @@ This file is part of openFisca.
 from __future__ import division
 
 from src.gui.qt.QtCore import (QAbstractItemModel, QModelIndex, Qt, 
-                          SIGNAL, QSize)
-from src.gui.qt.QtGui import (QFileDialog, QColor, QVBoxLayout, QDialog, 
+                          SIGNAL, QSize, QString)
+from src.gui.qt.QtGui import (QColor, QVBoxLayout, QDialog, 
                          QMessageBox, QTreeView, QIcon, QPixmap, QHBoxLayout, 
                          QPushButton)
-from src.gui.qt.compat import to_qvariant
-
+from src.gui.qt.compat import (to_qvariant, getsavefilename)
+from src.gui.views.ui_graph import Ui_Graph
+from src.gui.config import get_icon
+from src.gui.utils.qthelpers import create_action
 
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle, FancyArrow
 from matplotlib.ticker import FuncFormatter
-from src.gui.views.ui_graph import Ui_Graph
-from src.gui.config import get_icon
+
 import os
 import locale
 import numpy as np
-
 from src.lib.utils import of_import
-
 from src.gui.baseconfig import get_translation
 from src.plugins.__init__ import OpenfiscaPluginWidget
 _ = get_translation('src')
@@ -76,8 +75,6 @@ class GraphFormater(QDialog):
         self.connect(self.model, SIGNAL('dataChanged(QModelIndex, QModelIndex)'), self.updateGraph)
         self.connect(allBtn, SIGNAL('clicked()'), self.checkAll)
         self.connect(noneBtn, SIGNAL('clicked()'), self.checkNone)
-
-#        self.output_dir = CONF.get('composition', 'graph/export_dir')
 
 
     def checkAll(self):
@@ -207,10 +204,21 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
         self.simulation = None
         
         self.setLayout(self.verticalLayout)
+        self.initialize_plugin()
 
     #------ Public API ---------------------------------------------
 
     def set_taux(self, value):
+        """
+        Switch on/off the tax rates view
+        
+        Parameters
+        ----------
+        
+        value : bool
+                If True, switch to tax rates view
+                
+        """
         if value: self.taux = True
         else: self.taux = False
         self.updateGraph2()
@@ -343,7 +351,8 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
         sorted_filetypes.sort()
         default_filetype = self.mplwidget.get_default_filetype()
         
-        start = os.path.join(self.output_dir, 'image.') + default_filetype
+        output_dir = self.get_option('graph/export_dir')
+        start = os.path.join(output_dir, 'image.') + default_filetype
         filters = []
         selectedFilter = None
         for name, exts in sorted_filetypes:
@@ -354,17 +363,18 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
             filters.append(filtre)
         filters = ';;'.join(filters)
 
-        fname = QFileDialog.getSaveFileName(
-            self, "Enregistrer l'image", start, filters, selectedFilter)
+
+        fname, format = getsavefilename(
+            self, _("Save image"), start, filters, selectedFilter) # "Enregistrer l'image"
         
         if fname:
-            self.output_dir = os.path.dirname(str(fname))
-            self.set_option('graph/export_dir', self.output_dir)
+            output_dir = os.path.dirname(str(fname))
+            self.main.composition.set_option('graph/export_dir', output_dir)
             try:
-                self.mplwidget.print_figure( unicode(fname) )
+                self.mplwidget.print_figure( fname )
             except Exception, e:
                 QMessageBox.critical(
-                    self, "Erreur en enregistrant le fichier", str(e),
+                    self, _("Error when saving image"), str(e),
                     QMessageBox.Ok, QMessageBox.NoButton)
 
 
@@ -395,7 +405,17 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
         Note: these actions will be enabled when plugin's dockwidget is visible
               and they will be disabled when it's hidden
         """
-        raise NotImplementedError
+        self.save_action = create_action(self, _("Save &graph"),
+                icon='filesave.png', tip=_("Save test case graph"),
+                triggered=self.save_figure)
+        self.register_shortcut(self.save_action, context="Graph",
+                               name=_("Save test case graph"), default="Ctrl+G")
+
+        self.file_menu_actions = [self.save_action,]
+
+        self.main.file_menu_actions += self.file_menu_actions
+    
+        return self.file_menu_actions
     
     def register_plugin(self):
         """

@@ -402,7 +402,7 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
                                                       triggered = self.compute)
         self.register_shortcut(self.action_compute, 
                                context = 'Survey explorer',
-                                name = _('Compute test case'), default = 'F10')
+                                name = _('Compute survey simulation'), default = 'F10')
 
         self.action_set_reform = create_action(self, _('Reform mode'), 
                                                      icon = 'comparison22.png', 

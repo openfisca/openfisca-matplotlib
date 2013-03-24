@@ -267,6 +267,8 @@ class MainWindow(QMainWindow):
         self.distribution   = None
         self.inequality   = None
         self.calibration = None
+        self.test_case_plugins = []
+        self.survey_plugins = []
         self.thirdparty_plugins = []
         
         # Preferences
@@ -296,14 +298,12 @@ class MainWindow(QMainWindow):
         self.file_menu_actions = []
         self.edit_menu = None
         self.edit_menu_actions = []
-#        self.search_menu = None
-#        self.search_menu_actions = []
         self.run_menu = None
         self.run_menu_actions = []
         self.tools_menu = None
         self.tools_menu_actions = []
         self.external_tools_menu = None # We must keep a reference to this,
-        # otherwise the external tools menu is lost after leaving setup method
+                    # otherwise the external tools menu is lost after leaving setup method
         self.external_tools_menu_actions = []
         self.view_menu = None
         self.windows_toolbars_menu = None
@@ -378,21 +378,22 @@ class MainWindow(QMainWindow):
         Enable refresh test case action
         """
         self.composition.action_compute.setEnabled(True)
-        self.survey_explorer.action_compute.setEnabled(True)
+        if self.survey_explorer is not None:
+            self.survey_explorer.action_compute.setEnabled(True)
 
         
     def refresh_test_case_plugins(self):
-        '''
+        """
         Refresh test case plugins after conputation
-        '''
+        """
         self.test_case_graph.refresh_plugin()
         self.test_case_table.refresh_plugin()
 
         
     def refresh_survey_plugins(self):
-        '''
+        """
         Refresh survey plugins after computation
-        '''
+        """
         if CONF.get('survey', 'enable'):
             for plugin in self.survey_plugins:
                 plugin.refresh_plugin()
@@ -409,6 +410,17 @@ class MainWindow(QMainWindow):
     def create_toolbar(self, title, object_name, iconsize=24):
         """
         Create and return toolbar with *title* and *object_name*
+        
+        Parameters
+        ----------
+        
+        title : str
+                Title of the toolbar
+        onject_name : str
+                      Object name 
+        iconsize : int, default 24
+                   Icon size
+        
         """
         toolbar = self.addToolBar(title)
         toolbar.setObjectName(object_name)
@@ -416,7 +428,9 @@ class MainWindow(QMainWindow):
         return toolbar
     
     def setup(self):
-        """Setup main window"""
+        """
+        Setup main window
+        """
         self.debug_print("*** Start of MainWindow setup ***")
         
         self.close_dockwidget_action = create_action(self,
@@ -426,63 +440,6 @@ class MainWindow(QMainWindow):
         self.register_shortcut(self.close_dockwidget_action,
                                "_", "Close dockwidget", "Shift+Ctrl+F4")
         
-        _text = _("&Find text")
-        self.find_action = create_action(self, _text, icon='find.png',
-                                         tip=_text, triggered=self.find,
-                                         context=Qt.WidgetShortcut)
-        self.register_shortcut(self.find_action, "Editor",
-                               "Find text", "Ctrl+F")
-        self.find_next_action = create_action(self, _("Find &next"),
-              icon='findnext.png', triggered=self.find_next,
-              context=Qt.WidgetShortcut)
-        self.register_shortcut(self.find_next_action, "Editor",
-                               "Find next", "F3")
-        self.find_previous_action = create_action(self,
-                    _("Find &previous"),
-                    icon='findprevious.png', triggered=self.find_previous,
-                    context=Qt.WidgetShortcut)
-        self.register_shortcut(self.find_previous_action, "Editor",
-                               "Find previous", "Shift+F3")
-        _text = _("&Replace text")
-        self.replace_action = create_action(self, _text, icon='replace.png',
-                                        tip=_text, triggered=self.replace,
-                                        context=Qt.WidgetShortcut)
-        self.register_shortcut(self.replace_action, "Editor",
-                               "Replace text", "Ctrl+H")
-        def create_edit_action(text, tr_text, icon_name):
-            textseq = text.split(' ')
-            method_name = textseq[0].lower()+"".join(textseq[1:])
-            return create_action(self, tr_text,
-                                 shortcut=keybinding(text.replace(' ', '')),
-                                 icon=get_icon(icon_name),
-                                 triggered=self.global_callback,
-                                 data=method_name,
-                                 context=Qt.WidgetShortcut)
-        self.undo_action = create_edit_action("Undo", _("Undo"),
-                                              'undo.png')
-        self.redo_action = create_edit_action("Redo", _("Redo"), 'redo.png')
-        self.copy_action = create_edit_action("Copy", _("Copy"),
-                                              'editcopy.png')
-        self.cut_action = create_edit_action("Cut", _("Cut"), 'editcut.png')
-        self.paste_action = create_edit_action("Paste", _("Paste"),
-                                               'editpaste.png')
-        self.delete_action = create_edit_action("Delete", _("Delete"),
-                                                'editdelete.png')
-        self.selectall_action = create_edit_action("Select All",
-                                                   _("Select All"),
-                                                   'selectall.png')
-        self.edit_menu_actions = [self.undo_action, self.redo_action,
-                                  None, self.cut_action, self.copy_action,
-                                  self.paste_action, self.delete_action,
-                                  None, self.selectall_action]
-        self.search_menu_actions = [self.find_action, self.find_next_action,
-                                    self.find_previous_action,
-                                    self.replace_action]
-        self.search_toolbar_actions = [self.find_action,
-                                       self.find_next_action,
-                                       self.replace_action]
-
-
         # Maximize current plugin
         self.maximize_action = create_action(self, '',
                                          triggered=self.maximize_dockwidget)
@@ -512,8 +469,7 @@ class MainWindow(QMainWindow):
                         
         # Run menu/toolbar
         self.run_menu = self.menuBar().addMenu(_("&Run"))
-        self.test_case_toolbar = self.create_toolbar(_("Test case toolbar"),
-                                               "test_case_toolbar")
+
         
         # Tools menu
         self.tools_menu = self.menuBar().addMenu(_("&Tools"))
@@ -530,21 +486,16 @@ class MainWindow(QMainWindow):
         status.showMessage(_("Welcome to Openfisca!"), 5000)
         
         
-        # Tools + External Tools
+        # Tools
         prefs_action = create_action(self, _("Pre&ferences"),
                                      icon='configure.png',
                                      triggered=self.edit_preferences)
         self.register_shortcut(prefs_action, "_", "Preferences",
                                "Ctrl+Alt+Shift+P")
 
-#        update_modules_action = create_action(self,
-#                                    _("Update module names list"),
-#                                    None, 'reload.png',
-#                                    triggered=module_completion.reset,
-#                                    tip=_("Refresh list of module names "
-#                                          "available in PYTHONPATH"))
+
         self.tools_menu_actions = [prefs_action,]
-#        self.tools_menu_actions += [update_modules_action, None]
+
         self.main_toolbar_actions += [prefs_action,]
         if WinUserEnvDialog is not None:
             winenv_action = create_action(self,
@@ -556,10 +507,6 @@ class MainWindow(QMainWindow):
                     triggered=self.win_env)
             self.tools_menu_actions.append(winenv_action)
         
-        # External Tools submenu
-        self.external_tools_menu = QMenu(_("External Tools"))
-        self.external_tools_menu_actions = []
-
                     
         # Populating file menu entries
         quit_action = create_action(self, _("&Quit"),
@@ -570,8 +517,7 @@ class MainWindow(QMainWindow):
         self.file_menu_actions += [self.load_temp_session_action,
                                    self.load_session_action,
                                    self.save_session_action,
-                                   None, quit_action]
-        self.set_splash("")
+                                   None, quit_action,  None]
 
 #        self.action_calibrate = create_action(self, u'Caler les poids', shortcut = 'CTRL+K', icon = 'scale22.png', triggered = self.calibrate)
 #        self.action_inflate = create_action(self, u'Inflater les montants', shortcut = 'CTRL+I', icon = 'scale22.png', triggered = self.inflate)
@@ -584,37 +530,13 @@ class MainWindow(QMainWindow):
             self.parameters.register_plugin()
                                                 
         # Test case widgets
-        self.scenario_simulation = ScenarioSimulation()
-#        self.scenario = self.scenario_simulation.scenario
-        CompositionWidget = of_import('widgets.Composition', 'CompositionWidget', country)
-        
-        self.set_splash(_("Loading Test case composer ..."))
-        self.composition = CompositionWidget(self.scenario_simulation, self)
-        self.composition.register_plugin()
 
-        # Scenario Graph widget
-        if CONF.get('composition', 'graph/enable'):
-            self.set_splash(_("Loading ScenarioGraph..."))
-            self.test_case_graph = ScenarioGraphWidget(self)
-            self.test_case_graph.register_plugin()
-
-        # Scenario Table widget
-        if CONF.get('composition', 'table/enable'):
-            self.set_splash(_("Loading ScenarioTable..."))
-            self.test_case_table = ScenarioTableWidget(self)
-            self.test_case_table.register_plugin()
+        self.register_test_case_widgets(country)
        
         # Survey Widgets
-        # SurveyExplorer widget
-
-        self.survey_explorer = SurveyExplorerWidget(self)
-        self.set_splash(_("Loading SurveyExplorer..."))
-        self.survey_explorer.register_plugin()
-        self.survey_plugins = [ self.survey_explorer]
         
         if CONF.get('survey', 'enable') is True:
-            #try:
-            self.register_survey_widgets(True)
+            self.register_survey_widgets(True, country)
                            
         # ? menu
         about_action = create_action(self,
@@ -627,7 +549,7 @@ class MainWindow(QMainWindow):
                                 triggered=self.report_issue
                                 )
         
-        # Spyder documentation
+        # Openfisca documentation
         doc_path = get_module_data_path('src', relpath="doc",
                                         attr_name='DOCPATH')
         # * Trying to find the chm doc
@@ -647,8 +569,6 @@ class MainWindow(QMainWindow):
                            icon=get_std_icon('DialogHelpButton'))
         self.help_menu_actions = [about_action, report_action, doc_action]
         
-
-        print self.help_menu_actions
         
         # Status bar widgets
         self.mem_status = MemoryStatus(self, status)
@@ -710,11 +630,6 @@ class MainWindow(QMainWindow):
         add_actions(self.main_toolbar, self.main_toolbar_actions)
         add_actions(self.file_toolbar, self.file_toolbar_actions)
         
-        add_actions(self.test_case_toolbar, self.test_case_toolbar_actions)
-        if self.survey_toolbar is not None:
-            add_actions(self.survey_toolbar, self.survey_toolbar_actions)
-        
-        
         # Apply all defined shortcuts (plugins + 3rd-party plugins)
         self.apply_shortcuts()
         
@@ -733,22 +648,72 @@ class MainWindow(QMainWindow):
             if isinstance(child, QMenu) and child != self.help_menu:
                 child.setTearOffEnabled(True)
         
-#        # Menu about to show
-#        for child in self.menuBar().children():
-#            if isinstance(child, QMenu):
-#                self.connect(child, SIGNAL("aboutToShow()"),
-#                             self.update_edit_menu)
-
-
-
         self.debug_print("*** End of MainWindow setup ***")
         self.is_starting_up = False
  
-    def register_survey_widgets(self, boolean = True):
+ 
+    def register_test_case_widgets(self, country):
+        """
+        Register test case widget for country *country*
+        
+        Parameters
+        ----------
+        
+        country : str
+                  Name of the country
+        """
+
+        if self.test_case_toolbar is None:
+            self.test_case_toolbar = self.create_toolbar(_("Test case toolbar"),
+                                           "test_case_toolbar")
+        
+        if self.scenario_simulation is not None:
+            current_country = self.scenario_simulation.country
+        
+            if current_country != country:
+                self.debug_print("Changing country")
+                self.test_case_toolbar.clear()
+                self.test_case_toolbar_actions = []
+                
+                for plugin in self.test_case_plugins:
+                    self.removeDockWidget(plugin.dockwidget)
+                    plugin.close()
+                
+        # Test case widgets
+        self.scenario_simulation = ScenarioSimulation()
+        datesim = CONF.get('parameters', 'datesim')
+        self.scenario_simulation.set_config(country=country, datesim=datesim)
+        CompositionWidget = of_import('widgets.Composition', 'CompositionWidget', country)
+        
+        self.set_splash(_("Loading Test case composer ..."))
+        self.composition = CompositionWidget(self.scenario_simulation, self)
+        self.composition.register_plugin()
+
+        # Scenario Graph widget
+        if CONF.get('composition', 'graph/enable'):
+            self.set_splash(_("Loading ScenarioGraph..."))
+            self.test_case_graph = ScenarioGraphWidget(self)
+            self.test_case_graph.register_plugin()
+
+        # Scenario Table widget
+        if CONF.get('composition', 'table/enable'):
+            self.set_splash(_("Loading ScenarioTable..."))
+            self.test_case_table = ScenarioTableWidget(self)
+            self.test_case_table.register_plugin()
+
+        add_actions(self.test_case_toolbar, self.test_case_toolbar_actions)
+        self.test_case_plugins = [ self.composition, self.test_case_graph, self.test_case_table ]
+        self.splash.hide()
+ 
+    def register_survey_widgets(self, boolean = True, country = None):
         """
         Registers enabled survey widgets
         """
         
+        self.survey_explorer = SurveyExplorerWidget(self)
+        self.set_splash(_("Loading SurveyExplorer..."))
+        self.survey_explorer.register_plugin()
+        self.survey_plugins +=  [ self.survey_explorer]
         
         for plugin in self.survey_plugins:
             if plugin is not self.survey_explorer:
@@ -757,8 +722,12 @@ class MainWindow(QMainWindow):
         if boolean is True:
             self.debug_print("Register survey widgets")
             self.survey_simulation = SurveySimulation()
+
             self.survey_explorer.initialize()
+            if country is not None:
+                self.survey_simulation.set_config(country = country)
             self.survey_simulation.set_param()
+
 
             if self.survey_simulation.survey is None:
                 self.debug_print("No survey data, removing survey plugins")
@@ -793,10 +762,15 @@ class MainWindow(QMainWindow):
                 self.inequality.register_plugin()
                 self.survey_plugins  += [ self.inequality]
 
+            
+            
+            if self.survey_toolbar is not None:
+                del self.survey_toolbar
+                    
             self.survey_toolbar = self.create_toolbar(_("Survey toolbar"),
                                                       "survey_toolbar")
-
-        
+            add_actions(self.survey_toolbar, self.survey_toolbar_actions)
+            
             for first, second in ((self.test_case_table, self.survey_explorer),
                                   (self.survey_explorer, self.aggregates), 
                                   (self.aggregates, self.distribution), 
@@ -807,6 +781,8 @@ class MainWindow(QMainWindow):
                     self.tabifyDockWidget(first.dockwidget, second.dockwidget)
 
 
+        self.splash.hide()
+        self.setup_layout()
 #            self.update_windows_toolbars_menu()
             
     def post_visible_setup(self):
@@ -932,11 +908,8 @@ class MainWindow(QMainWindow):
         (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
          is_fullscreen) = self.load_window_settings(prefix, default)
         
-        self.test_case_plugins = [ self.composition, self.test_case_graph, self.test_case_table ]
-
-                
         if hexstate is None:
-            # First Spyder execution:
+            # First Openfisca execution:
             # trying to set-up the dockwidget/toolbar positions to the best 
             # appearance possible
             splitting = (
@@ -966,7 +939,8 @@ class MainWindow(QMainWindow):
                     plugin.dockwidget.raise_()
                     
             if not CONF.get('survey', 'enable'):
-                self.survey_explorer.dockwidget.hide()
+                if self.survey_explorer is not None:
+                    self.survey_explorer.dockwidget.hide()
 #            for toolbar in (self.run_toolbar,):
 #                toolbar.close()
         
@@ -1019,6 +993,7 @@ class MainWindow(QMainWindow):
         """
         Focus has changed from one plugin to another
         """
+        pass
         # self.update_edit_menu()
         # self.update_search_menu()
         
@@ -1033,70 +1008,6 @@ class MainWindow(QMainWindow):
 #                widget.get_plugin_actions()
 #                add_actions(self.file_menu, self.file_menu_actions)
         
-    def update_edit_menu(self):
-        """
-        Update edit menu
-        """
-        if self.menuBar().hasFocus():
-            return
-        # Disabling all actions to begin with
-#        for child in self.edit_menu.actions():
-#            child.setEnabled(False)        
-        
-        widget, textedit_properties = get_focus_widget_properties()
-        if textedit_properties is None: # widget is not an editor/console
-            return
-        #!!! Below this line, widget is expected to be a QPlainTextEdit instance
-        console, not_readonly, readwrite_editor = textedit_properties
-        
-        # Editor has focus and there is no file opened in it
-        if not console and not_readonly and not self.editor.is_file_opened():
-            return
-        
-        self.selectall_action.setEnabled(True)
-        
-        # Undo, redo
-        self.undo_action.setEnabled( readwrite_editor \
-                                     and widget.document().isUndoAvailable() )
-        self.redo_action.setEnabled( readwrite_editor \
-                                     and widget.document().isRedoAvailable() )
-
-        # Copy, cut, paste, delete
-        has_selection = widget.has_selected_text()
-        self.copy_action.setEnabled(has_selection)
-        self.cut_action.setEnabled(has_selection and not_readonly)
-        self.paste_action.setEnabled(not_readonly)
-        self.delete_action.setEnabled(has_selection and not_readonly)
-        
-        # Comment, uncomment, indent, unindent...
-        if not console and not_readonly:
-            # This is the editor and current file is writable
-            for action in self.editor.edit_menu_actions:
-                action.setEnabled(True)
-        
-    def update_search_menu(self):
-        """
-        Update search menu
-        """
-        if self.menuBar().hasFocus():
-            return        
-        # Disabling all actions to begin with
-        for child in [self.find_action, self.find_next_action,
-                      self.find_previous_action, self.replace_action]:
-            child.setEnabled(False)
-        
-        widget, textedit_properties = get_focus_widget_properties()
-        for action in self.editor.search_menu_actions:
-            action.setEnabled(self.editor.isAncestorOf(widget))
-        if textedit_properties is None: # widget is not an editor/console
-            return
-        #!!! Below this line, widget is expected to be a QPlainTextEdit instance
-        _x, _y, readwrite_editor = textedit_properties
-        for action in [self.find_action, self.find_next_action,
-                       self.find_previous_action]:
-            action.setEnabled(True)
-        self.replace_action.setEnabled(readwrite_editor)
-        self.replace_action.setEnabled(readwrite_editor)
         
     def update_windows_toolbars_menu(self):
         """
@@ -1331,61 +1242,44 @@ class MainWindow(QMainWindow):
 #                plugin = plugin.parent()
 #            return plugin
     
-    def find(self):
-        """
-        Global find callback
-        """
-        plugin = self.get_current_editor_plugin()
-        if plugin is not None:
-            plugin.find_widget.show()
-            plugin.find_widget.search_text.setFocus()
-            return plugin
-    
-    def find_next(self):
-        """Global find next callback"""
-        plugin = self.get_current_editor_plugin()
-        if plugin is not None:
-            plugin.find_widget.find_next()
-            
-    def find_previous(self):
-        """Global find previous callback"""
-        plugin = self.get_current_editor_plugin()
-        if plugin is not None:
-            plugin.find_widget.find_previous()
-        
-    def replace(self):
-        """Global replace callback"""
-        plugin = self.find()
-        if plugin is not None:
-            plugin.find_widget.show_replace()
-            
-    def global_callback(self):
-        """Global callback"""
-        widget = QApplication.focusWidget()
-        action = self.sender()
-        callback = from_qvariant(action.data(), unicode)
-#        from src.gui.spyder_widgets.editor import TextEditBaseWidget
-#        if isinstance(widget, TextEditBaseWidget):
-        getattr(widget, callback)()
-        
+#    def find(self):
+#        """
+#        Global find callback
+#        """
+#        plugin = self.get_current_editor_plugin()
+#        if plugin is not None:
+#            plugin.find_widget.show()
+#            plugin.find_widget.search_text.setFocus()
+#            return plugin
+#    
+#    def find_next(self):
+#        """Global find next callback"""
+#        plugin = self.get_current_editor_plugin()
+#        if plugin is not None:
+#            plugin.find_widget.find_next()
+#            
+#    def find_previous(self):
+#        """Global find previous callback"""
+#        plugin = self.get_current_editor_plugin()
+#        if plugin is not None:
+#            plugin.find_widget.find_previous()
+#        
+#    def replace(self):
+#        """Global replace callback"""
+#        plugin = self.find()
+#        if plugin is not None:
+#            plugin.find_widget.show_replace()
+#            
+#    def global_callback(self):
+#        """Global callback"""
+#        widget = QApplication.focusWidget()
+#        action = self.sender()
+#        callback = from_qvariant(action.data(), unicode)
+##        from src.gui.spyder_widgets.editor import TextEditBaseWidget
+##        if isinstance(widget, TextEditBaseWidget):
+#        getattr(widget, callback)()
+#        
 
-    def open_file(self, fname):
-        """
-        Open filename with the appropriate application
-        Redirect to the right widget (txt -> editor, spydata -> workspace, ...)
-        or open file outside Spyder (if extension is not supported)
-        """
-
-        fname = unicode(fname)
-        ext = osp.splitext(fname)[1]
-        if ext in EDIT_EXT:
-            self.editor.load(fname)
-#        elif self.variableexplorer is not None and ext in IMPORT_EXT\
-#             and ext in ('.spydata', '.mat', '.npy', '.h5'):
-#            self.variableexplorer.import_data(fname)
-        else:
-            fname = file_uri(fname)
-            programs.start_file(fname)
 
     #---- PYTHONPATH management, etc.
     def get_openfisca_pythonpath(self):
@@ -1405,7 +1299,7 @@ class MainWindow(QMainWindow):
             sys_path.pop(1)
         
     def path_manager_callback(self):
-        """Spyder path manager"""
+        """Openfisca path manager"""
         self.remove_path_from_sys_path()
 #        project_pathlist = self.projectexplorer.get_pythonpath()
 #        dialog = PathManager(self, self.path, project_pathlist, sync=True)
@@ -1615,7 +1509,7 @@ def initialize():
 
 class Spy(object):
     """
-    Inspect Spyder internals
+    Inspect openfisca internals
     """
     def __init__(self, app, window):
         self.app = app
