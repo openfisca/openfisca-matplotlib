@@ -5,6 +5,7 @@
 .settings
 
 build
+src/oenfisca_crash.log
 src/build
 src/main.cfg
 src/france/data/sources/final.csv

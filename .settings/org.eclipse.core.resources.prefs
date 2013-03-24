@@ -45,6 +45,7 @@ encoding//src/gui/baseconfig.py=utf-8
 encoding//src/gui/buildUi.py=utf-8
 encoding//src/gui/config.py=utf-8
 encoding//src/gui/qt/QtCore.py=utf-8
+encoding//src/gui/qt/QtGui.py=utf-8
 encoding//src/gui/qt/__init__.py=utf-8
 encoding//src/gui/qt/compat.py=utf-8
 encoding//src/gui/qthelpers.py=utf-8

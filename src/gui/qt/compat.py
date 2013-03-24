@@ -160,6 +160,8 @@ def _qfiledialog_wrapper(attr, parent=None, caption='', basedir='',
             output = [unicode(fname) for fname in output]
             
     # Always returns the tuple (output, selectedfilter)
+    print "in compat "
+    print selectedfilter
     return output, selectedfilter
 
 def getopenfilename(parent=None, caption='', basedir='', filters='',
