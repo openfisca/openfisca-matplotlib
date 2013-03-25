@@ -6,79 +6,140 @@
 # Licensed under the terms of the GVPLv3 or later license
 # (see openfisca/__init__.py for details)
 
-
 from src.lib.simulation import SurveySimulation 
+from src.lib.utils import of_import
+from pandas import concat
 
-def test():
-    
-    from numpy import unique, sum
-        
-    for yr in range(2006,2007):
-        country = 'france'
-        simulation = SurveySimulation()
-        simulation.set_config(year = yr, country = country)
-        simulation.set_param()
-        simulation.set_survey()
-        
-        survey = simulation.survey
-        
-        ENTITIES_INDEX = ['men', 'fam', 'foy']
-        print 'Year of the data: ' +  str(yr)
-        # print len(survey.get_value('noi'))
-        for entity in ENTITIES_INDEX:        
-            id = survey.get_value('id' + entity)
-            head = survey.get_value('qui' + entity)
-            n_id = len(unique(id))
-            n_head = sum(head == 0)
-            if n_id != n_head:
-                print 'incoherence for ' + entity + ' : id =' + str(n_id) +' and heads=' + str(n_head)
-        
+def check_entities(simulation):
 
-        # verifying the age of childrens
-        quifam = survey.get_value('quifam')
-        age = survey.get_value('age')
-        if sum((quifam >= 2) & (age >= 21)) != 0:
-            print "they are kids that are of age >= 21"
+    is_ok = True
+    survey = simulation.survey
 
-        from src.lib.utils import of_import
-        WEIGHT = of_import("","WEIGHT", simulation.country)
-        weight = survey.get_value(WEIGHT)
-        if sum(weight<=0) != 0:
-            print "some weights are zero"
-        # Problemes
-        # enfants de plus de 21 ans et parents à charge dans les fmailles avec quifam=0
+    ENTITIES_INDEX = of_import(None, "ENTITIES_INDEX", country = simulation.country)
 
-        idmen = survey.get_value('idmen')
-        from numpy import max as max_
-        print max_(idmen)
+    for entity in ENTITIES_INDEX:
+                
+        id = survey.table['id' + entity]
+        head = survey.table['qui' + entity]
+        
+        df = concat([id, head],axis=1)
+        grouped_by_id = df.groupby(id)
+        
+        def is_there_head(group):
+            dummy = (group == 0).sum()
+            return dummy
+        
+        headcount = grouped_by_id["qui"+entity].aggregate({entity + " heads" : is_there_head})
+        result =  headcount[headcount[entity + " heads"] != 1]  
+        
+        if len(result) != 0:
+            is_ok = False
+
+    return is_ok
+
+
 
 
 from src.lib.columns import EnumCol
-
-def test_inputs_enumcol():
-    for yr in range(2006,2007):
-        country = 'france'
-        simulation = SurveySimulation()
-        simulation.set_config(year = yr, country = country)
-        simulation.set_param()
-        simulation.set_survey()
-        
-        survey = simulation.survey
-        for var in survey.col_names:
-                varcol  = survey.description.get_col(var)
-                if isinstance(varcol, EnumCol):
-                    print var
-                    from src.lib.columns import Enum
-                    print varcol.enum
-                    print sorted(survey.table[var].unique())
-                    try:
-                        print sorted(varcol.enum._nums.values())
-                    except:
-                        print "wrong nums"
-                    try:
-                        print varcol.enum._vars
-                    except:
-                        print "wrong vars"
-if __name__ == '__main__':
-    test_inputs_enumcol()
+def check_inputs_enumcols(simulation):
+    """
+    Check that the enumcols are consistent
+    with data in the survey dataframe
     
+    Parameters
+    ----------
+    
+    simulation : SurveySimulation
+                 The simulation to check
+    
+    Returns :
+    
+    is_ok : bool
+            True or False according to tests
+    """
+    
+    # TODO: eventually should be a method of SurveySimulation specific for france 
+    
+    is_ok = True
+    survey = simulation.survey
+    for var in survey.col_names:
+        varcol  = survey.description.get_col(var)
+        if isinstance(varcol, EnumCol):
+            try:
+                x = sorted(varcol.enum._nums.values())
+                if set(survey.table[var].unique()) > set(varcol.enum._nums.values()):
+                    print var
+                    print "Wrong nums"
+                    print varcol.enum._nums
+                    print sorted(survey.table[var].unique())
+                    is_ok = False
+            except:
+                is_ok = False
+                print var
+                print "Wrong nums"
+                print varcol.enum
+                print sorted(survey.table[var].unique())
+                print "\n"
+
+            try:
+                x = varcol.enum._vars
+            except:
+                is_ok = False
+                print var
+                print "wrong vars"
+                print varcol.enum
+                print sorted(survey.table[var].unique())
+                print "\n"
+    
+    return is_ok
+
+def check_weights(simulation):
+    """
+    Check weights positiveness
+    
+    Parameters
+    ----------
+    
+    simulation : SurveySimulation
+                 The simulation to check
+    
+    Returns :
+    
+    is_ok : bool
+            True or False according to tests
+    """
+    is_ok = True
+    survey = simulation.survey
+    WEIGHT = of_import(classname="WEIGHT", country=simulation.country)
+    weight = survey.get_value(WEIGHT)
+    if sum(weight<=0) != 0:
+        is_ok = False
+    return is_ok
+
+def toto(simulation):
+    survey = simulation.survey        
+    # verifying the age of childrens
+    quifam = survey.get_value('quifam')
+    age = survey.get_value('age')
+    if sum((quifam >= 2) & (age >= 21)) != 0:
+        print "they are kids that are of age >= 21"
+
+
+    # Problemes
+    # enfants de plus de 21 ans et parents à charge dans les familles avec quifam=0
+
+#    idmen = survey.get_value('idmen')
+#    from numpy import max as max_
+#    print max_(idmen)
+
+
+                        
+if __name__ == '__main__':
+    year = 2006
+    country = "france"
+    simulation = SurveySimulation()
+    simulation.set_config(year = year, country = country)
+    simulation.set_param()
+    simulation.set_survey()
+    # print check_inputs_enumcols(simulation)
+    check_entities(simulation)
