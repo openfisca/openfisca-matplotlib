@@ -375,12 +375,29 @@ class MainWindow(QMainWindow):
 
     def parameters_changed(self):
         """
-        Enable refresh test case action
+        Actions to perform after parameters are changed
         """
+        self.debug_print("Actions after changing parameters")
         self.composition.action_compute.setEnabled(True)
-        if self.survey_explorer is not None:
+        P, P_default = self.parameters.getParam(), self.parameters.getParam(defaut = True)
+        self.scenario_simulation.set_param(P, P_default)
+        self.composition.set_reform(reform = False)
+            
+        if not self.survey_explorer.get_option('bareme_only'):
+            self.survey_simulation.set_param(P, P_default)
+            self.survey_explorer.set_reform(reform = False)
             self.survey_explorer.action_compute.setEnabled(True)
+        
 
+    def country_changed(self):
+        """
+        Actions to perform after country is changed
+        """
+        self.debug_print("Actions afer changing country : no action")
+        
+        
+#        self.main.register_test_case_widgets(country)
+#        self.main.register_survey_widgets(country)
         
     def refresh_test_case_plugins(self):
         """
@@ -530,13 +547,10 @@ class MainWindow(QMainWindow):
             self.parameters.register_plugin()
                                                 
         # Test case widgets
-
         self.register_test_case_widgets(country)
        
         # Survey Widgets
-        
-        if CONF.get('survey', 'enable') is True:
-            self.register_survey_widgets(True, country)
+        self.register_survey_widgets(country)
                            
         # ? menu
         about_action = create_action(self,
@@ -663,29 +677,13 @@ class MainWindow(QMainWindow):
                   Name of the country
         """
 
-        if self.test_case_toolbar is None:
-            self.test_case_toolbar = self.create_toolbar(_("Test case toolbar"),
-                                           "test_case_toolbar")
-        
-        if self.scenario_simulation is not None:
-            current_country = self.scenario_simulation.country
-        
-            if current_country != country:
-                self.debug_print("Changing country")
-                self.test_case_toolbar.clear()
-                self.test_case_toolbar_actions = []
-                
-                for plugin in self.test_case_plugins:
-                    self.removeDockWidget(plugin.dockwidget)
-                    plugin.close()
-                
         # Test case widgets
+
+        self.set_splash(_("Loading Test case composer ..."))
         self.scenario_simulation = ScenarioSimulation()
         datesim = CONF.get('parameters', 'datesim')
         self.scenario_simulation.set_config(country=country, datesim=datesim)
         CompositionWidget = of_import('widgets.Composition', 'CompositionWidget', country)
-        
-        self.set_splash(_("Loading Test case composer ..."))
         self.composition = CompositionWidget(self.scenario_simulation, self)
         self.composition.register_plugin()
 
@@ -701,11 +699,17 @@ class MainWindow(QMainWindow):
             self.test_case_table = ScenarioTableWidget(self)
             self.test_case_table.register_plugin()
 
+        if self.test_case_toolbar is not None:
+            self.test_case_toolbar.clear()
+        else:
+            self.test_case_toolbar = self.create_toolbar(_("Survey toolbar"),
+                                           "survey_toolbar")
+
         add_actions(self.test_case_toolbar, self.test_case_toolbar_actions)
         self.test_case_plugins = [ self.composition, self.test_case_graph, self.test_case_table ]
         self.splash.hide()
  
-    def register_survey_widgets(self, boolean = True, country = None):
+    def register_survey_widgets(self, country):
         """
         Registers enabled survey widgets
         """
@@ -713,26 +717,18 @@ class MainWindow(QMainWindow):
         self.survey_explorer = SurveyExplorerWidget(self)
         self.set_splash(_("Loading SurveyExplorer..."))
         self.survey_explorer.register_plugin()
-        self.survey_plugins +=  [ self.survey_explorer]
+        self.survey_plugins =  [ self.survey_explorer]
         
-        for plugin in self.survey_plugins:
-            if plugin is not self.survey_explorer:
-                self.removeDockWidget(plugin.dockwidget)
-
-        if boolean is True:
+        if CONF.get('survey', 'bareme_only') is False:
             self.debug_print("Register survey widgets")
             self.survey_simulation = SurveySimulation()
-
             self.survey_explorer.initialize()
-            if country is not None:
-                self.survey_simulation.set_config(country = country)
+            self.survey_explorer.load_data()
+            self.survey_simulation.set_config(country = country)
             self.survey_simulation.set_param()
 
-
             if self.survey_simulation.survey is None:
-                self.debug_print("No survey data, removing survey plugins")
-                self.register_survey_widgets(boolean=False)
-                self.removeDockWidget(self.survey_explorer.dockwidget)
+                self.debug_print("No survey data, dont load survey plugins")
                 return
                 
             # Calibration widget
@@ -741,6 +737,7 @@ class MainWindow(QMainWindow):
                 self.calibration = CalibrationWidget(self)
                 self.calibration.register_plugin()
                 self.survey_plugins  += [ self.calibration]
+
             # Aggregates widget
             if CONF.get('aggregates', 'enable'):
                 self.set_splash(_("Loading aggregates widget ..."))
@@ -762,28 +759,17 @@ class MainWindow(QMainWindow):
                 self.inequality.register_plugin()
                 self.survey_plugins  += [ self.inequality]
 
-            
-            
-            if self.survey_toolbar is not None:
-                del self.survey_toolbar
-                    
+        # Creates survey_toolbar if needed
+        if self.survey_toolbar is not None:
+            self.survey_toolbar.clear()
+        else:
             self.survey_toolbar = self.create_toolbar(_("Survey toolbar"),
-                                                      "survey_toolbar")
-            add_actions(self.survey_toolbar, self.survey_toolbar_actions)
-            
-            for first, second in ((self.test_case_table, self.survey_explorer),
-                                  (self.survey_explorer, self.aggregates), 
-                                  (self.aggregates, self.distribution), 
-                                   (self.distribution, self.inequality),
-                                   (self.inequality, self.calibration),
-                                  ):
-                if first is not None and second is not None:
-                    self.tabifyDockWidget(first.dockwidget, second.dockwidget)
-
+                                           "survey_toolbar")
+        add_actions(self.survey_toolbar, self.survey_toolbar_actions)
+        
 
         self.splash.hide()
-        self.setup_layout()
-#            self.update_windows_toolbars_menu()
+
             
     def post_visible_setup(self):
         """
@@ -900,15 +886,15 @@ class MainWindow(QMainWindow):
         CONF.set(section, prefix+'statusbar',
                  not self.statusBar().isHidden())
         
-    def setup_layout(self, default=False):
+    def setup_layout(self, default=False, recompute_test_case = True, changed_country = False):
         """
         Setup window layout
         """
         prefix = ('window') + '/'
         (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
          is_fullscreen) = self.load_window_settings(prefix, default)
-        
-        if hexstate is None:
+         
+        if hexstate is None or changed_country:
             # First Openfisca execution:
             # trying to set-up the dockwidget/toolbar positions to the best 
             # appearance possible
@@ -937,14 +923,16 @@ class MainWindow(QMainWindow):
             for plugin in self.test_case_plugins + self.survey_plugins:
                 if plugin is not None:
                     plugin.dockwidget.raise_()
-                    
-            if not CONF.get('survey', 'enable'):
-                if self.survey_explorer is not None:
+                
+            if self.survey_explorer is not None:  
+                if CONF.get('survey', 'bareme_only'):
                     self.survey_explorer.dockwidget.hide()
-#            for toolbar in (self.run_toolbar,):
-#                toolbar.close()
+                else:
+                    self.survey_explorer.dockwidget.show()
         
-        self.composition.compute()
+        if recompute_test_case is True:
+            self.composition.set_simulation(self.scenario_simulation)
+            self.composition.compute()
         self.test_case_graph.dockwidget.raise_()
         
         self.set_window_settings(hexstate,window_size, prefs_dialog_size, pos,
