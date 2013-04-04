@@ -72,17 +72,17 @@ class CompositionConfigPage(PluginConfigPage):
         export_group.setLayout(layout)
 
         
-        reform_group = QGroupBox(_("Reform"))
-        reform = self.create_checkbox(_('Reform mode'), 'reform')
-        layout = QVBoxLayout()
-        layout.addWidget(reform)
-        reform_group.setLayout(layout)
+#        reform_group = QGroupBox(_("Reform"))
+#        reform = self.create_checkbox(_('Reform mode'), 'reform')
+#        layout = QVBoxLayout()
+#        layout.addWidget(reform)
+#        reform_group.setLayout(layout)
 
         
         vlayout = QVBoxLayout()
         vlayout.addWidget(axis_group)
         vlayout.addWidget(legend_group)
         vlayout.addWidget(export_group)
-        vlayout.addWidget(reform_group)
+#        vlayout.addWidget(reform_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)

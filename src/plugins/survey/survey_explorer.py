@@ -71,17 +71,17 @@ class SurveyExplorerConfigPage(PluginConfigPage):
         survey_layout.addLayout(survey_file_layout)
         survey_group.setLayout(survey_layout)
 
-        reform_group = QGroupBox(_("Reform"))
-        reform = self.create_checkbox(_('Reform mode'), 'reform')
-                 
-        layout = QVBoxLayout()
-        layout.addWidget(reform)
-        reform_group.setLayout(layout)
+#        reform_group = QGroupBox(_("Reform"))
+#        reform = self.create_checkbox(_('Reform mode'), 'reform')
+#                 
+#        layout = QVBoxLayout()
+#        layout.addWidget(reform)
+#        reform_group.setLayout(layout)
 
         
         vlayout = QVBoxLayout()
         vlayout.addWidget(survey_group)
-        vlayout.addWidget(reform_group)
+#        vlayout.addWidget(reform_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
 
@@ -151,11 +151,8 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         """
         # Set survey_simulation
         
-        if not self.get_option('enable') or self.main.survey_simulation is None:
+        if (not self.get_option('enable')) or (self.main.survey_simulation is None):
             return
-
-        if self.get_option('reform') is True: # Reinitialize to False
-            self.set_option('reforme', False)
                 
         simulation = self.main.survey_simulation
         country = CONF.get('parameters', 'country')
@@ -164,7 +161,10 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         reforme = self.get_option('reform')
         year = datesim.year
         simulation.set_config(year = year, country = country, reforme = reforme)
+        self.simulation = simulation
 
+    def load_data(self):
+        simulation = self.main.survey_simulation
         # load_from_file(self):        
         fname = self.get_option('data_file')
         if path.isfile(fname):
@@ -178,8 +178,6 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
                 self.update_view()
             except:
                 print 'Survey data loading failed: disabling survey mode'
-                
-                self.set_option('enable', False)
                 self.set_option('bareme_only', True)
                  
 #                raise Exception('Survey data loading failed')
@@ -347,11 +345,9 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         """
         if 'reform' in options:
             self.action_set_reform.setChecked(self.get_option('reform'))
-    
-        if 'enable' in options or 'bareme_only' in options:
-            enable1 =  self.get_option('enable')
-            enable2 = not self.get_option('bareme_only')
-            self.main.register_survey_widgets( enable1 and enable2 )
+            
+        if 'bareme_only' in options:
+            self.main.register_survey_widgets(self.main.scenario_simulation.country)
             
         if 'data_file' in options:
             self.initialize()
