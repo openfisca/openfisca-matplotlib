@@ -13,6 +13,7 @@ from pandas import concat
 def check_entities(simulation):
 
     is_ok = True
+    message = None
     survey = simulation.survey
 
     ENTITIES_INDEX = of_import(None, "ENTITIES_INDEX", country = simulation.country)
@@ -34,33 +35,35 @@ def check_entities(simulation):
         
         if len(result) != 0:
             is_ok = False
+            
 
-    return is_ok
+    return is_ok, message
 
 
 
 
 from src.lib.columns import EnumCol
+
 def check_inputs_enumcols(simulation):
     """
     Check that the enumcols are consistent
     with data in the survey dataframe
     
     Parameters
-    ----------
-    
+    ----------    
     simulation : SurveySimulation
                  The simulation to check
-    
-    Returns :
-    
+    Returns
+    -------
     is_ok : bool
             True or False according to tests
+    message : string
     """
     
     # TODO: eventually should be a method of SurveySimulation specific for france 
     
     is_ok = True
+    message = None
     survey = simulation.survey
     for var in survey.col_names:
         varcol  = survey.description.get_col(var)
@@ -91,7 +94,7 @@ def check_inputs_enumcols(simulation):
                 print sorted(survey.table[var].unique())
                 print "\n"
     
-    return is_ok
+    return is_ok, message
 
 def check_weights(simulation):
     """
@@ -99,22 +102,25 @@ def check_weights(simulation):
     
     Parameters
     ----------
-    
     simulation : SurveySimulation
                  The simulation to check
-    
-    Returns :
-    
-    is_ok : bool
+    Returns
+    -------
+    is_ok : boolean
             True or False according to tests
+    message : string, None if is_ok is True
+              error message
     """
     is_ok = True
+    message = None
     survey = simulation.survey
     WEIGHT = of_import(classname="WEIGHT", country=simulation.country)
     weight = survey.get_value(WEIGHT)
-    if sum(weight<=0) != 0:
+    nb = sum(weight<=0)
+    if nb != 0:
         is_ok = False
-    return is_ok
+        message = "%i weights are less than or equal to zero" % nb
+    return is_ok, message
 
 def toto(simulation):
     survey = simulation.survey        
@@ -141,5 +147,13 @@ if __name__ == '__main__':
     simulation.set_config(year = year, country = country)
     simulation.set_param()
     simulation.set_survey()
-    # print check_inputs_enumcols(simulation)
-    check_entities(simulation)
+    ok, message = check_inputs_enumcols(simulation)
+    if not ok:
+        print message
+    ok, message = check_entities(simulation)
+    if not ok:
+        print message
+    ok, message = check_weights(simulation)
+    if not ok:
+        print message
+    

@@ -7,6 +7,8 @@
 # (see openfisca/__init__.py for details)
 
 from src.lib.simulation import SurveySimulation
+from src.countries.france.data.erf.datatable import ErfsDataTable
+
 
 # Validation
 # Should ideally produce a log file 
@@ -30,20 +32,44 @@ simulation.set_survey()
 from src.scripts.validation.check_consistency_tests import ( check_inputs_enumcols,
                                                               check_entities,
                                                               check_weights)
-
-if not check_inputs_enumcols(simulation):
+ok, message = check_inputs_enumcols(simulation)
+if not ok:
     print "Error: Check enumcols"
-
+    print message
+    
 #    check the validity of men/foy/fam  see check_consistency_test
-if not check_entities(simulation):
+ok, message = check_entities(simulation)
+if not ok: 
     print "Error: Check entities"
-
+    print message
+    
 #    check of positiveness of the variable that should be ?
-if not check_weights(simulation):
+ok, message = check_weights(simulation)
+if not ok: 
     print "Error: Check weights"
-
+    print message
+    
 #  Demographic characteristics
 #    number of households/foyers compared to erf (and other sources recensement ? careful with champm variable)
+
+erf = ErfsDataTable()
+erf.set_config(year=year)
+df = erf.get_values(["wprm", "champm"], table="menage")
+
+idx = simulation.survey.index["men"]
+wprm = simulation.survey.get_value("wprm", idx)
+champm = simulation.survey.get_value("champm", idx)
+
+wprm_of_men = wprm.sum()
+wprm_erf_men = df.wprm.sum()
+
+print wprm_erf_men, wprm_of_men
+
+wprm_champm_of_men = (wprm*champm).sum()
+wprm_champm_erf_men = (df.wprm*df.champm).sum()
+
+print wprm_champm_erf_men, wprm_champm_of_men
+
 #    types of household compared to erf
 #    age structure of population  scripts.sandbox.age_structure.py
 
