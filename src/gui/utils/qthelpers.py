@@ -211,7 +211,9 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
 
 
 def add_actions(target, actions, insert_before=None):
-    """Add actions to a menu"""
+    """
+    Add actions to a menu
+    """
     previous_action = None
     target_actions = list(target.actions())
     if target_actions:

@@ -133,7 +133,6 @@ DEFAULTS = [
               'maxrev': 50000,
               'import_dir': 'france/castypes',
               'export_dir': 'france/castypes',
-              'reform': False,
               'graph/enable': True,
               'graph/legend/enable': True,
               'graph/legend/location': '2',
@@ -163,7 +162,7 @@ DEFAULTS = [
               'enable': True,
               'country': 'france',
               'datesim': '2009-01-01',
-              'reformes_dir': 'france/reformes',  
+              'reformes_dir': None,  
 #              'file/param': 'param'
               }),
             ('aggregates',

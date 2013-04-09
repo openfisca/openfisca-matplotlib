@@ -137,7 +137,11 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
         return obj
 
     def saveXml(self):
-        reformes_dir = self.get_option('reformes_dir')
+        reformes_dir = self.get_option('reformes_dir', default = None)
+        if reformes_dir is None:
+            country = self.get_option('country')
+            from src import SRC_PATH
+            reformes_dir = os.path.join(SRC_PATH,"countries",country,"reformes")
         default_fileName = os.path.join(reformes_dir, 'sans-titre')
         fileName = QFileDialog.getSaveFileName(self,
                                                _("Save a reform"), default_fileName, u"Paramètres OpenFisca (*.ofp)")
@@ -151,7 +155,11 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
 
 
     def loadXml(self):
-        reformes_dir = self.get_option('reformes_dir')
+        reformes_dir = self.get_option('reformes_dir', default=None)
+        if reformes_dir is None:
+            country = self.get_option('country')
+            from src import SRC_PATH
+            reformes_dir = os.path.join(SRC_PATH,"countries",country,"reformes")
         fileName = QFileDialog.getOpenFileName(self,
                                                _("Open a reform"), reformes_dir, u"Paramètres OpenFisca (*.ofp)")
         if not fileName == '':
@@ -173,20 +181,14 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
         Apply configuration file's plugin settings
         """
         if 'country' in options:
-            country = self.get_option('country')
-            NotImplementedError
-#            self.main.close()
-#            from src.of_test import main
-#            main()
-            
-        if 'datesim' in options:
-            
-            datesim = self.get_option('datesim')
-            self.main.scenario_simulation.set_config(year = datesim[0:4])
-            if self.main.survey_explorer.get_option('enable'):
-                self.main.register_survey_widgets(True)
-            
             self.reset()
+
+        if 'datesim' in options:     
+            self.reset()
+            
+                
+            
+
     
     
     #------ OpenfiscaPluginWidget API ---------------------------------------------

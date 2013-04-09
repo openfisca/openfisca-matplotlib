@@ -25,6 +25,8 @@ import locale
 import numpy as np
 from pandas import DataFrame, ExcelWriter
 
+from src.gui.utils.qthelpers import create_action
+
 from src.gui.qt.QtGui import  QVBoxLayout
 from src.gui.config import get_icon
 from src.plugins.__init__ import OpenfiscaPluginWidget
@@ -60,7 +62,7 @@ class ScenarioTableWidget(OpenfiscaPluginWidget):
         self.setLayout(self.verticalLayout)
 
         self.table_format = self.get_option('table/format')
-        self.output_dir = self.get_option('table/export_dir')
+        self.initialize_plugin()
 
 
     #------ Public API ---------------------------------------------
@@ -129,8 +131,9 @@ class ScenarioTableWidget(OpenfiscaPluginWidget):
     def save_table(self):
         
         table_format = self.table_format
-        output_dir = self.output_dir
-        filename = 'sans-titre.' + table_format
+        filename = _("Untitled.") + table_format
+        
+        output_dir = self.get_option('table/export_dir')
         user_path = os.path.join(output_dir, filename)
 
         extension = table_format.upper() + "   (*." + table_format + ")"
@@ -138,8 +141,8 @@ class ScenarioTableWidget(OpenfiscaPluginWidget):
                                                _("Save table"), user_path, extension)
         
         if fname:
-            self.output_dir = os.path.dirname(str(fname))
-            self.set_option('table/export_dir', self.output_dir)
+            output_dir = os.path.dirname(str(fname))
+            self.set_option('table/export_dir', output_dir)
             try:
                 if table_format == "xls":
                     writer = ExcelWriter(str(fname))
@@ -201,7 +204,19 @@ class ScenarioTableWidget(OpenfiscaPluginWidget):
         Note: these actions will be enabled when plugin's dockwidget is visible
               and they will be disabled when it's hidden
         """
-        raise NotImplementedError
+        
+        self.save_action = create_action(self, _("Save &table"),
+                icon='filesave.png', tip=_("Save test-case table"),
+                triggered=self.save_table)
+        self.register_shortcut(self.save_action, context="Table",
+                               name=_("Save test-case table"), default="Ctrl+T")
+
+        self.file_menu_actions = [self.save_action,]
+
+        self.main.file_menu_actions += self.file_menu_actions     
+#        self.main.test_case_toolbar_actions += self.file_menu_actions 
+    
+        return self.file_menu_actions
     
     def register_plugin(self):
         """

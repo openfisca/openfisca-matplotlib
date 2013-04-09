@@ -59,7 +59,8 @@ class Aggregates(object):
         self.show_default = False
         self.show_real = True
         self.show_diff = True
-
+        self.varlist = None
+        self.filter_by = None
 
     def set_var_list(self, var_list):
         """
@@ -67,16 +68,37 @@ class Aggregates(object):
         """
         self.varlist = var_list
 
+    def set_filter_by(self, varname):
+        """
+        Set the variable to filter by the amounts and beneficiaries that are
+        to be taken into account 
+        """
+        self.filter_by = varname
+
     def set_default_var_list(self):
         """
-        Set list of variables to be aggregated 
-        TODO: move away because france specific
+        Set list of variables to be aggregated
         """
         country = self.simulation.country
         AGGREGATES_DEFAULT_VARS = of_import("","AGGREGATES_DEFAULT_VARS", country)
         self.varlist = AGGREGATES_DEFAULT_VARS
         
-
+    def set_default_filter_by_list(self):
+        """
+        Import country specific default filter by variables list
+        """
+        country = self.simulation.country
+        FILTERING_VARS = of_import("","FILTERING_VARS", country)
+        self.filter_by_var_list = FILTERING_VARS
+    
+    def set_default_filter_by(self):
+        """
+        Set country specific default filter by variable
+        """
+        self.set_default_filter_by_list()
+        varname = self.filter_by_var_list[0]
+        self.set_filter_by(varname)
+        
     def set_header_labels(self):
         '''
         Sets headers labels
@@ -106,11 +128,15 @@ class Aggregates(object):
         else:
             raise Exception('Aggregates:  %s should be an instance of %s class'  %(simulation, SurveySimulation))
         self.set_default_var_list()
-
+        self.set_default_filter_by()
 
     def compute(self):
+        """
+        Compute the whole table
+        """
+        filter_by = self.filter_by
 #        try:
-        self.compute_aggregates()
+        self.compute_aggregates(filter_by)
 #        except Exception, e:
 #            raise Exception("Cannot compute aggregates.\n compute_aggregates returned error '%s'" % e)
         self.load_amounts_from_file()
@@ -118,7 +144,7 @@ class Aggregates(object):
         self.compute_diff()
 
 
-    def compute_aggregates(self):
+    def compute_aggregates(self, filter_by = None):
         """
         Compute aggregate amounts
         """
@@ -139,16 +165,16 @@ class Aggregates(object):
         label2var, var2label, var2enum = description.builds_dicts()
         for var in self.varlist:
             # amounts and beneficiaries from current data and default data if exists
-            montant_benef = self.get_aggregate(var)
+            montant_benef = self.get_aggregate(var, filter_by)
             V.append(var2label[var])
                         
             try:
                 varcol  = description.get_col(var)
-                unit = varcol._unit
+                entity = varcol._entity
             except:
-                unit = 'NA'
+                entity = 'NA'
                  
-            U.append(unit)
+            U.append(entity)
             for dataname in montant_benef:
                 M[dataname].append( montant_benef[dataname][0] )
                 B[dataname].append( montant_benef[dataname][1] )
@@ -162,10 +188,8 @@ class Aggregates(object):
                 items.append(  (B_label[dataname], B[dataname]) )
 
         items.append( (self.labels['entity'], U) )        
-        
         aggr_frame = DataFrame.from_items(items)
         
-
         self.aggr_frame = None
         for code in self.labels_ordered_list:
             try:
@@ -179,7 +203,7 @@ class Aggregates(object):
 
 
 
-    def get_aggregate(self, variable):
+    def get_aggregate(self, variable, filter_by=None):
         """
         Returns aggregate spending, and number of beneficiaries
         for the relevant entity level
@@ -195,15 +219,19 @@ class Aggregates(object):
         simulation = self.simulation
         description = simulation.outputs.description
         
-        def aggregate(var):  # TODO: should be a method of Presta
+        def aggregate(var, filter_by):  # TODO: should be a method of Presta
             varcol  = description.get_col(var)            
-            entity = varcol._unit
+            entity = varcol._entity
             # amounts and beneficiaries from current data and default data if exists
             data, data_default = simulation.aggregated_by_entity(entity, [var], all_output_vars = False, force_sum = True)
-                                                
+
+            filter = 1        
+            if filter_by is not None:
+                data_filter, data_default_filter = simulation.aggregated_by_entity(entity, [filter_by], all_output_vars = False, force_sum = True)
+                filter = data_filter[filter_by]
             datasets = {'data': data}
             m_b = {}
-            weight = data[WEIGHT]
+            weight = data[WEIGHT]*filter
             if data_default is not None:
                 datasets['default'] = data_default
         
@@ -214,7 +242,7 @@ class Aggregates(object):
                             int(round(sum(beneficiaires*weight)/10**3))]
             return m_b
         
-        return aggregate(variable)
+        return aggregate(variable, filter_by)
         
 
     def compute_real(self):
@@ -581,6 +609,7 @@ class AggregatesWidget(OpenfiscaPluginWidget):
             if option in show_options:
                 self.toggle_option(option, self.get_option(option))
 
+#        if option is
     
     #------ OpenfiscaPluginWidget API ---------------------------------------------
 

@@ -4,6 +4,8 @@
 .project
 .settings
 
+build
+src/oenfisca_crash.log
 src/build
 src/main.cfg
 src/france/data/sources/final.csv
@@ -16,3 +18,7 @@ src/countries/france/data/sources/final*.csv
 src/countries/france/data/survey_old.h5
 src/countries/france/data/survey.h5
 src/countries/france/data/survey_sparse.h5
+src/countries/france/data/survey3.h5
+src/countries/france/data/survey_sparse.h5
+src/countries/france/data/sources/config.py
+
