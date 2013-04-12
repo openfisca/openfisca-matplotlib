@@ -14,7 +14,7 @@ from pandas import ExcelWriter, ExcelFile
 import os
 
 country = 'france'
-destination_dir = "c:/users/utilisateur/documents/"
+destination_dir = "C:/Users/Laurence Bouvard/Desktop/openfisca_validation/sortie_agg/"
 fname_all = "aggregates_inflated_loyers.xlsx"
 fname_all = os.path.join(destination_dir, fname_all)              
 
@@ -32,7 +32,7 @@ def get_loyer_inflator(year):
 def build_aggregates():
 
     writer = None
-    years = range(2006,2010)
+    years = range(2006,2008)
     for year in years:        
         yr = str(year)
 #        fname = "Agg_%s.%s" %(str(yr), "xls")
@@ -100,8 +100,8 @@ def diag_aggregates():
 if __name__ == '__main__':
 
 
-#    build_aggregates()
-#    diag_aggregates()
+    build_aggregates()
+    diag_aggregates()
 #    test()
 
-    build_erf_aggregates()
+#    build_erf_aggregates()
