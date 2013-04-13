@@ -98,10 +98,6 @@ def diag_aggregates():
 
 
 if __name__ == '__main__':
-
-
-#    build_aggregates()
-#    diag_aggregates()
+    build_aggregates()
+    diag_aggregates()
 #    test()
-
-    build_erf_aggregates()
