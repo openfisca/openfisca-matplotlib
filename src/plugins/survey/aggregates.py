@@ -306,7 +306,6 @@ class Aggregates(object):
 
         try:
             filename = os.path.join(data_dir, "amounts.h5")
-            print filename
             store = HDFStore(filename)
     
             df_a = store['amounts']
@@ -324,6 +323,10 @@ class Aggregates(object):
                 for var in ['apl', 'alf', 'als']:
                     logt += self.totals_df.get_value(var, col)
                 self.totals_df.set_value('logt', col,  logt)
+                
+                
+                
+                
                 
                 # Deals wit irpp, csg, crds
                 for var in ['irpp', 'csg', 'crds', 'cotsoc_noncontrib']:

@@ -12,9 +12,9 @@ from src.lib.simulation import SurveySimulation
 from src.plugins.survey.aggregates import Aggregates
 from pandas import ExcelWriter, ExcelFile
 import os
+from src.countries.france.data.sources.config import destination_dir
 
 country = 'france'
-destination_dir = "C:/Users/Laurence Bouvard/Desktop/openfisca_validation/sortie_agg/"
 fname_all = "aggregates_inflated_loyers.xlsx"
 fname_all = os.path.join(destination_dir, fname_all)              
 
@@ -32,7 +32,7 @@ def get_loyer_inflator(year):
 def build_aggregates():
 
     writer = None
-    years = range(2006,2008)
+    years = range(2006,2010)
     for year in years:        
         yr = str(year)
 #        fname = "Agg_%s.%s" %(str(yr), "xls")
