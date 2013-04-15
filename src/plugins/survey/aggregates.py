@@ -106,9 +106,9 @@ class Aggregates(object):
         labels = dict()
         labels['var']    = u"Mesure"
         labels['entity'] = u"Entité"
-        labels['dep']    = u"Dépense \n(millions d'€)" 
+        labels['dep']    = u"Dépenses \n(millions d'€)" 
         labels['benef']  = u"Bénéficiaires \n(milliers)"
-        labels['dep_default']   = u"Dépense initiale \n(millions d'€)"
+        labels['dep_default']   = u"Dépenses initiales \n(millions d'€)"
         labels['benef_default'] = u"Bénéficiaires \ninitiaux \n(milliers)"
         labels['dep_real']      = u"Dépenses \nréelles \n(millions d'€)"
         labels['benef_real']    = u"Bénéficiaires \nréels \n(milliers)"
@@ -319,13 +319,19 @@ class Aggregates(object):
             # Add some aditionnals totals
             for col in ['amount', 'benef']:
                 
-                # Deals woth logt
+                # Deals with logt
                 logt = 0
                 for var in ['apl', 'alf', 'als']:
                     logt += self.totals_df.get_value(var, col)
                 self.totals_df.set_value('logt', col,  logt)
+               
+                # Deals with rsa rmi
+                rsa = 0
+                for var in ['rmi', 'rsa']:
+                    rsa += self.totals_df.get_value(var, col)
+                self.totals_df.set_value('rsa', col, rsa)
                 
-                # Deals wit irpp, csg, crds
+                # Deals with irpp, csg, crds
                 for var in ['irpp', 'csg', 'crds', 'cotsoc_noncontrib']:
                     if col in ['amount']:
                         val = - self.totals_df.get_value(var, col)
