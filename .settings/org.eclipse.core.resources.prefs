@@ -14,6 +14,7 @@ encoding//src/countries/france/data/sources/build_survey_from_sources.py=utf-8
 encoding//src/countries/france/data/sources/config.py=utf-8
 encoding//src/countries/france/data/sources/configREMOVEMEWHENCONFIGURED.py=utf-8
 encoding//src/countries/france/data/sources/utils.py=utf-8
+encoding//src/countries/france/data/test_hd5.py=utf-8
 encoding//src/countries/france/model/calage.py=utf-8
 encoding//src/countries/france/model/common.py=utf-8
 encoding//src/countries/france/model/cotsoc.py=utf-8
