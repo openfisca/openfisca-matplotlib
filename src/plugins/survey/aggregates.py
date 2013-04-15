@@ -306,7 +306,6 @@ class Aggregates(object):
 
         try:
             filename = os.path.join(data_dir, "amounts.h5")
-            print filename
             store = HDFStore(filename)
     
             df_a = store['amounts']
