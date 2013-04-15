@@ -59,6 +59,7 @@ def build_aggregates():
     writer.save()
 
 
+
 def diag_aggregates():
     
     years = ['2006', '2007', '2008', '2009']
@@ -101,7 +102,7 @@ if __name__ == '__main__':
 
 
     build_aggregates()
-    diag_aggregates()
+#    diag_aggregates()
 #    test()
 
 #    build_erf_aggregates()
