@@ -104,4 +104,4 @@ if __name__ == '__main__':
 #    diag_aggregates()
 #    test()
 
-    build_erf_aggregates()
+    build_aggregates()
