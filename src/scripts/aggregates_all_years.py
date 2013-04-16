@@ -12,9 +12,9 @@ from src.lib.simulation import SurveySimulation
 from src.plugins.survey.aggregates import Aggregates
 from pandas import ExcelWriter, ExcelFile
 import os
+from src.countries.france.data.sources.config import destination_dir
 
 country = 'france'
-destination_dir = "c:/users/utilisateur/documents/"
 fname_all = "aggregates_inflated_loyers.xlsx"
 fname_all = os.path.join(destination_dir, fname_all)              
 
@@ -59,6 +59,7 @@ def build_aggregates():
     writer.save()
 
 
+
 def diag_aggregates():
     
     years = ['2006', '2007', '2008', '2009']
@@ -100,8 +101,8 @@ def diag_aggregates():
 if __name__ == '__main__':
 
 
-#    build_aggregates()
+    build_aggregates()
 #    diag_aggregates()
 #    test()
+#    build_erf_aggregates()
 
-    build_erf_aggregates()
