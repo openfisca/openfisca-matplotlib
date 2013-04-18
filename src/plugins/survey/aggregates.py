@@ -569,7 +569,7 @@ class AggregatesWidget(OpenfiscaPluginWidget):
         self.view.clear()
          
         
-    def save_table(self, table_format = None):
+    def save_table(self, table_format = None, float_format = "%.2f"):
         '''
         Saves the table to the designated format
         '''
@@ -591,12 +591,12 @@ class AggregatesWidget(OpenfiscaPluginWidget):
                 df = self.view.model().dataframe
                 if table_format == "xls":
                     writer = ExcelWriter(str(fname))
-                    df.to_excel(writer, "aggregates", index= False, header= True)
+                    df.to_excel(writer, "aggregates", index= False, header= True, float_format = float_format)
                     descr = self.create_description()
                     descr.to_excel(writer, "description", index = False, header=False)
                     writer.save()
                 elif table_format =="csv":
-                    df.to_csv(writer, "aggregates", index= False, header = True)
+                    df.to_csv(writer, "aggregates", index= False, header = True, float_format = float_format)
                      
                 
             except Exception, e:

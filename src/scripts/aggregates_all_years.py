@@ -10,6 +10,7 @@
 
 from src.lib.simulation import SurveySimulation 
 from src.plugins.survey.aggregates import Aggregates
+from src.plugins.survey.inequality import Inequality
 from pandas import ExcelWriter, ExcelFile
 import os
 from src.countries.france.data.sources.config import destination_dir
@@ -50,7 +51,7 @@ def build_aggregates():
 
         if writer is None:
             writer = ExcelWriter(str(fname_all))
-        agg.aggr_frame.to_excel(writer, yr, index= False, header= True)
+        agg.aggr_frame.to_excel(writer, yr, index= False, header= True, float_format="%.2f")
         del simu
         del agg
         import gc
@@ -95,14 +96,30 @@ def diag_aggregates():
     writer.save()
 
 
+def test_gini():
+    """
+    Compute Gini coefficients
+    """
+    years = range(2006,2010)
+    for year in years:        
+        yr = str(year)
+#        fname = "Agg_%s.%s" %(str(yr), "xls")
+        simu = SurveySimulation()
+        simu.set_config(year = yr, country = country)
+        simu.set_param()
+        simu.set_survey()
+        inflator = get_loyer_inflator(year)
+        simu.inflate_survey({'loyer' : inflator})
+        simu.compute()
     
-
+        inequality = Inequality()
+        inequality.set_simulation(simu)
+        inequality.compute()
+        print inequality.inequality_dataframe
+        print inequality.poverty
 
 if __name__ == '__main__':
 
-
-    build_aggregates()
+#    build_aggregates()
 #    diag_aggregates()
-#    test()
-#    build_erf_aggregates()
-
+    test_gini()

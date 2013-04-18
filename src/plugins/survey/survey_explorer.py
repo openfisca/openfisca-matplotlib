@@ -263,7 +263,12 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
                          
     def set_choices(self, description):
         '''
-        Set the variables appearing in the add and remove dialogs 
+        Set the variables appearing in the add and remove dialogs
+        
+        Parameters
+        ----------
+        
+        description : TODO: 
         '''     
         data_vars = set(self.data.columns)
         label2var = {}
@@ -310,6 +315,9 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         self.emit(SIGNAL('calculated()'))
                 
     def clear(self):
+        """
+        Clear view and dataframes
+        """
         self.view.clear()
         self.data = None
         self.datatables_choices = []

@@ -21,8 +21,8 @@ This file is part of openFisca.
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-
 from pandas import DataFrame
+from datetime import datetime
 
 from src.gui.qt.QtGui import (QWidget, QApplication, QCursor, QDockWidget)
 from src.gui.qt.QtCore import SIGNAL, Qt
@@ -42,6 +42,121 @@ from src.lib.utils import mark_weighted_percentiles
 _ = get_translation('inequality', 'src.plugins.survey')
 
 from src.lib.utils import of_import
+from src.lib.simulation import SurveySimulation
+
+
+
+class Inequality(object):
+    def __init__(self):
+        super(Inequality, self).__init__()
+        self.simulation = None
+        
+        self.data = DataFrame() 
+        self.data_default = None
+        self.vars = {'nivvie_ini': ['men'],
+                     'nivvie_net':  ['men'],                    
+                     'nivvie' : ['men']}
+
+#        self.vars = {'nivvie_prim': ['ind', 'men'],
+#                     'nivvie_init': ['ind', 'men'],
+#                     'nivvie_net':  ['ind', 'men'],                    
+#                     'nivvie' : ['ind', 'men']}
+        self.gini = None
+        self.inequality_dataframe = None
+        self.poverty = None
+    
+    def set_default_filter_by(self):
+        """
+        Set country specific default filter by variable
+        """
+        self.set_default_filter_by_list()
+        varname = self.filter_by_var_list[0]
+        self.set_filter_by(varname)
+                
+    def set_simulation(self, simulation):
+        """
+        Set simulation
+        """
+        if isinstance(simulation, SurveySimulation):
+            self.simulation = simulation
+        else:
+            raise Exception('Inequality:  %s should be an instance of %s class'  %(simulation, SurveySimulation))
+
+
+    def compute(self):
+        """
+        Compute inequality dataframe
+        """
+        output = self.simulation.outputs
+        final_df = None
+        
+        WEIGHT = of_import(None, 'WEIGHT', self.simulation.country)
+        FILTERING_VARS = of_import(None, 'FILTERING_VARS', self.simulation.country) 
+        for varname, entities in self.vars.iteritems():
+            for entity in entities:
+                idx =  output.index[entity]
+                val  = output.get_value(varname, idx)
+                weights = output._inputs.get_value(WEIGHT, idx)
+                filter_var_name = FILTERING_VARS[0]
+                filter_var= output._inputs.get_value(filter_var_name, idx)
+                
+            items = []
+            # Compute mean
+            moy = (weights*filter_var*val).sum()/(weights*filter_var).sum()
+            items.append( ("Moyenne",  [moy]))
+
+            # Compute deciles
+            labels = range(1,11)
+            method = 2
+            decile, values = mark_weighted_percentiles(val, labels, weights*filter_var, method, return_quantiles=True)
+            
+            labels = [ 'D'+str(d) for d in range(1,11)]
+            del decile
+            for l, v in zip(labels[:-1],values[1:-1]):
+                items.append( (l, [v]))
+        
+            # Compute Gini
+            gini_coeff = gini(val, weights*filter_var)
+            items.append( ( _("Gini index"), [gini_coeff]))
+
+            df = DataFrame.from_items(items, orient = 'index', columns = [varname])            
+            df = df.reset_index()
+            if final_df is None:
+                final_df = df
+            else:
+                final_df = final_df.merge(df, on='index')
+        
+        final_df[u"Initial à net"] = (final_df['nivvie_net']-final_df['nivvie_ini'])/final_df['nivvie_ini']
+        final_df[u"Net à disponible"] = (final_df['nivvie']-final_df['nivvie_net'])/final_df['nivvie_net']
+        final_df = final_df[['index','nivvie_ini', u"Initial à net", 'nivvie_net',u"Net à disponible",'nivvie']]
+        self.inequality_dataframe = final_df
+
+        # poverty
+        poverty = dict()
+        entity = "men"
+        varname = "nivvie"
+        for percentage in [ 40, 50, 60]:
+            idx =  output.index[entity]
+            varname = "pauvre" + str(percentage) 
+            val = output.get_value(varname, idx)
+            weights = output._inputs.get_value(WEIGHT, idx)
+            filter_var_name = FILTERING_VARS[0]
+            filter_var= output._inputs.get_value(filter_var_name, idx) 
+            poverty[percentage] =  (weights*filter_var*val).sum()/(weights*filter_var).sum()
+            
+        self.poverty = poverty
+            
+    def create_description(self):
+        '''
+        Creates a description dataframe
+        '''
+        now = datetime.now()
+        descr =  [u'OpenFisca', 
+                         u'Calculé le %s à %s' % (now.strftime('%d-%m-%Y'), now.strftime('%H:%M')),
+                         u'Système socio-fiscal au %s' % self.simulation.datesim,
+                         u"Données d'enquêtes de l'année %s" %str(self.simulation.survey.survey_year) ]
+        return DataFrame(descr)
+        
 
 
 class InequalityConfigPage(PluginConfigPage):
@@ -101,19 +216,7 @@ class InequalityWidget(OpenfiscaPluginWidget):
         # Initialize attributes
         self.parent = parent
 
-        self.data = DataFrame() 
-        self.data_default = None
-        self.vars = {'nivvie_ini': ['men'],
-                     'nivvie_net':  ['men'],                    
-                     'nivvie' : ['men']}
-
-
-        self.simulation = None
-#        self.vars = {'nivvie_prim': ['ind', 'men'],
-#                     'nivvie_init': ['ind', 'men'],
-#                     'nivvie_net':  ['ind', 'men'],                    
-#                     'nivvie' : ['ind', 'men']}
-        
+        self.inequality = Inequality()
 
     #------ Public API ---------------------------------------------
 
@@ -124,9 +227,11 @@ class InequalityWidget(OpenfiscaPluginWidget):
         '''        
         axes = self.lorenzWidget.axes
         axes.clear()
+        
             
-        output = self.simulation.outputs
-        WEIGHT = of_import(None, 'WEIGHT', self.simulation.country)
+        output = self.inequality.simulation.outputs
+        simulation = self.inequality.simulation
+        WEIGHT = of_import(None, 'WEIGHT', simulation.country)
 
         idx_weight = {'ind': output._inputs.index['ind'],
                       'men': output._inputs.index['men']}
@@ -134,7 +239,7 @@ class InequalityWidget(OpenfiscaPluginWidget):
         for entity, idx in idx_weight.iteritems():
             weights[entity] = output._inputs.get_value(WEIGHT, idx)
         
-        for varname, entities in self.vars.iteritems():
+        for varname, entities in self.inequality.vars.iteritems():
             for entity in entities:
                 
                 idx =  output.index[entity]
@@ -158,53 +263,17 @@ class InequalityWidget(OpenfiscaPluginWidget):
         ----------
         
         simulation : SurveySimulation
-                     the simualtion object to extract the data from
+                     the simulation object to extract the data from
         '''
-        self.simulation = simulation 
+        self.inequality.set_simulation(simulation) 
 
-        
+
     def update_frame(self):
-        output = self.simulation.outputs
-        final_df = None
-        
-        WEIGHT = of_import(None, 'WEIGHT', self.simulation.country)
-        for varname, entities in self.vars.iteritems():
-            for entity in entities:
-                idx =  output.index[entity]
-                val  = output.get_value(varname, idx)
-                weights = output._inputs.get_value(WEIGHT, idx)
-                champm = output._inputs.get_value('champm', idx)
-
-            items = []
-            # Compute mean
-            moy = (weights*champm*val).sum()/(weights*champm).sum()
-            items.append( ("Moyenne",  [moy]))
-
-            # Compute deciles
-            labels = range(1,11)
-            method = 2
-            decile, values = mark_weighted_percentiles(val, labels, weights*champm, method, return_quantiles=True)
-            
-            labels = [ 'D'+str(d) for d in range(1,11)]
-            del decile
-            for l, v in zip(labels[:-1],values[1:-1]):
-                items.append( (l, [v]))
-        
-            # Compute Gini
-            gini_coeff = gini(val, weights*champm)
-            items.append( ( _("Gini index"), [gini_coeff]))
-
-            df = DataFrame.from_items(items, orient = 'index', columns = [varname])            
-            df = df.reset_index()
-            if final_df is None:
-                final_df = df
-            else:
-                final_df = final_df.merge(df, on='index')
-        
-        final_df[u"Initial à net"] = (final_df['nivvie_net']-final_df['nivvie_ini'])/final_df['nivvie_ini']
-        final_df[u"Net à disponible"] = (final_df['nivvie']-final_df['nivvie_net'])/final_df['nivvie_net']
-        final_df = final_df[['index','nivvie_ini', u"Initial à net", 'nivvie_net',u"Net à disponible",'nivvie']]
-        self.ineqFrameWidget.set_dataframe(final_df)
+        """
+        Update frame
+        """
+        self.inequality.compute()
+        self.ineqFrameWidget.set_dataframe(self.inequality.inequality_dataframe)
         self.ineqFrameWidget.reset()
         
     def calculated(self):
