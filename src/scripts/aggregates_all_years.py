@@ -118,8 +118,10 @@ def test_gini():
         print inequality.inequality_dataframe
         print inequality.poverty
 
+
 if __name__ == '__main__':
 
-#    build_aggregates()
+    build_aggregates()
 #    diag_aggregates()
+    
     test_gini()
