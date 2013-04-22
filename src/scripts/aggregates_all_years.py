@@ -33,7 +33,7 @@ def get_loyer_inflator(year):
 def build_aggregates():
 
     writer = None
-    years = range(2006,2010)
+    years = range(2006,2007)
     for year in years:        
         yr = str(year)
 #        fname = "Agg_%s.%s" %(str(yr), "xls")
@@ -52,11 +52,13 @@ def build_aggregates():
         if writer is None:
             writer = ExcelWriter(str(fname_all))
         agg.aggr_frame.to_excel(writer, yr, index= False, header= True, float_format="%.2f")
+        print agg.aggr_frame.to_string()
         del simu
         del agg
         import gc
         gc.collect()
     
+
     writer.save()
 
 
@@ -95,7 +97,6 @@ def diag_aggregates():
     df_final.to_excel(writer, sheet_name="diagnostics", float_format="%.2f")
     writer.save()
 
-
 def test_gini():
     """
     Compute Gini coefficients
@@ -120,6 +121,6 @@ def test_gini():
 
 if __name__ == '__main__':
 
-#    build_aggregates()
+    build_aggregates()
 #    diag_aggregates()
-    test_gini()
+#    test_gini()
