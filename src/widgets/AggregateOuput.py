@@ -76,7 +76,7 @@ class AggregateOutputWidget(QDockWidget):
                         'paje_base', 'paje_nais', 'paje_colca', 'paje_clmg',
                         'ars', 'aeeh', 'asf', 'aspa',
                         'aah', 'caah', 
-                        'rsa', 'rsa_act', 'aefa', 'psa', 'api',
+                        'rsa', 'rsa_act', 'aefa', 'api',
                         'logt', 'alf', 'als', 'apl']
          
         self.data = DataFrame()
