@@ -574,7 +574,7 @@ def drawBaremeCompareHouseholds(data, ax, xaxis, dataDefault = None, legend = Tr
     ax.set_xlim(np.amin(xdata.vals), np.amax(xdata.vals))
     ax.plot(xdata.vals, np.zeros(NMEN), color = 'black', label = 'xaxis')
     
-    code_list =  ['af', 'cf', 'ars', 'rsa', 'aefa', 'logt', 'irpp', 'ppe', 'revdisp']
+    code_list =  ['af', 'cf', 'ars', 'rsa', 'aefa', 'psa', 'logt', 'irpp', 'ppe', 'revdisp']
     
 
     def drawNode(node, prv):
@@ -630,7 +630,7 @@ def drawBaremeCompareHouseholds2(data, ax, xaxis, dataDefault = None, legend = T
     ax.set_xlim(np.amin(xdata.vals), np.amax(xdata.vals))
     ax.plot(xdata.vals, np.zeros(NMEN), color = 'black', label = 'xaxis')
 
-    node_list =  ['af', 'cf', 'ars', 'rsa', 'aefa', 'logt', 'irpp', 'ppe', 'revdisp']
+    node_list =  ['af', 'cf', 'ars', 'rsa', 'aefa', 'psa', 'logt', 'irpp', 'ppe', 'revdisp']
 
     prv = np.zeros(NMEN)    
     
