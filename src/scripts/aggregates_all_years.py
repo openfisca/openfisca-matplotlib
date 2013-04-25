@@ -123,11 +123,5 @@ def test_gini():
 if __name__ == '__main__':
 
     build_aggregates()
-<<<<<<< HEAD
 #    diag_aggregates()
-    
-#    test_gini()
-=======
-#    diag_aggregates()    
     test_gini()
->>>>>>> 4b0a533082db62474b03a9c867a9bc11d945093c
