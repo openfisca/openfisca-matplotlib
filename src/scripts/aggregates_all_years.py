@@ -33,7 +33,7 @@ def get_loyer_inflator(year):
 def build_aggregates():
 
     writer = None
-    years = range(2006,2007)
+    years = range(2006,2010)
     for year in years:        
         yr = str(year)
 #        fname = "Agg_%s.%s" %(str(yr), "xls")
