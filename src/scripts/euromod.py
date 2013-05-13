@@ -27,8 +27,8 @@ def build_aggregates():
         simu.set_param()
         simu.set_survey()       
         simu.compute()
-        var_list = ["garext", "ci_garext", "inthab", "ppe_brute", "rni"]
-        x = simu.aggregated_by_entity("men", var_list, all_output_vars = False)
+        variables = ["garext", "ci_garext", "inthab", "ppe_brute", "rni"]
+        x = simu.aggregated_by_entity("men", variables, all_output_vars = False)
 #        df = x[0]
 #        print df["ci_garext"].describe()
         agg = Aggregates()

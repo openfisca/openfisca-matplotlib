@@ -5,6 +5,7 @@ eclipse.preferences.version=1
 encoding//src/countries/__init__.py=utf-8
 encoding//src/countries/france/__init__.py=utf-8
 encoding//src/countries/france/data/codeAplReader.py=utf-8
+encoding//src/countries/france/data/erf/__init__.py=utf-8
 encoding//src/countries/france/data/erf/aggregates.py=utf-8
 encoding//src/countries/france/data/erf/datatable.py=utf-8
 encoding//src/countries/france/data/sources/build_actualisation_groups_from_sources.py=utf-8
