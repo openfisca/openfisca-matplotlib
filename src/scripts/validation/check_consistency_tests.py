@@ -70,9 +70,8 @@ def check_inputs_enumcols(simulation):
         if isinstance(varcol, EnumCol):
             try:
                 x = sorted(varcol.enum._nums.values())
-                if set(survey.table[var].unique()) > set(varcol.enum._nums.values()):
-                    print var
-                    print "Wrong nums"
+                if set(survey.table[var].unique()) > set(varcol.enum._nums.values()):  
+                    print "Wrong nums for %s" %var
                     print varcol.enum._nums
                     print sorted(survey.table[var].unique())
                     is_ok = False

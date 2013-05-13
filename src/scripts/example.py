@@ -9,14 +9,12 @@
 
 # Exemple of a simple simulation
 
-from src.lib.simulation import ScenarioSimulation 
-
-from src.lib.simulation import SurveySimulation 
+from src.lib.simulation import ScenarioSimulation
+from src.lib.simulation import SurveySimulation
 from src.plugins.survey.aggregates import Aggregates
 from datetime import datetime
 from pandas import ExcelWriter
 import os
-
 
 
 country = 'france'
@@ -90,6 +88,5 @@ def survey_case():
 
 
 if __name__ == '__main__':
-
-#    test_case()
-     survey_case()
+    # test_case()
+    survey_case()
