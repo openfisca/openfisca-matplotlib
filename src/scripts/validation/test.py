@@ -41,7 +41,6 @@ def test_inputs_consistency():
         print "Error: Check enumcols"
     
     assert ok == True
-
     
     #    check the validity of men/foy/fam  see check_consistency_test
     ok, message = check_entities(simulation)
@@ -57,8 +56,6 @@ def test_inputs_consistency():
         print message
         
     assert ok == True
-
-
 
 
 if __name__ == '__main__':
