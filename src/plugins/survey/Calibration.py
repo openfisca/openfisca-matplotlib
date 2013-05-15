@@ -179,9 +179,10 @@ class Calibration(object):
 
         if inputs.description.has_col(varname):
             value = inputs.get_value(varname, index = idx)
-        elif outputs.description.has_col(varname):
-            value = outputs.get_value(varname, index = idx, opt = people, sum_ = True)
-
+        elif  outputs is not None:
+            if outputs.description.has_col(varname):
+                value = outputs.get_value(varname, index = idx, opt = people, sum_ = True)
+ 
         label = varcol.label
         # TODO: rewrite this using pivot table
         items = [ ('marge'    , w[self.champm]  ), ('marge initiale' , w_init[self.champm] )]        
@@ -1002,10 +1003,12 @@ class CalibrationWidget(OpenfiscaPluginWidget):
             calibration.set_param('method', 'linear')
 
             self.set_calibration(calibration)
-            self.set_inputs_margins_from_file()
-            self.init_totalpop()
-            self.init_param()
-        
+            try:
+                self.set_inputs_margins_from_file()
+                self.init_totalpop()
+                self.init_param()
+            except:
+                pass
         self.main.add_dockwidget(self)
         
     def refresh_plugin(self):

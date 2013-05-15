@@ -59,7 +59,7 @@ from src.countries.france.data.erf.datatable import ErfsDataTable
     #    #  Decompose impot sur le revenu to check intermediate aggregates vs fiscal data and erf
     #    #  Check downward prestation one by one
 
-def compare_of_erf(variables, year = 2006):
+def get_common_dataframe(variables, year = 2006):
     """
     Compare variables in erf an openfisca
     """
@@ -90,13 +90,46 @@ def compare_of_erf(variables, year = 2006):
     
     of_dataframe, of_dataframe_default = simulation.aggregated_by_entity("men", variables, all_output_vars=False, force_sum=True)
     del of_dataframe_default
-
-    merged_df = of_dataframe.merge(erf_dataframe, on="idmen" )
-    print merged_df 
     
+    print of_dataframe
+    print erf_dataframe
+
+    merged_df = of_dataframe.merge(erf_dataframe, on="idmen")
+    return merged_df
+    
+
+def af():
+    variables = [ "af_base", "af_majo", "af_forf", "af"]
+    df = get_common_dataframe(variables)
+    print df[["af", "af_base", "af_majo", "af_forf", "m_afm_erf"]].describe()
+    df["diff"] = df.af -df.m_afm_erf
+    print (df.af_base*df.wprm).sum()
+    print (df.af*df.wprm).sum()
+    print (df.m_afm_erf*df.wprm).sum()
+    
+    df_neg = df[ df["diff"]< 0]
+
+    print df_neg["diff"].describe() 
+    sorted_df = df_neg.sort(column="diff")
+    print sorted_df[["idmen","af", "af_base", "af_majo", "af_forf", "m_afm_erf", "diff"]].head(50)
+    
+
+
+def cf():
+    variables = [ "cf" ]
+    df = get_common_dataframe(variables)
+    print df[["cf", "m_cfm_erf"]].describe()
+    df["diff"] = df.cf -df.m_cfm_erf 
+    print (df.cf*df.wprm).sum()
+    print (df.m_cfm_erf*df.wprm).sum()
+    print (df["diff"]).describe()
+    
+    df_neg =  df[ (df.cf -df.m_cfm_erf) < 0]
+    print df_neg["diff"].describe() 
+    sorted_df = df_neg.sort(column="diff")
+    print sorted_df[["idmen", "cf", "m_cfm_erf", "diff"]].head(50)
 
 if __name__ == '__main__':
 
 #    test_demography()
-    variables = [ "nbinde", "typmen15"]
-    compare_of_erf(variables)
+    af()
