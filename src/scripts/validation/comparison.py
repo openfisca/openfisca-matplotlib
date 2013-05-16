@@ -70,8 +70,7 @@ def get_common_dataframe(variables, year = 2006):
     simulation.set_survey()
     simulation.compute()
     
-    erf = ErfsDataTable()
-    erf.set_config(year=year)
+    erf = ErfsDataTable(year=2006)
     if "ident" not in variables:
         erf_variables = variables + ["ident"]
     else:
@@ -110,26 +109,31 @@ def af():
     df_neg = df[ df["diff"]< 0]
 
     print df_neg["diff"].describe() 
-    sorted_df = df_neg.sort(column="diff")
+    sorted_df = df_neg.sort(columns=["diff"])
     print sorted_df[["idmen","af", "af_base", "af_majo", "af_forf", "m_afm_erf", "diff"]].head(50)
     
 
 
 def cf():
-    variables = [ "cf" ]
+    variables = [ "cf", "af_nbenf"]
     df = get_common_dataframe(variables)
     print df[["cf", "m_cfm_erf"]].describe()
     df["diff"] = df.cf -df.m_cfm_erf 
     print (df.cf*df.wprm).sum()
     print (df.m_cfm_erf*df.wprm).sum()
-    print (df["diff"]).describe()
+    print df.describe()
     
     df_neg =  df[ (df.cf -df.m_cfm_erf) < 0]
-    print df_neg["diff"].describe() 
-    sorted_df = df_neg.sort(column="diff")
+    print df_neg.describe() 
+    from pandas import DataFrame
+
+    grouped = df_neg.groupby( by="af_nbenf")
+    print grouped.describe()
+    
+    sorted_df = df_neg.sort(columns=["diff"])
     print sorted_df[["idmen", "cf", "m_cfm_erf", "diff"]].head(50)
 
 if __name__ == '__main__':
 
 #    test_demography()
-    af()
+    cf()
