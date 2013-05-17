@@ -132,6 +132,7 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         # Initialize attributes
         self.parent = parent
 
+        self.default_vars = ["idmen","quimen","idfam","quifam","age","agem"]
         self.selected_vars = set()
         self.data = DataFrame() 
         self.view_data = None
@@ -168,17 +169,20 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         # load_from_file(self):        
         fname = self.get_option('data_file')
         if path.isfile(fname):
-            try:
+#            try:
+            if True:
                 simulation.set_survey(filename = fname)
                 year = simulation.survey.survey_year
                 # Sets year in label
                 self.data_label.setText("Survey data from year " + str(year))
                 self.add_dataframe(simulation.survey.table, name = "input")
                 self.set_dataframe(simulation.survey.table, name = "input")
-                self.update_view()
-            except:
-                print 'Survey data loading failed: disabling survey mode'
-                self.set_option('bareme_only', True)
+                
+                
+                self.update_view(fill_default=True)
+#            except:
+#                print 'Survey data loading failed: disabling survey mode'
+#                self.set_option('bareme_only', True)
                  
 #                raise Exception('Survey data loading failed')
                 
@@ -288,13 +292,26 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         self.var2label = var2label
         self.var2enum  = var2enum
         
-    def update_view(self):
+    def update_view(self, fill_default=False):
+        """
+        Update view
+        
+        Parameters
+        ----------
+        fill_default: bool, default False
+                      if True fill with de fault variables
+        """
+        if fill_default:
+            self.selected_vars = set(self.default_vars)
+        
         self.starting_long_process(_("Updating survey explorer table"))
         if not self.selected_vars:
             self.view.clear()
             self.ending_long_process(_("Survey explorer table updated"))    
             return
         
+
+            
         cols = self.selected_vars
         if self.view_data is None:
             self.view_data = self.data[list(cols)]

@@ -54,7 +54,6 @@ if os.name == 'nt':
     from src.gui.utils.windows import (set_attached_console_visible,
                                          is_attached_console_visible)
 
-
 from src.gui.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
                                 QPixmap, QMessageBox, QMenu, QColor, QShortcut,
                                 QKeySequence, QDockWidget, QAction,

@@ -90,10 +90,8 @@ def get_common_dataframe(variables, year = 2006):
     of_dataframe, of_dataframe_default = simulation.aggregated_by_entity("men", variables, all_output_vars=False, force_sum=True)
     del of_dataframe_default
     
-    print of_dataframe
-    print erf_dataframe
-
     merged_df = of_dataframe.merge(erf_dataframe, on="idmen")
+    del of_dataframe, erf_dataframe
     return merged_df
     
 
@@ -125,15 +123,51 @@ def cf():
     
     df_neg =  df[ (df.cf -df.m_cfm_erf) < 0]
     print df_neg.describe() 
-    from pandas import DataFrame
+    
 
     grouped = df_neg.groupby( by="af_nbenf")
-    print grouped.describe()
+    print grouped.agg({'wprm' : ['sum', 'count'], 'cf' : "mean", "m_cfm_erf" : "mean"} )
     
-    sorted_df = df_neg.sort(columns=["diff"])
-    print sorted_df[["idmen", "cf", "m_cfm_erf", "diff"]].head(50)
+#    sorted_df = df_neg.sort(columns=["diff"])
+    
+    for name, group in grouped:
+        print name
+        sorted_group = group.sort(columns=["diff"])
+        print sorted_group[["idmen", "cf", "m_cfm_erf", "diff"]].head(50)
+    
+    return df_neg["idmen"].values
 
+def get_menage(idmen):
+    erf = ErfsDataTable(year=2006)
+    erf_variables = ["ident", "age", "noi", "persfip", "persfipd","quelfic", "declar1", "declar2"]
+    dataframe = erf.get_values(erf_variables, table="indivi")
+    dataframe.rename(columns={'ident': 'idmen'}, inplace=True)
+    selection = dataframe.idmen == idmen
+    return dataframe[selection]
+      
 if __name__ == '__main__':
 
 #    test_demography()
-    cf()
+#    cf()
+
+#    idmens = [6000774, 6005865, 6006829, 6007038, 6007645, 6008137, 6008426, 6009565, 
+#              6009834, 6014137, 6014845, 6019038, 6020266, 6022087, 6023336, 6027342, 
+#              6028276, 6028448, 6029882, 6031162, 6034631, 6002569]   
+    
+    idmens = cf()
+    print idmens
+    for idmen in idmens:
+        df = get_menage(idmen)
+        no_declar = df["declar1"].isnull().all() & df["declar2"].isnull().all() 
+        double_declar = df["persfipd"].notnull().any()
+#        if no_declar: print "no_declar"
+#        elif double_declar: print "double_declar"
+#        else : 
+#            print "WRONG"
+#            print df
+#            print "-----"
+        if not(no_declar or double_declar):
+            print "WRONG"
+            print df
+            print "-----"
+        
