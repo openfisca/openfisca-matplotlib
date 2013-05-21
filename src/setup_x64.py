@@ -99,10 +99,10 @@ for country in countries:
                                 '%s/reformes/' %country,
                                 ['*.ofp'])
     tuples_list.append(reformes[0])
-    totaux = find_data_files('./%s/' %country,
-                                '%s/' %country,
-                                ['totaux.xml'])
-    tuples_list.append(totaux[0])
+    decomp = find_data_files('./%s/decompositions/' %country,
+                                '%s/decompositions/' %country,
+                                ['decomp.xml'])
+    tuples_list.append(decomp[0])
 
     if country == 'france':
         calibrations = find_data_files('./france/calibrations/',
