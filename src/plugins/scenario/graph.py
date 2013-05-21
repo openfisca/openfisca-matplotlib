@@ -670,6 +670,8 @@ def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None, legend = True
         typ_rev = 'superbrut'
     elif xaxis == "rev_cap_net":
         typ_rev = 'net'
+    elif xaxis == "fon":
+        typ_rev = 'brut'
     else:
         for typrev, vars in REVENUES_CATEGORIES.iteritems():
             if xaxis in vars:
