@@ -40,29 +40,36 @@ def test_case():
     test_case = simulation.scenario  
     
     # Changes in individualized caracteristics    
-    # salaires
+    #TRAITEMENTS, SALAIRES, PPE, PENSIONS ET RENTES
+    # salaires (case 1AJ) 
     test_case.indiv[0].update({"sali":0})
     
-    # retraites
+    # préretraites, chômage (case 1AP)
     test_case.indiv[0].update({"choi":0})
 
     # Changes in non-individualized items of the declaration    
+    # REVENUS DES VALEURS ET CAPITAUX MOBILIERS
     # intérêts 
-    # f2ee intpfl
-    # f2tr intb
+    # f2ee intpfl (pdts de placement soumis aux prélèvements obligatoires autres que 2DA et 2DH
+    # f2tr intb (intérêts et autres revenus assimilés)
     test_case.declar[0].update({"f2tr":0})
     
     # dividendes
-    # f2da divplf
-    # f2dc divb
+    # f2da divplf (revenus des actions et parts soumis au prélèvement libératoire à 21 %
+    # f2dc divb (revenus des actions et parts ouvrant droit à abattement)
     test_case.declar[0].update({"f2dc":0})
     
-    
+    # REVENUS FONCIERS
     # foncier  f4ba  (micro foncier f4be)   
-    test_case.declar[0].update({"f4ba":50000}) 
+    test_case.declar[0].update({"f4ba":20000}) 
     
-    # plus-values TODO: ?
-        
+    
+    #PLUS-VALUES DE CESSION DE VALEURS MOBILIERES, DROITS SOCIAUX ET GAINS ASSIMILéS
+    # plus-values TODO: F3VG 
+    test_case.declar[0].update({"f3vg":0})     
+     
+     
+     
     df = simulation.get_results_dataframe(index_by_code=True)
     rev_cols = ["salsuperbrut", "chobrut", "rstbrut",  "fon", "rev_cap_bar", "rev_cap_lib"]
     prelev_cols = ["cotpat_noncontrib", "cotsal_noncontrib", "csgsald", "csgsali", "crdssal", "cotpat_noncontrib",  
@@ -114,8 +121,8 @@ def test_bareme():
     
     # foncier  f4ba fon (micro foncier f4be)   
     
-    xaxis = "f2dc"
-    maxrev = 5000000    
+    xaxis = "sali"
+    maxrev = 300000    
     simulation.set_config(year = yr, country = country, nmen = 101, xaxis = xaxis, maxrev=maxrev,
                           reforme = False, mode ='bareme', decomp_file="decomp_contrib.xml")
     simulation.set_param()
