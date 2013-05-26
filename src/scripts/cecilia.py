@@ -30,6 +30,10 @@ class ApplicationWindow(QMainWindow):
 
 
 def test_case():
+    """
+    Use to test individual test-case for debugging
+    """
+    
     app = QApplication(sys.argv)
     win = ApplicationWindow()
     country = 'france'
@@ -103,6 +107,10 @@ def test_case():
     
     
 def test_bareme():
+    """
+    Use to test and debug bareme mode test-case
+    """
+    
     yr = 2010    
     # Changes in individualized characteristics    
     # salaires: sali
@@ -119,13 +127,9 @@ def test_bareme():
     
     # Changes in individualized caracteristics    
     # salaires: sali
-
     # retraites: choi
-
     # intérêts: f2ee intpfl; f2tr intb
-        
     # dividendes: f2da divplf; f2dc divb
-    
     # foncier  f4ba fon (micro foncier f4be)   
     
     simulation.set_config(year = yr, country = country, nmen = 101, xaxis = xaxis, maxrev=maxrev,
@@ -133,7 +137,6 @@ def test_bareme():
     simulation.set_param()
     test_case = simulation.scenario  
     
-        
     if SHOW_OPENFISCA:
         app = QApplication(sys.argv)
         win = ApplicationWindow()
@@ -166,19 +169,17 @@ def get_avg_tax_rate_dataframe(xaxis = "sali", maxrev = 50000, year = 2006):
             sali choi etc 
     maxrev : float
              Maximal revenu
+    year : int, default 2006
+           year of the legislation 
     """
     country = 'france'
     simulation = ScenarioSimulation()        
     
     # Changes in individualized caracteristics    
     # salaires: sali
-
     # retraites: choi
-
     # intérêts: f2ee intpfl; f2tr intb
-        
     # dividendes: f2da divplf; f2dc divb
-    
     # foncier  f4ba fon (micro foncier f4be)   
     
     simulation.set_config(year = year, country = country, nmen = 101, xaxis = xaxis, maxrev=maxrev,
@@ -206,6 +207,19 @@ def get_avg_tax_rate_dataframe(xaxis = "sali", maxrev = 50000, year = 2006):
 
 
 def plot_avg_tax_rate(xaxis="sali", maxrev=50000, year=2006):
+    """
+    Plot averge tax rate
+    
+    Parameters
+    ----------
+    
+    xaxis : string, default "sali"
+            revenu type
+    maxrev : integer, default 50000
+             upper bound of the revenu interval
+    year : int, default 2006
+           year of the legislation
+    """
     output_df = get_avg_tax_rate_dataframe(xaxis=xaxis, maxrev=maxrev, year=year)
     title ="Taux moyens"
     # ax.set_title(title)
@@ -216,6 +230,18 @@ def plot_avg_tax_rate(xaxis="sali", maxrev=50000, year=2006):
 
 def loop_over_year(xaxis="sali", maxrev=500000, filename=None):
     """
+    Plot the average tax rate for a revenue type for every year
+    
+    Parameters
+    ----------
+    
+    xaxis : string, default "sali"
+            revenu type
+    maxrev : integer, default 500000
+             upper bound of the revenu interval
+    filename : path, default None
+               if not None, path to save the picture as a pdf
+    
     """
     results_df = DataFrame()
 
@@ -233,6 +259,8 @@ def loop_over_year(xaxis="sali", maxrev=500000, filename=None):
 
 def loop_over_revenue_type(revenues_dict = None):
     """
+    Plot the average tax rate for a revenue type for every year
+    and every revenue type
     """
     if revenues_dict is None:
         revenues_dict = {"sali" : 100000,
