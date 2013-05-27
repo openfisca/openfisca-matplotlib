@@ -1,8 +1,8 @@
-# -*- coding:utf-8 -*-
+# -*- coding: windows-1254 -*-
 # Created on 17 mai 2013
 # This file is part of OpenFisca.
 # OpenFisca is a socio-fiscal microsimulation software
-# Copyright Â©2013 ClÃ©ment Schaff, Mahdi Ben Jelloul
+# Copyright Â©2013 Clément Schaff, Mahdi Ben Jelloul
 # Licensed under the terms of the GVPLv3 or later license
 # (see openfisca/__init__.py for details)
 
@@ -19,7 +19,7 @@ from src.lib.simulation import ScenarioSimulation
 SHOW_OPENFISCA = False
 EXPORT = False
 
-DESTINATION_DIR = "c:/users/utilisateur/documents/cecilia/"    
+DESTINATION_DIR = "c:/Users/Laurence Bouvard/Documents/cecilia/"    
 
 class ApplicationWindow(QMainWindow):
     def __init__(self):
@@ -141,7 +141,7 @@ def test_bareme():
         app = QApplication(sys.argv)
         win = ApplicationWindow()
         ax = win.mplwidget.axes
-        title ="BarÃ¨me openfisca"
+        title ="Baréme openfisca"
         ax.set_title(title)
         graph_xaxis = simulation.get_varying_revenues(xaxis) 
         simulation.draw_bareme(ax, graph_xaxis = graph_xaxis, legend = True, position = 4)
@@ -251,9 +251,12 @@ def loop_over_year(xaxis="sali", maxrev=500000, filename=None):
         ax = output_df.plot( y=str(year), label=str(year))
         ax.set_xlabel("Revenus")
         
-    plt.legend(loc=2)
+    plt.legend(["Année 2006", "Anné 2007", "Année 2008", "Année 2009"],fancybox=True,loc=2,)
+    plt.title("Taux d''imposition moyen des revenus",color="blue") 
+#   plt.title(["Taux d''imposition moyen des revenus d''activités", "Taux d''imposition moyen des intérêts des revenus et des capitaux mobiliers n''ouvrant pas droit à  abattement", "Taux d''imposition moyen des revenus des actions ouvrant droit à  abattement", "Taux d''imposition moyen des revenus fonciers imposables", "Taux d''imposition moyen des autres revenus imposables (préretraite, chômage)"],color="blue")  
     if filename is not None:
         plt.savefig(filename, format="pdf")
+    plt.plot    
     plt.show()
 
 
@@ -269,12 +272,12 @@ def loop_over_revenue_type(revenues_dict = None):
                          "f2tr" : 100000,
                          "f4ba" : 100000,
                          }
-        
+     
     for xaxis, maxrev in revenues_dict.iteritems():
         print xaxis
         filename = os.path.join(DESTINATION_DIR,"figure_%s.pdf" %(xaxis))
-        loop_over_year(xaxis=xaxis, maxrev=maxrev, filename=filename)
-
+        loop_over_year(xaxis=xaxis, maxrev=maxrev, filename=filename) 
+   
 
 if __name__ == '__main__':
 #    test_case()
