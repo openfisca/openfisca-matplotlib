@@ -6,13 +6,20 @@
 # Licensed under the terms of the GVPLv3 or later license
 # (see openfisca/__init__.py for details)
 
+
+from pandas import DataFrame
+import sys
+import os
+from src.gui.qt.QtGui import QMainWindow, QApplication
+import matplotlib.pyplot as plt
+    
+from src.widgets.matplotlibwidget import MatplotlibWidget
 from src.lib.simulation import ScenarioSimulation 
 
+SHOW_OPENFISCA = False
+EXPORT = False
 
-import sys
-from src.gui.qt.QtGui import QMainWindow, QApplication
-
-from src.widgets.matplotlibwidget import MatplotlibWidget
+DESTINATION_DIR = "c:/users/utilisateur/documents/cecilia/"    
 
 class ApplicationWindow(QMainWindow):
     def __init__(self):
@@ -21,22 +28,22 @@ class ApplicationWindow(QMainWindow):
         self.mplwidget.setFocus()
         self.setCentralWidget(self.mplwidget)
 
-SHOW = True
-EXPORT = False
 
 def test_case():
+    """
+    Use to test individual test-case for debugging
+    """
+    
     app = QApplication(sys.argv)
     win = ApplicationWindow()
     country = 'france'
-    destination_dir = "c:/users/utilisateur/documents/cecilia/"    
+
     yr = 2010
 
     simulation = ScenarioSimulation()        
     simulation.set_config(year = yr, country = country, nmen = 1,
                           reforme = False, mode ='castype', decomp_file="decomp_contrib.xml")
     simulation.set_param()
-    simulation.get_varying_revenues()
-    
     test_case = simulation.scenario  
     
     # Changes in individualized caracteristics    
@@ -52,7 +59,7 @@ def test_case():
     # intérêts 
     # f2ee intpfl (pdts de placement soumis aux prélèvements obligatoires autres que 2DA et 2DH
     # f2tr intb (intérêts et autres revenus assimilés)
-    test_case.declar[0].update({"f2tr":0})
+    test_case.declar[0].update({"f2tr":20000})
     
     # dividendes
     # f2da divplf (revenus des actions et parts soumis au prélèvement libératoire à 21 %
@@ -67,9 +74,7 @@ def test_case():
     #PLUS-VALUES DE CESSION DE VALEURS MOBILIERES, DROITS SOCIAUX ET GAINS ASSIMILéS
     # plus-values TODO: F3VG 
     test_case.declar[0].update({"f3vg":0})     
-     
-     
-     
+      
     df = simulation.get_results_dataframe(index_by_code=True)
     rev_cols = ["salsuperbrut", "chobrut", "rstbrut",  "fon", "rev_cap_bar", "rev_cap_lib"]
     prelev_cols = ["cotpat_noncontrib", "cotsal_noncontrib", "csgsald", "csgsali", "crdssal", "cotpat_noncontrib",  
@@ -86,49 +91,101 @@ def test_case():
     
     print -prelev/rev
     ax = win.mplwidget.axes
-    if SHOW:
+    if SHOW_OPENFISCA:
         title ="Mon titre"
         ax.set_title(title)
-#        simulation.draw_bareme(ax, legend = True, position = 4) 
         simulation.draw_waterfall(ax) 
         win.resize(1400,700)
         win.mplwidget.draw()
         win.show()
 
     if EXPORT:       
-        win.mplwidget.print_figure(destination_dir + title + '.png')
+        win.mplwidget.print_figure(DESTINATION_DIR + title + '.png')
     
     del ax, simulation 
     sys.exit(app.exec_())
     
     
 def test_bareme():
-    app = QApplication(sys.argv)
-    win = ApplicationWindow()
+    """
+    Use to test and debug bareme mode test-case
+    """
+    
+    yr = 2010    
+    # Changes in individualized characteristics    
+    # salaires: sali
+    # retraites: choi
+    # intérêts: f2ee intpfl; f2tr intb
+    # dividendes: f2da divplf; f2dc divb
+    # foncier  f4ba fon (micro foncier f4be)
+
+    xaxis = "sali"
+    maxrev = 300000    
+    year = 2010
     country = 'france'
-    destination_dir = "c:/users/utilisateur/documents/cecilia/"    
-    yr = 2010
     simulation = ScenarioSimulation()        
     
     # Changes in individualized caracteristics    
     # salaires: sali
-
     # retraites: choi
-
     # intérêts: f2ee intpfl; f2tr intb
-        
     # dividendes: f2da divplf; f2dc divb
-    
     # foncier  f4ba fon (micro foncier f4be)   
     
-    xaxis = "sali"
-    maxrev = 300000    
     simulation.set_config(year = yr, country = country, nmen = 101, xaxis = xaxis, maxrev=maxrev,
                           reforme = False, mode ='bareme', decomp_file="decomp_contrib.xml")
     simulation.set_param()
-    
     test_case = simulation.scenario  
     
+    if SHOW_OPENFISCA:
+        app = QApplication(sys.argv)
+        win = ApplicationWindow()
+        ax = win.mplwidget.axes
+        title ="Barème openfisca"
+        ax.set_title(title)
+        graph_xaxis = simulation.get_varying_revenues(xaxis) 
+        simulation.draw_bareme(ax, graph_xaxis = graph_xaxis, legend = True, position = 4)
+        win.resize(1400,700)
+        win.mplwidget.draw()
+        win.show()
+        
+    if EXPORT:       
+        win.mplwidget.print_figure(DESTINATION_DIR + title + '.png')
+
+    if ax:  
+        del ax
+    del simulation 
+    sys.exit(app.exec_())
+    
+
+def get_avg_tax_rate_dataframe(xaxis = "sali", maxrev = 50000, year = 2006):
+    """
+    Returns avgerage tax rate dataframe
+    
+    Parameters
+    ----------
+    
+    xaxis : string
+            sali choi etc 
+    maxrev : float
+             Maximal revenu
+    year : int, default 2006
+           year of the legislation 
+    """
+    country = 'france'
+    simulation = ScenarioSimulation()        
+    
+    # Changes in individualized caracteristics    
+    # salaires: sali
+    # retraites: choi
+    # intérêts: f2ee intpfl; f2tr intb
+    # dividendes: f2da divplf; f2dc divb
+    # foncier  f4ba fon (micro foncier f4be)   
+    
+    simulation.set_config(year = year, country = country, nmen = 101, xaxis = xaxis, maxrev=maxrev,
+                          reforme = False, mode ='bareme', decomp_file="decomp_contrib.xml")
+    simulation.set_param()
+    test_case = simulation.scenario  
     df = simulation.get_results_dataframe(index_by_code=True)
     rev_cols = ["salsuperbrut", "chobrut", "rstbrut",  "fon", "rev_cap_bar", "rev_cap_lib"]
     prelev_cols = ["cotpat_noncontrib", "cotsal_noncontrib", "csgsald", "csgsali", "crdssal", "cotpat_noncontrib",  
@@ -143,28 +200,85 @@ def test_bareme():
     rev = rev_df.sum(axis=0)
     prelev_df = df.loc[prelev_cols]
     prelev = prelev_df.sum(axis=0)   
-    from pandas import DataFrame
-    output_df = DataFrame( {"Revenus" : rev, "Prélèvements": prelev, "Taux moyen d'imposition": -prelev/rev}) 
-    print output_df.to_string()
-    
-    ax = win.mplwidget.axes
-    if SHOW:
-        title ="Mon titre"
-        ax.set_title(title)
-        graph_xaxis = simulation.get_varying_revenues(xaxis) 
-        simulation.draw_bareme(ax, graph_xaxis = graph_xaxis, legend = True, position = 4)
-        win.resize(1400,700)
-        win.mplwidget.draw()
-        win.show()
 
-    if EXPORT:       
-        win.mplwidget.print_figure(destination_dir + title + '.png')
+    output_df = DataFrame( {"Revenus" : rev, "Prélèvements": prelev, "Taux moyen d'imposition": -prelev/rev}) 
+    output_df.set_index(keys=["Revenus"], inplace=True)
+    return output_df
+
+
+def plot_avg_tax_rate(xaxis="sali", maxrev=50000, year=2006):
+    """
+    Plot averge tax rate
     
-    del ax, simulation 
-    sys.exit(app.exec_())
+    Parameters
+    ----------
     
+    xaxis : string, default "sali"
+            revenu type
+    maxrev : integer, default 50000
+             upper bound of the revenu interval
+    year : int, default 2006
+           year of the legislation
+    """
+    output_df = get_avg_tax_rate_dataframe(xaxis=xaxis, maxrev=maxrev, year=year)
+    title ="Taux moyens"
+    # ax.set_title(title)
+    output_df["Taux moyen d'imposition"].plot()
+    plt.legend()
+    plt.show()
+
+
+def loop_over_year(xaxis="sali", maxrev=500000, filename=None):
+    """
+    Plot the average tax rate for a revenue type for every year
     
+    Parameters
+    ----------
+    
+    xaxis : string, default "sali"
+            revenu type
+    maxrev : integer, default 500000
+             upper bound of the revenu interval
+    filename : path, default None
+               if not None, path to save the picture as a pdf
+    
+    """
+    results_df = DataFrame()
+
+    for year in range(2006,2010):
+        output_df = get_avg_tax_rate_dataframe(xaxis=xaxis, maxrev=maxrev, year=year)
+        output_df.rename(columns={"Taux moyen d'imposition" : str(year)}, inplace = True) 
+        ax = output_df.plot( y=str(year), label=str(year))
+        ax.set_xlabel("Revenus")
+        
+    plt.legend(loc=2)
+    if filename is not None:
+        plt.savefig(filename, format="pdf")
+    plt.show()
+
+
+def loop_over_revenue_type(revenues_dict = None):
+    """
+    Plot the average tax rate for a revenue type for every year
+    and every revenue type
+    """
+    if revenues_dict is None:
+        revenues_dict = {"sali" : 100000,
+                         "choi" : 100000,
+                         "f2dc" : 100000,
+                         "f2tr" : 100000,
+                         "f4ba" : 100000,
+                         }
+        
+    for xaxis, maxrev in revenues_dict.iteritems():
+        print xaxis
+        filename = os.path.join(DESTINATION_DIR,"figure_%s.pdf" %(xaxis))
+        loop_over_year(xaxis=xaxis, maxrev=maxrev, filename=filename)
+
 
 if __name__ == '__main__':
-
-    test_bareme()
+#    test_case()
+#    test_bareme()
+    
+    filename = os.path.join(DESTINATION_DIR,"figure.pdf")
+    loop_over_revenue_type()
