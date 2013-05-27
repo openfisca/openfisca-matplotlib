@@ -1,4 +1,4 @@
-# -*- coding:utf-8 -*-
+# -*- coding: windows-1254 -*-
 # Created on 17 mai 2013
 # This file is part of OpenFisca.
 # OpenFisca is a socio-fiscal microsimulation software
@@ -19,7 +19,7 @@ from src.lib.simulation import ScenarioSimulation
 SHOW_OPENFISCA = False
 EXPORT = False
 
-DESTINATION_DIR = "c:/users/utilisateur/documents/cecilia/"    
+DESTINATION_DIR = "c:/Users/Laurence Bouvard/Documents/cecilia/"   
 
 class ApplicationWindow(QMainWindow):
     def __init__(self):
@@ -72,7 +72,7 @@ def test_case():
     
     
     #PLUS-VALUES DE CESSION DE VALEURS MOBILIERES, DROITS SOCIAUX ET GAINS ASSIMILÃ©S
-    # plus-values TODO: F3VG 
+    # plus-values TODO: F3VG et F3VZ 
     test_case.declar[0].update({"f3vg":0})     
       
     df = simulation.get_results_dataframe(index_by_code=True)
@@ -251,10 +251,12 @@ def loop_over_year(xaxis="sali", maxrev=500000, filename=None):
         ax = output_df.plot( y=str(year), label=str(year))
         ax.set_xlabel("Revenus")
         
-    plt.legend(loc=2)
+    plt.legend(["Année 2006", "Année 2007", "Année 2008", "Année 2009"],fancybox=True,loc=2)
+    plt.title("Taux d'imposition moyen des revenus",color="blue") 
     if filename is not None:
         plt.savefig(filename, format="pdf")
     plt.show()
+    
 
 
 def loop_over_revenue_type(revenues_dict = None):
@@ -263,11 +265,11 @@ def loop_over_revenue_type(revenues_dict = None):
     and every revenue type
     """
     if revenues_dict is None:
-        revenues_dict = {"sali" : 100000,
-                         "choi" : 100000,
-                         "f2dc" : 100000,
-                         "f2tr" : 100000,
-                         "f4ba" : 100000,
+        revenues_dict = {"sali" : 300000,
+                         "rsti" : 300000,
+                         "f2dc" : 300000,
+                         "f2tr" : 300000,
+                         "f4ba" : 300000,
                          }
         
     for xaxis, maxrev in revenues_dict.iteritems():
