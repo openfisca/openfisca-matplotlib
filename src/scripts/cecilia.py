@@ -19,7 +19,7 @@ from src.lib.simulation import ScenarioSimulation
 SHOW_OPENFISCA = False
 EXPORT = False
 
-DESTINATION_DIR = "c:/users/utilisateur/documents/cecilia/"    
+DESTINATION_DIR = "c:/Users/Laurence Bouvard/Documents/cecilia/"      
 
 class ApplicationWindow(QMainWindow):
     def __init__(self):
@@ -228,7 +228,7 @@ def plot_avg_tax_rate(xaxis="sali", maxrev=50000, year=2006):
     plt.show()
 
 
-def loop_over_year(xaxis="sali", maxrev=500000, filename=None):
+def loop_over_year(xaxis="sali", maxrev=300000, filename=None):
     """
     Plot the average tax rate for a revenue type for every year
     
@@ -237,7 +237,7 @@ def loop_over_year(xaxis="sali", maxrev=500000, filename=None):
     
     xaxis : string, default "sali"
             revenu type
-    maxrev : integer, default 500000
+    maxrev : integer, default 300000
              upper bound of the revenu interval
     filename : path, default None
                if not None, path to save the picture as a pdf
@@ -251,11 +251,16 @@ def loop_over_year(xaxis="sali", maxrev=500000, filename=None):
         ax = output_df.plot( y=str(year), label=str(year))
         ax.set_xlabel("Revenus")
         
-    plt.legend(loc=2)
+    plt.legend(["Year 2006", "Year 2007", "Year 2008", "Year 2009"],fancybox=True,loc=2)
+    plt.title("Taux d'imposition moyen des revenus ",color="blue") 
     if filename is not None:
         plt.savefig(filename, format="pdf")
     plt.show()
-
+    
+    """pour le titre, je ne sais pas comment faire en sorte qu'il prenne le début du titre 
+    identique pour chaque graphe et ensuite le nom de chaque type de revenu du dico
+    pour terminer
+    """
 
 def loop_over_revenue_type(revenues_dict = None):
     """
@@ -263,11 +268,13 @@ def loop_over_revenue_type(revenues_dict = None):
     and every revenue type
     """
     if revenues_dict is None:
-        revenues_dict = {"sali" : 100000,
-                         "choi" : 100000,
-                         "f2dc" : 100000,
-                         "f2tr" : 100000,
-                         "f4ba" : 100000,
+        revenues_dict = {"sali" : 350000,
+                         "rsti" : 350000,
+                         "f2da" : 350000,
+                         "f2dh" : 350000,
+                         "f2ts" : 350000,
+                         "f2tr" : 350000,
+                         "f4ba" : 350000,
                          }
         
     for xaxis, maxrev in revenues_dict.iteritems():
