@@ -34,6 +34,7 @@ encoding//src/countries/france/model/mini.py=utf-8
 encoding//src/countries/france/model/model.py=utf-8
 encoding//src/countries/france/model/pfam.py=utf-8
 encoding//src/countries/france/model/th.py=utf-8
+encoding//src/countries/france/tests/test_irpp.py=utf-8
 encoding//src/countries/france/tests/test_pfam.py=utf-8
 encoding//src/countries/france/utils.py=utf-8
 encoding//src/countries/france/widgets/Composition.py=utf-8
