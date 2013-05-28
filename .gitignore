@@ -20,6 +20,7 @@ src/countries/france/data/survey.h5
 src/countries/france/data/survey_sparse.h5
 src/countries/france/data/survey3.h5
 src/countries/france/data/erf/erf.h5
+src/countries/france/data/erf/temp.h5
 src/countries/france/data/survey_sparse.h5
 src/countries/france/data/sources/config.py
 
