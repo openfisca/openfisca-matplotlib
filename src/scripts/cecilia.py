@@ -38,7 +38,7 @@ def test_case():
     win = ApplicationWindow()
     country = 'france'
 
-    yr = 2011
+    yr = 2012
 
     simulation = ScenarioSimulation()        
     simulation.set_config(year = yr, country = country, nmen = 1,
@@ -111,7 +111,7 @@ def test_bareme():
     Use to test and debug bareme mode test-case
     """
     
-    yr = 2011    
+    yr = 2012    
     # Changes in individualized characteristics    
     # salaires: sali
     # retraites: choi
