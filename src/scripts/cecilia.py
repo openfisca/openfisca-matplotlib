@@ -245,7 +245,7 @@ def loop_over_year(xaxis="sali", maxrev=300000, filename=None):
     """
     results_df = DataFrame()
 
-    for year in range(2006,2010):
+    for year in range(2009,2012):
         output_df = get_avg_tax_rate_dataframe(xaxis=xaxis, maxrev=maxrev, year=year)
         output_df.rename(columns={"Taux moyen d'imposition" : str(year)}, inplace = True) 
         ax = output_df.plot( y=str(year), label=str(year))
