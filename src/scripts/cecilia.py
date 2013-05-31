@@ -49,17 +49,20 @@ def test_case():
     # Changes in individualized caracteristics    
     #TRAITEMENTS, SALAIRES, PPE, PENSIONS ET RENTES
     # salaires (case 1AJ) 
-    test_case.indiv[0].update({"sali":0})
+    test_case.indiv[0].update({"sali":50000})
     
     # préretraites, chômage (case 1AP)
     test_case.indiv[0].update({"choi":0})
+
+    # pensions (case 1AS)
+    test_case.indiv[0].update({"rsti":0})
 
     # Changes in non-individualized items of the declaration    
     # REVENUS DES VALEURS ET CAPITAUX MOBILIERS
     # intérêts 
     # f2ee intpfl (pdts de placement soumis aux prélèvements obligatoires autres que 2DA et 2DH
     # f2tr intb (intérêts et autres revenus assimilés)
-    test_case.declar[0].update({"f2tr":20000})
+    test_case.declar[0].update({"f2tr":0})
     
     # dividendes
     # f2da divplf (revenus des actions et parts soumis au prélèvement libératoire à 21 %
@@ -68,7 +71,7 @@ def test_case():
     
     # REVENUS FONCIERS
     # foncier  f4ba  (micro foncier f4be)   
-    test_case.declar[0].update({"f4ba":20000}) 
+    test_case.declar[0].update({"f4ba":0}) 
     
     
     #PLUS-VALUES DE CESSION DE VALEURS MOBILIERES, DROITS SOCIAUX ET GAINS ASSIMILéS
@@ -120,7 +123,7 @@ def test_bareme():
     # foncier  f4ba fon (micro foncier f4be)
 
     xaxis = "sali"
-    maxrev = 300000    
+    maxrev = 350000    
     year = 2010
     country = 'france'
     simulation = ScenarioSimulation()        
@@ -206,7 +209,7 @@ def get_avg_tax_rate_dataframe(xaxis = "sali", maxrev = 50000, year = 2006):
     return output_df
 
 
-def plot_avg_tax_rate(xaxis="sali", maxrev=50000, year=2006):
+def plot_avg_tax_rate(xaxis="sali", maxrev=350000, year=2009):
     """
     Plot averge tax rate
     
@@ -228,7 +231,7 @@ def plot_avg_tax_rate(xaxis="sali", maxrev=50000, year=2006):
     plt.show()
 
 
-def loop_over_year(xaxis="sali", maxrev=300000, filename=None):
+def loop_over_year(xaxis="sali", maxrev=350000, filename=None):
     """
     Plot the average tax rate for a revenue type for every year
     
@@ -245,13 +248,13 @@ def loop_over_year(xaxis="sali", maxrev=300000, filename=None):
     """
     results_df = DataFrame()
 
-    for year in range(2006,2010):
+    for year in range(2009,2012):
         output_df = get_avg_tax_rate_dataframe(xaxis=xaxis, maxrev=maxrev, year=year)
         output_df.rename(columns={"Taux moyen d'imposition" : str(year)}, inplace = True) 
         ax = output_df.plot( y=str(year), label=str(year))
         ax.set_xlabel("Revenus")
         
-    plt.legend(["Year 2006", "Year 2007", "Year 2008", "Year 2009"],fancybox=True,loc=2)
+    plt.legend(["Year 2009", "Year 2010", "Year 2011"],fancybox=True,loc=2)
     plt.title("Taux d'imposition moyen des revenus ",color="blue") 
     if filename is not None:
         plt.savefig(filename, format="pdf")
@@ -287,8 +290,13 @@ def loop_over_revenue_type(revenues_dict = None):
 
 
 if __name__ == '__main__':
-    test_case()
+#    test_case()
 #    test_bareme()
+    plot_avg_tax_rate()         
+#    filename = os.path.join(DESTINATION_DIR,"figure.pdf")
+#    loop_over_year()
     
-    filename = os.path.join(DESTINATION_DIR,"figure.pdf")
-    loop_over_revenue_type()
+    #loop_over_revenue_type()
+    
+    
+    
