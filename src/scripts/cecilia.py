@@ -38,7 +38,7 @@ def test_case():
     win = ApplicationWindow()
     country = 'france'
 
-    yr = 2010
+    yr = 2011
 
     simulation = ScenarioSimulation()        
     simulation.set_config(year = yr, country = country, nmen = 1,
@@ -111,7 +111,7 @@ def test_bareme():
     Use to test and debug bareme mode test-case
     """
     
-    yr = 2010    
+    yr = 2011    
     # Changes in individualized characteristics    
     # salaires: sali
     # retraites: choi
@@ -287,7 +287,7 @@ def loop_over_revenue_type(revenues_dict = None):
 
 
 if __name__ == '__main__':
-#    test_case()
+    test_case()
 #    test_bareme()
     
     filename = os.path.join(DESTINATION_DIR,"figure.pdf")
