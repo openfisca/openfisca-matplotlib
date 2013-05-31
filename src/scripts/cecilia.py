@@ -16,10 +16,11 @@ import matplotlib.pyplot as plt
 from src.widgets.matplotlibwidget import MatplotlibWidget
 from src.lib.simulation import ScenarioSimulation 
 
-SHOW_OPENFISCA = False
+SHOW_OPENFISCA = True
 EXPORT = False
 
-DESTINATION_DIR = "c:/Users/Laurence Bouvard/Documents/cecilia/"      
+#DESTINATION_DIR = "c:/Users/Laurence Bouvard/Documents/cecilia/"      
+DESTINATION_DIR = "c:/Users/Utilisateur/Documents/cecilia/"      
 
 class ApplicationWindow(QMainWindow):
     def __init__(self):
@@ -38,7 +39,7 @@ def test_case():
     win = ApplicationWindow()
     country = 'france'
 
-    yr = 2012
+    yr = 2011
 
     simulation = ScenarioSimulation()        
     simulation.set_config(year = yr, country = country, nmen = 1,
@@ -49,17 +50,20 @@ def test_case():
     # Changes in individualized caracteristics    
     #TRAITEMENTS, SALAIRES, PPE, PENSIONS ET RENTES
     # salaires (case 1AJ) 
-    test_case.indiv[0].update({"sali":0})
+    test_case.indiv[0].update({"sali":50000})
     
     # préretraites, chômage (case 1AP)
     test_case.indiv[0].update({"choi":0})
+
+    # pensions (case 1AS)
+    test_case.indiv[0].update({"rsti":0})
 
     # Changes in non-individualized items of the declaration    
     # REVENUS DES VALEURS ET CAPITAUX MOBILIERS
     # intérêts 
     # f2ee intpfl (pdts de placement soumis aux prélèvements obligatoires autres que 2DA et 2DH
     # f2tr intb (intérêts et autres revenus assimilés)
-    test_case.declar[0].update({"f2tr":20000})
+    test_case.declar[0].update({"f2tr":0})
     
     # dividendes
     # f2da divplf (revenus des actions et parts soumis au prélèvement libératoire à 21 %
@@ -68,13 +72,17 @@ def test_case():
     
     # REVENUS FONCIERS
     # foncier  f4ba  (micro foncier f4be)   
-    test_case.declar[0].update({"f4ba":20000}) 
+    test_case.declar[0].update({"f4ba":0}) 
     
     
     #PLUS-VALUES DE CESSION DE VALEURS MOBILIERES, DROITS SOCIAUX ET GAINS ASSIMILéS
     # plus-values TODO: F3VG 
     test_case.declar[0].update({"f3vg":0})     
       
+      
+    test_case.declar[0].update({"f3vz":10000})     
+    
+    
     df = simulation.get_results_dataframe(index_by_code=True)
     rev_cols = ["salsuperbrut", "chobrut", "rstbrut",  "fon", "rev_cap_bar", "rev_cap_lib"]
     prelev_cols = ["cotpat_noncontrib", "cotsal_noncontrib", "csgsald", "csgsali", "crdssal", "cotpat_noncontrib",  
@@ -98,12 +106,13 @@ def test_case():
         win.resize(1400,700)
         win.mplwidget.draw()
         win.show()
+        sys.exit(app.exec_())
 
     if EXPORT:       
         win.mplwidget.print_figure(DESTINATION_DIR + title + '.png')
     
     del ax, simulation 
-    sys.exit(app.exec_())
+
     
     
 def test_bareme():
@@ -120,7 +129,7 @@ def test_bareme():
     # foncier  f4ba fon (micro foncier f4be)
 
     xaxis = "sali"
-    maxrev = 300000    
+    maxrev = 350000    
     year = 2010
     country = 'france'
     simulation = ScenarioSimulation()        
@@ -187,13 +196,14 @@ def get_avg_tax_rate_dataframe(xaxis = "sali", maxrev = 50000, year = 2006):
     simulation.set_param()
     test_case = simulation.scenario  
     df = simulation.get_results_dataframe(index_by_code=True)
-    rev_cols = ["salsuperbrut", "chobrut", "rstbrut",  "fon", "rev_cap_bar", "rev_cap_lib"]
+    rev_cols = ["salsuperbrut", "chobrut", "rstbrut",  "fon", "rev_cap_bar", "rev_cap_lib", "f3vz"]
     prelev_cols = ["cotpat_noncontrib", "cotsal_noncontrib", "csgsald", "csgsali", "crdssal", "cotpat_noncontrib",  
               "cotsal_noncontrib", "csgsald", "csgsali", "crdssal", 
               "csgchod", "csgchoi", "crdscho",
               "csgrstd", "csgrsti", "crdsrst",
               "prelsoc_cap_bar", "prelsoc_cap_lib", "csg_cap_bar", "csg_cap_lib", 
-              "crds_cap_bar",  "crds_cap_lib", "imp_lib", "ppe", "irpp"]
+              "crds_cap_bar",  "crds_cap_lib", "prelsoc_pv_immo", "csg_pv_immo", "crds_pv_immo",
+              "imp_lib", "ppe", "irpp", "ir_pv_immo"]
 
     # TODO: vérifier pour la ppe qu'il n'y ait pas de problème
     rev_df = df.loc[rev_cols]
@@ -206,7 +216,7 @@ def get_avg_tax_rate_dataframe(xaxis = "sali", maxrev = 50000, year = 2006):
     return output_df
 
 
-def plot_avg_tax_rate(xaxis="sali", maxrev=50000, year=2006):
+def plot_avg_tax_rate(xaxis="sali", maxrev=350000, year=2009):
     """
     Plot averge tax rate
     
@@ -228,7 +238,7 @@ def plot_avg_tax_rate(xaxis="sali", maxrev=50000, year=2006):
     plt.show()
 
 
-def loop_over_year(xaxis="sali", maxrev=300000, filename=None):
+def loop_over_year(xaxis="sali", maxrev=350000, filename=None):
     """
     Plot the average tax rate for a revenue type for every year
     
@@ -245,13 +255,13 @@ def loop_over_year(xaxis="sali", maxrev=300000, filename=None):
     """
     results_df = DataFrame()
 
-    for year in range(2006,2010):
+    for year in range(2009,2012):
         output_df = get_avg_tax_rate_dataframe(xaxis=xaxis, maxrev=maxrev, year=year)
         output_df.rename(columns={"Taux moyen d'imposition" : str(year)}, inplace = True) 
         ax = output_df.plot( y=str(year), label=str(year))
         ax.set_xlabel("Revenus")
         
-    plt.legend(["Year 2006", "Year 2007", "Year 2008", "Year 2009"],fancybox=True,loc=2)
+    plt.legend(["Year 2009", "Year 2010", "Year 2011"],fancybox=True,loc=2)
     plt.title("Taux d'imposition moyen des revenus ",color="blue") 
     if filename is not None:
         plt.savefig(filename, format="pdf")
@@ -262,7 +272,7 @@ def loop_over_year(xaxis="sali", maxrev=300000, filename=None):
     pour terminer
     """
 
-def loop_over_revenue_type(revenues_dict = None):
+def loop_over_revenue_type(revenues_dict = None, filename = None):
     """
     Plot the average tax rate for a revenue type for every year
     and every revenue type
@@ -282,13 +292,19 @@ def loop_over_revenue_type(revenues_dict = None):
         
     for xaxis, maxrev in revenues_dict.iteritems():
         print xaxis
-        filename = os.path.join(DESTINATION_DIR,"figure_%s.pdf" %(xaxis))
+        if filename is None:
+            filename = os.path.join(DESTINATION_DIR,"figure_%s.pdf" %(xaxis))
         loop_over_year(xaxis=xaxis, maxrev=maxrev, filename=filename)
 
 
 if __name__ == '__main__':
-    test_case()
+#    test_case()
 #    test_bareme()
+#    plot_avg_tax_rate()         
+#    filename = os.path.join(DESTINATION_DIR,"figure.pdf")
+#    loop_over_year()
     
-    filename = os.path.join(DESTINATION_DIR,"figure.pdf")
     loop_over_revenue_type()
+    
+    
+    
