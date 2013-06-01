@@ -29,6 +29,21 @@ class ApplicationWindow(QMainWindow):
         self.mplwidget.setFocus()
         self.setCentralWidget(self.mplwidget)
 
+def complete_2012_param(P):
+    # Hack to get rid of missing parameters in 2012
+    dummy_simulation = ScenarioSimulation()
+    
+    dummy_simulation.set_config(year = 2012-1, country = "france", nmen = 1,
+                          reforme = False, mode ='castype', decomp_file="decomp_contrib.xml")
+    dummy_simulation.set_param()
+    
+    P.fam = dummy_simulation.P.fam 
+    P.minim = dummy_simulation.P.minim
+    P.al = dummy_simulation.P.al
+    P.ir.crl = dummy_simulation.P.ir.crl
+    P.isf = dummy_simulation.P.isf
+
+
 
 def test_case():
     """
@@ -39,12 +54,24 @@ def test_case():
     win = ApplicationWindow()
     country = 'france'
 
-    yr = 2011
+    yr = 2012
+
 
     simulation = ScenarioSimulation()        
     simulation.set_config(year = yr, country = country, nmen = 1,
                           reforme = False, mode ='castype', decomp_file="decomp_contrib.xml")
     simulation.set_param()
+    
+    # Hack to get rid of missing parameters in 2012
+    dummy_simulation = ScenarioSimulation()
+    
+    dummy_simulation.set_config(year = yr-1, country = country, nmen = 1,
+                          reforme = False, mode ='castype', decomp_file="decomp_contrib.xml")
+    dummy_simulation.set_param()
+    
+    if yr == 2012:
+        complete_2012_param(simulation.P)
+     
     test_case = simulation.scenario  
     
     # Changes in individualized caracteristics    
@@ -194,6 +221,11 @@ def get_avg_tax_rate_dataframe(xaxis = "sali", maxrev = 50000, year = 2006):
     simulation.set_config(year = year, country = country, nmen = 101, xaxis = xaxis, maxrev=maxrev,
                           reforme = False, mode ='bareme', decomp_file="decomp_contrib.xml")
     simulation.set_param()
+    
+    if year == 2012:
+        complete_2012_param(simulation.P)
+    
+    
     test_case = simulation.scenario  
     df = simulation.get_results_dataframe(index_by_code=True)
     rev_cols = ["salsuperbrut", "chobrut", "rstbrut",  "fon", "rev_cap_bar", "rev_cap_lib", "f3vz"]
@@ -255,13 +287,13 @@ def loop_over_year(xaxis="sali", maxrev=350000, filename=None):
     """
     results_df = DataFrame()
 
-    for year in range(2009,2012):
+    for year in range(2009,2013):
         output_df = get_avg_tax_rate_dataframe(xaxis=xaxis, maxrev=maxrev, year=year)
         output_df.rename(columns={"Taux moyen d'imposition" : str(year)}, inplace = True) 
         ax = output_df.plot( y=str(year), label=str(year))
         ax.set_xlabel("Revenus")
         
-    plt.legend(["Year 2009", "Year 2010", "Year 2011"],fancybox=True,loc=2)
+    plt.legend([str(yr) for yr in range(2009,2013)],fancybox=True,loc=2)
     plt.title("Taux d'imposition moyen des revenus ",color="blue") 
     if filename is not None:
         plt.savefig(filename, format="pdf")
@@ -302,9 +334,9 @@ if __name__ == '__main__':
 #    test_bareme()
 #    plot_avg_tax_rate()         
 #    filename = os.path.join(DESTINATION_DIR,"figure.pdf")
-#    loop_over_year()
+    loop_over_year()
     
-    loop_over_revenue_type()
+#    loop_over_revenue_type()
     
     
     
