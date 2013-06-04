@@ -16,10 +16,11 @@ import matplotlib.pyplot as plt
 from src.widgets.matplotlibwidget import MatplotlibWidget
 from src.lib.simulation import ScenarioSimulation 
 
-SHOW_OPENFISCA = False
+SHOW_OPENFISCA = True
 EXPORT = False
 
-DESTINATION_DIR = "c:/Users/Laurence Bouvard/Documents/cecilia/"      
+#DESTINATION_DIR = "c:/Users/Laurence Bouvard/Documents/cecilia/"      
+DESTINATION_DIR = "c:/Users/Utilisateur/Documents/cecilia/"      
 
 class ApplicationWindow(QMainWindow):
     def __init__(self):
@@ -27,6 +28,21 @@ class ApplicationWindow(QMainWindow):
         self.mplwidget = MatplotlibWidget(self)
         self.mplwidget.setFocus()
         self.setCentralWidget(self.mplwidget)
+
+def complete_2012_param(P):
+    # Hack to get rid of missing parameters in 2012
+    dummy_simulation = ScenarioSimulation()
+    
+    dummy_simulation.set_config(year = 2012-1, country = "france", nmen = 1,
+                          reforme = False, mode ='castype', decomp_file="decomp_contrib.xml")
+    dummy_simulation.set_param()
+    
+    P.fam = dummy_simulation.P.fam 
+    P.minim = dummy_simulation.P.minim
+    P.al = dummy_simulation.P.al
+    P.ir.crl = dummy_simulation.P.ir.crl
+    P.isf = dummy_simulation.P.isf
+
 
 
 def test_case():
@@ -38,28 +54,37 @@ def test_case():
     win = ApplicationWindow()
     country = 'france'
 
-    yr = 2011
+    yr = 2012
+
 
     simulation = ScenarioSimulation()        
     simulation.set_config(year = yr, country = country, nmen = 1,
                           reforme = False, mode ='castype', decomp_file="decomp_contrib.xml")
     simulation.set_param()
+    
+    # Hack to get rid of missing parameters in 2012    
+    if yr == 2012:
+        complete_2012_param(simulation.P)
+     
     test_case = simulation.scenario  
     
     # Changes in individualized caracteristics    
     #TRAITEMENTS, SALAIRES, PPE, PENSIONS ET RENTES
     # salaires (case 1AJ) 
-    test_case.indiv[0].update({"sali":0})
+    test_case.indiv[0].update({"sali":50000})
     
     # préretraites, chômage (case 1AP)
     test_case.indiv[0].update({"choi":0})
+
+    # pensions (case 1AS)
+    test_case.indiv[0].update({"rsti":0})
 
     # Changes in non-individualized items of the declaration    
     # REVENUS DES VALEURS ET CAPITAUX MOBILIERS
     # intérêts 
     # f2ee intpfl (pdts de placement soumis aux prélèvements obligatoires autres que 2DA et 2DH
     # f2tr intb (intérêts et autres revenus assimilés)
-    test_case.declar[0].update({"f2tr":20000})
+    test_case.declar[0].update({"f2tr":0})
     
     # dividendes
     # f2da divplf (revenus des actions et parts soumis au prélèvement libératoire à 21 %
@@ -68,13 +93,17 @@ def test_case():
     
     # REVENUS FONCIERS
     # foncier  f4ba  (micro foncier f4be)   
-    test_case.declar[0].update({"f4ba":20000}) 
+    test_case.declar[0].update({"f4ba":0}) 
     
     
     #PLUS-VALUES DE CESSION DE VALEURS MOBILIERES, DROITS SOCIAUX ET GAINS ASSIMILéS
     # plus-values TODO: F3VG 
     test_case.declar[0].update({"f3vg":0})     
       
+      
+    test_case.declar[0].update({"f3vz":10000})     
+    
+    
     df = simulation.get_results_dataframe(index_by_code=True)
     rev_cols = ["salsuperbrut", "chobrut", "rstbrut",  "fon", "rev_cap_bar", "rev_cap_lib"]
     prelev_cols = ["cotpat_noncontrib", "cotsal_noncontrib", "csgsald", "csgsali", "crdssal", "cotpat_noncontrib",  
@@ -98,20 +127,21 @@ def test_case():
         win.resize(1400,700)
         win.mplwidget.draw()
         win.show()
+        sys.exit(app.exec_())
 
     if EXPORT:       
         win.mplwidget.print_figure(DESTINATION_DIR + title + '.png')
     
     del ax, simulation 
-    sys.exit(app.exec_())
+
     
     
-def test_bareme():
+def test_bareme(xaxis="sali"):
     """
     Use to test and debug bareme mode test-case
     """
     
-    yr = 2011    
+    yr = 2012    
     # Changes in individualized characteristics    
     # salaires: sali
     # retraites: choi
@@ -119,9 +149,9 @@ def test_bareme():
     # dividendes: f2da divplf; f2dc divb
     # foncier  f4ba fon (micro foncier f4be)
 
-    xaxis = "sali"
-    maxrev = 300000    
-    year = 2010
+
+    maxrev = 350000    
+    year = 2012
     country = 'france'
     simulation = ScenarioSimulation()        
     
@@ -135,6 +165,11 @@ def test_bareme():
     simulation.set_config(year = yr, country = country, nmen = 101, xaxis = xaxis, maxrev=maxrev,
                           reforme = False, mode ='bareme', decomp_file="decomp_contrib.xml")
     simulation.set_param()
+    # Hack to get rid of missing parameters in 2012    
+    if yr == 2012:
+        complete_2012_param(simulation.P)
+    
+    
     test_case = simulation.scenario  
     
     if SHOW_OPENFISCA:
@@ -185,28 +220,38 @@ def get_avg_tax_rate_dataframe(xaxis = "sali", maxrev = 50000, year = 2006):
     simulation.set_config(year = year, country = country, nmen = 101, xaxis = xaxis, maxrev=maxrev,
                           reforme = False, mode ='bareme', decomp_file="decomp_contrib.xml")
     simulation.set_param()
+    
+    if year == 2012:
+        complete_2012_param(simulation.P)
+    
+    
     test_case = simulation.scenario  
     df = simulation.get_results_dataframe(index_by_code=True)
-    rev_cols = ["salsuperbrut", "chobrut", "rstbrut",  "fon", "rev_cap_bar", "rev_cap_lib"]
+    rev_cols = ["salsuperbrut", "chobrut", "rstbrut",  "fon", "rev_cap_bar", "rev_cap_lib", "f3vz", "f3vg"]
     prelev_cols = ["cotpat_noncontrib", "cotsal_noncontrib", "csgsald", "csgsali", "crdssal", "cotpat_noncontrib",  
               "cotsal_noncontrib", "csgsald", "csgsali", "crdssal", 
               "csgchod", "csgchoi", "crdscho",
               "csgrstd", "csgrsti", "crdsrst",
               "prelsoc_cap_bar", "prelsoc_cap_lib", "csg_cap_bar", "csg_cap_lib", 
-              "crds_cap_bar",  "crds_cap_lib", "imp_lib", "ppe", "irpp"]
+              "crds_cap_bar",  "crds_cap_lib", "prelsoc_pv_immo", "csg_pv_immo", "crds_pv_immo",
+              "prelsoc_pv_mo", "csg_pv_mo", "crds_pv_mo",
+              "imp_lib", "ppe", "irpp", "ir_pv_immo", ]
 
     # TODO: vérifier pour la ppe qu'il n'y ait pas de problème
+#    print df[100].to_string()
     rev_df = df.loc[rev_cols]
     rev = rev_df.sum(axis=0)
     prelev_df = df.loc[prelev_cols]
-    prelev = prelev_df.sum(axis=0)   
+    prelev = prelev_df.sum(axis=0) 
 
     output_df = DataFrame( {"Revenus" : rev, "Prélèvements": prelev, "Taux moyen d'imposition": -prelev/rev}) 
     output_df.set_index(keys=["Revenus"], inplace=True)
-    return output_df
+
+    xaxis_long_name = simulation.var2label[xaxis]
+    return output_df, xaxis_long_name
 
 
-def plot_avg_tax_rate(xaxis="sali", maxrev=50000, year=2006):
+def plot_avg_tax_rate(xaxis="sali", maxrev=350000, year=2009):
     """
     Plot averge tax rate
     
@@ -220,7 +265,7 @@ def plot_avg_tax_rate(xaxis="sali", maxrev=50000, year=2006):
     year : int, default 2006
            year of the legislation
     """
-    output_df = get_avg_tax_rate_dataframe(xaxis=xaxis, maxrev=maxrev, year=year)
+    output_df, xaxis_long_name = get_avg_tax_rate_dataframe(xaxis=xaxis, maxrev=maxrev, year=year)
     title ="Taux moyens"
     # ax.set_title(title)
     output_df["Taux moyen d'imposition"].plot()
@@ -228,7 +273,7 @@ def plot_avg_tax_rate(xaxis="sali", maxrev=50000, year=2006):
     plt.show()
 
 
-def loop_over_year(xaxis="sali", maxrev=300000, filename=None):
+def loop_over_year(xaxis="sali", maxrev=350000, filename=None, show=True):
     """
     Plot the average tax rate for a revenue type for every year
     
@@ -241,28 +286,27 @@ def loop_over_year(xaxis="sali", maxrev=300000, filename=None):
              upper bound of the revenu interval
     filename : path, default None
                if not None, path to save the picture as a pdf
-    
     """
     results_df = DataFrame()
-
-    for year in range(2006,2010):
-        output_df = get_avg_tax_rate_dataframe(xaxis=xaxis, maxrev=maxrev, year=year)
+    fig = plt.figure()
+    for year in range(2009,2013):
+        output_df, xaxis_long_name = get_avg_tax_rate_dataframe(xaxis=xaxis, maxrev=maxrev, year=year)
         output_df.rename(columns={"Taux moyen d'imposition" : str(year)}, inplace = True) 
         ax = output_df.plot( y=str(year), label=str(year))
         ax.set_xlabel("Revenus")
+        ax.set_ylabel("Taux moyen d'imposition")
         
-    plt.legend(["Year 2006", "Year 2007", "Year 2008", "Year 2009"],fancybox=True,loc=2)
-    plt.title("Taux d'imposition moyen des revenus ",color="blue") 
+    plt.legend([str(yr) for yr in range(2009,2013)],fancybox=True,loc=2)
+    plt.title(xaxis_long_name ,color="blue") 
     if filename is not None:
         plt.savefig(filename, format="pdf")
-    plt.show()
+    if show is False:
+        plt.ioff()
+    else:
+        plt.show()
+    plt.close(fig)
     
-    """pour le titre, je ne sais pas comment faire en sorte qu'il prenne le début du titre 
-    identique pour chaque graphe et ensuite le nom de chaque type de revenu du dico
-    pour terminer
-    """
-
-def loop_over_revenue_type(revenues_dict = None):
+def loop_over_revenue_type(revenues_dict = None, filename = None, show=True):
     """
     Plot the average tax rate for a revenue type for every year
     and every revenue type
@@ -282,13 +326,22 @@ def loop_over_revenue_type(revenues_dict = None):
         
     for xaxis, maxrev in revenues_dict.iteritems():
         print xaxis
-        filename = os.path.join(DESTINATION_DIR,"figure_%s.pdf" %(xaxis))
-        loop_over_year(xaxis=xaxis, maxrev=maxrev, filename=filename)
+        if filename is None:
+            filename_effective = os.path.join(DESTINATION_DIR,"figure_%s.pdf" %(xaxis))
+        else:
+            filename_effective = filename
+            
+        loop_over_year(xaxis=xaxis, maxrev=maxrev, filename=filename_effective, show=show)
 
 
 if __name__ == '__main__':
-    test_case()
-#    test_bareme()
+#    test_case()
+#    test_bareme("f3vz")
+#    plot_avg_tax_rate("f3vg")         
+#    filename = os.path.join(DESTINATION_DIR,"figure.pdf")
+#    loop_over_year("f2da")
     
-    filename = os.path.join(DESTINATION_DIR,"figure.pdf")
-    loop_over_revenue_type()
+    loop_over_revenue_type(show=False)
+    
+    
+    
