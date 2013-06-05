@@ -103,18 +103,14 @@ def test_case(year):
     
     #PLUS-VALUES DE CESSION DE VALEURS MOBILIERES, DROITS SOCIAUX ET GAINS ASSIMILéS
     # plus-values TODO: F3VG 
-<<<<<<< HEAD
-    test_case.declar[0].update({"f3vg":0})     
-    test_case.declar[0].update({"f3vz":0}) 
-     
-=======
+
     test_case.declar[0].update({"f3vg":1000000})     
       
       
     test_case.declar[0].update({"f3vz":0})     
     
     
->>>>>>> a0f36ad7cae8f3627a99ddc07610d90a2aeb5f51
+
     df = simulation.get_results_dataframe(index_by_code=True)
     rev_cols = ["salsuperbrut", "chobrut", "rstbrut",  "fon", "rev_cap_bar", "rev_cap_lib"]
     prelev_cols = ["cotpat_noncontrib", "cotsal_noncontrib", "csgsald", "csgsali", "crdssal", "cotpat_noncontrib",  
@@ -419,11 +415,6 @@ def everything():
     loop_over_revenue_type(show=False)
 
 if __name__ == '__main__':
-<<<<<<< HEAD
-    test_case()
-#    test_bareme()
-#2    plot_avg_tax_rate()         
-=======
 
 #    get_target()
 #    loop_over_targets()
@@ -431,7 +422,6 @@ if __name__ == '__main__':
 #    test_case(2011)
 #    test_bareme("f3vz")
 #    plot_avg_tax_rate("f3vg")         
->>>>>>> a0f36ad7cae8f3627a99ddc07610d90a2aeb5f51
 #    filename = os.path.join(DESTINATION_DIR,"figure.pdf")
 #    loop_over_year("f2da")
     everything()   
