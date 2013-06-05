@@ -16,10 +16,11 @@ import matplotlib.pyplot as plt
 from src.widgets.matplotlibwidget import MatplotlibWidget
 from src.lib.simulation import ScenarioSimulation 
 
-SHOW_OPENFISCA = False
+SHOW_OPENFISCA = True
 EXPORT = False
 
-DESTINATION_DIR = "c:/Users/Laurence Bouvard/Documents/cecilia/"      
+#DESTINATION_DIR = "c:/Users/Laurence Bouvard/Documents/cecilia/"      
+DESTINATION_DIR = "c:/Users/Utilisateur/Documents/cecilia/"      
 
 class ApplicationWindow(QMainWindow):
     def __init__(self):
@@ -28,8 +29,23 @@ class ApplicationWindow(QMainWindow):
         self.mplwidget.setFocus()
         self.setCentralWidget(self.mplwidget)
 
+def complete_2012_param(P):
+    # Hack to get rid of missing parameters in 2012
+    dummy_simulation = ScenarioSimulation()
+    
+    dummy_simulation.set_config(year = 2012-1, country = "france", nmen = 1,
+                          reforme = False, mode ='castype', decomp_file="decomp_contrib.xml")
+    dummy_simulation.set_param()
+    
+    P.fam = dummy_simulation.P.fam 
+    P.minim = dummy_simulation.P.minim
+    P.al = dummy_simulation.P.al
+    P.ir.crl = dummy_simulation.P.ir.crl
+    P.isf = dummy_simulation.P.isf
 
-def test_case():
+
+
+def test_case(year):
     """
     Use to test individual test-case for debugging
     """
@@ -38,18 +54,24 @@ def test_case():
     win = ApplicationWindow()
     country = 'france'
 
-    yr = 2011
+    yr = year
+
 
     simulation = ScenarioSimulation()        
     simulation.set_config(year = yr, country = country, nmen = 1,
                           reforme = False, mode ='castype', decomp_file="decomp_contrib.xml")
     simulation.set_param()
+    
+    # Hack to get rid of missing parameters in 2012    
+    if yr == 2012:
+        complete_2012_param(simulation.P)
+     
     test_case = simulation.scenario  
     
     # Changes in individualized caracteristics    
     #TRAITEMENTS, SALAIRES, PPE, PENSIONS ET RENTES
     # salaires (case 1AJ) 
-    test_case.indiv[0].update({"sali":50000})
+    test_case.indiv[0].update({"sali":0})
     
     # préretraites, chômage (case 1AP)
     test_case.indiv[0].update({"choi":0})
@@ -81,9 +103,18 @@ def test_case():
     
     #PLUS-VALUES DE CESSION DE VALEURS MOBILIERES, DROITS SOCIAUX ET GAINS ASSIMILéS
     # plus-values TODO: F3VG 
+<<<<<<< HEAD
     test_case.declar[0].update({"f3vg":0})     
     test_case.declar[0].update({"f3vz":0}) 
      
+=======
+    test_case.declar[0].update({"f3vg":1000000})     
+      
+      
+    test_case.declar[0].update({"f3vz":0})     
+    
+    
+>>>>>>> a0f36ad7cae8f3627a99ddc07610d90a2aeb5f51
     df = simulation.get_results_dataframe(index_by_code=True)
     rev_cols = ["salsuperbrut", "chobrut", "rstbrut",  "fon", "rev_cap_bar", "rev_cap_lib"]
     prelev_cols = ["cotpat_noncontrib", "cotsal_noncontrib", "csgsald", "csgsali", "crdssal", "cotpat_noncontrib",  
@@ -109,20 +140,21 @@ def test_case():
         win.resize(1400,700)
         win.mplwidget.draw()
         win.show()
+        sys.exit(app.exec_())
 
     if EXPORT:       
         win.mplwidget.print_figure(DESTINATION_DIR + title + '.png')
     
     del ax, simulation 
-    sys.exit(app.exec_())
+
     
     
-def test_bareme():
+def test_bareme(xaxis="sali"):
     """
     Use to test and debug bareme mode test-case
     """
     
-    yr = 2011    
+    yr = 2012    
     # Changes in individualized characteristics    
     # salaires: sali
     # retraites: choi
@@ -130,9 +162,9 @@ def test_bareme():
     # dividendes: f2da divplf; f2dc divb
     # foncier  f4ba fon (micro foncier f4be)
 
-    xaxis = "sali"
+
     maxrev = 350000    
-    year = 2010
+    year = 2012
     country = 'france'
     simulation = ScenarioSimulation()        
     
@@ -146,6 +178,11 @@ def test_bareme():
     simulation.set_config(year = yr, country = country, nmen = 101, xaxis = xaxis, maxrev=maxrev,
                           reforme = False, mode ='bareme', decomp_file="decomp_contrib.xml")
     simulation.set_param()
+    # Hack to get rid of missing parameters in 2012    
+    if yr == 2012:
+        complete_2012_param(simulation.P)
+    
+    
     test_case = simulation.scenario  
     
     if SHOW_OPENFISCA:
@@ -196,25 +233,46 @@ def get_avg_tax_rate_dataframe(xaxis = "sali", maxrev = 50000, year = 2006):
     simulation.set_config(year = year, country = country, nmen = 101, xaxis = xaxis, maxrev=maxrev,
                           reforme = False, mode ='bareme', decomp_file="decomp_contrib.xml")
     simulation.set_param()
+    
+    if year == 2012:
+        complete_2012_param(simulation.P)
+    
+    
     test_case = simulation.scenario  
     df = simulation.get_results_dataframe(index_by_code=True)
-    rev_cols = ["salsuperbrut", "chobrut", "rstbrut",  "fon", "rev_cap_bar", "rev_cap_lib"]
+    rev_cols = ["salsuperbrut", "chobrut", "rstbrut",  "fon", "rev_cap_bar", "rev_cap_lib", "f3vz", "f3vg"]
     prelev_cols = ["cotpat_noncontrib", "cotsal_noncontrib", "csgsald", "csgsali", "crdssal", "cotpat_noncontrib",  
               "cotsal_noncontrib", "csgsald", "csgsali", "crdssal", 
               "csgchod", "csgchoi", "crdscho",
               "csgrstd", "csgrsti", "crdsrst",
               "prelsoc_cap_bar", "prelsoc_cap_lib", "csg_cap_bar", "csg_cap_lib", 
-              "crds_cap_bar",  "crds_cap_lib", "imp_lib", "ppe", "irpp"]
+              "crds_cap_bar",  "crds_cap_lib", "prelsoc_fon", "csg_fon", "crds_fon",
+              "prelsoc_pv_immo", "csg_pv_immo", "crds_pv_immo",
+              "prelsoc_pv_mo", "csg_pv_mo", "crds_pv_mo",
+              "imp_lib", "ppe", "irpp", "ir_pv_immo", ]
 
     # TODO: vérifier pour la ppe qu'il n'y ait pas de problème
+#    print df[100].to_string()
     rev_df = df.loc[rev_cols]
     rev = rev_df.sum(axis=0)
     prelev_df = df.loc[prelev_cols]
-    prelev = prelev_df.sum(axis=0)   
+    prelev = prelev_df.sum(axis=0)
+    avg_rate = -prelev/rev
+    
+    # Adding IS
+    if xaxis in ["f2dc","f2tr"]:
+        rate_is = .3443 
+        rev_before_is = rev/(1-rate_is)
+        prelev = prelev - rate_is*rev_before_is
+        avg_rate = (- prelev)/rev_before_is 
+        
+        rev = rev_before_is
 
-    output_df = DataFrame( {"Revenus" : rev, "Prélèvements": prelev, "Taux moyen d'imposition": -prelev/rev}) 
+    output_df = DataFrame( {"Revenus" : rev, "Prélèvements": prelev, "Taux moyen d'imposition": avg_rate}) 
     output_df.set_index(keys=["Revenus"], inplace=True)
-    return output_df
+
+    xaxis_long_name = simulation.var2label[xaxis]
+    return output_df, xaxis_long_name
 
 
 def plot_avg_tax_rate(xaxis="sali", maxrev=350000, year=2009):
@@ -231,7 +289,7 @@ def plot_avg_tax_rate(xaxis="sali", maxrev=350000, year=2009):
     year : int, default 2006
            year of the legislation
     """
-    output_df = get_avg_tax_rate_dataframe(xaxis=xaxis, maxrev=maxrev, year=year)
+    output_df, xaxis_long_name = get_avg_tax_rate_dataframe(xaxis=xaxis, maxrev=maxrev, year=year)
     title ="Taux moyens"
     # ax.set_title(title)
     output_df["Taux moyen d'imposition"].plot()
@@ -239,7 +297,7 @@ def plot_avg_tax_rate(xaxis="sali", maxrev=350000, year=2009):
     plt.show()
 
 
-def loop_over_year(xaxis="sali", maxrev=350000, filename=None):
+def loop_over_year(xaxis="sali", maxrev=350000, filename=None, show=True):
     """
     Plot the average tax rate for a revenue type for every year
     
@@ -252,28 +310,26 @@ def loop_over_year(xaxis="sali", maxrev=350000, filename=None):
              upper bound of the revenu interval
     filename : path, default None
                if not None, path to save the picture as a pdf
-    
     """
-    results_df = DataFrame()
-
-    for year in range(2009,2012):
-        output_df = get_avg_tax_rate_dataframe(xaxis=xaxis, maxrev=maxrev, year=year)
+    fig = plt.figure()
+    for year in range(2009,2013):
+        output_df, xaxis_long_name = get_avg_tax_rate_dataframe(xaxis=xaxis, maxrev=maxrev, year=year)
         output_df.rename(columns={"Taux moyen d'imposition" : str(year)}, inplace = True) 
         ax = output_df.plot( y=str(year), label=str(year))
         ax.set_xlabel("Revenus")
+        ax.set_ylabel("Taux moyen d'imposition")
         
-    plt.legend(["Year 2009", "Year 2010", "Year 2011"],fancybox=True,loc=2)
-    plt.title("Taux d'imposition moyen des revenus ",color="blue") 
+    plt.legend([str(yr) for yr in range(2009,2013)],fancybox=True,loc=2)
+    plt.title(xaxis_long_name ,color="blue") 
     if filename is not None:
         plt.savefig(filename, format="pdf")
-    plt.show()
+    if show is False:
+        plt.ioff()
+    else:
+        plt.show()
+    plt.close(fig)
     
-    """pour le titre, je ne sais pas comment faire en sorte qu'il prenne le début du titre 
-    identique pour chaque graphe et ensuite le nom de chaque type de revenu du dico
-    pour terminer
-    """
-
-def loop_over_revenue_type(revenues_dict = None):
+def loop_over_revenue_type(revenues_dict = None, filename = None, show=True):
     """
     Plot the average tax rate for a revenue type for every year
     and every revenue type
@@ -293,18 +349,93 @@ def loop_over_revenue_type(revenues_dict = None):
         
     for xaxis, maxrev in revenues_dict.iteritems():
         print xaxis
-        filename = os.path.join(DESTINATION_DIR,"figure_%s.pdf" %(xaxis))
-        loop_over_year(xaxis=xaxis, maxrev=maxrev, filename=filename)
+        if filename is None:
+            filename_effective = os.path.join(DESTINATION_DIR,"figure_%s.pdf" %(xaxis))
+        else:
+            filename_effective = filename
+            
+        loop_over_year(xaxis=xaxis, maxrev=maxrev, filename=filename_effective, show=show)
 
+
+def get_target(xaxis = "sali", target = 100000, year = 2010):
+    
+    def superbrut_rev(maxrev):
+        output_df, xaxis_long_name = get_avg_tax_rate_dataframe(xaxis=xaxis, maxrev=maxrev, year = 2010)
+        output_df.reset_index(inplace=True)
+        return output_df.iloc[100]["Revenus"] - target
+    from scipy.optimize import fsolve
+
+    res  = fsolve(superbrut_rev, target*.6, xtol = 1e-6)
+    
+    output_df, xaxis_long_name = get_avg_tax_rate_dataframe(xaxis=xaxis, maxrev=res, year = 2010 )
+    return output_df.iloc[100], xaxis_long_name
+
+def loop_over_targets(revenues_dict=None, year=2012):
+    if revenues_dict is None:
+        revenues_dict = {"sali" : 100000,
+                         "rsti" : 100000,
+                         "f2dc" : 100000,
+                         "f2tr" : 100000,
+                         "f4ba" : 100000,
+                         }
+    for xaxis, target in revenues_dict.iteritems():
+        print xaxis    
+        output_df, xaxis_long_name = get_target(xaxis=xaxis, target=target, year=year)
+        print xaxis_long_name 
+        print output_df.reset_index().to_string()
+    
+def all_in_one_graph(revenues_dict=None, year=2012, filename=None, show=True):
+    if revenues_dict is None:
+        revenues_dict = {"sali" : 400000,
+                         "rsti" : 400000,
+                         "f2dc" : 400000,
+                         "f2tr" : 400000,
+                         "f4ba" : 400000,
+                         }
+
+    fig = plt.figure()
+    for xaxis, maxrev in revenues_dict.iteritems():
+        output_df, xaxis_long_name = get_avg_tax_rate_dataframe(xaxis=xaxis, maxrev=maxrev, year=year)
+
+        ax = output_df.plot( y="Taux moyen d'imposition", label=xaxis_long_name)
+        ax.set_xlabel("Revenus")
+        ax.set_ylabel("Taux moyen d'imposition")
+        
+    plt.legend(fancybox=True,loc=4)
+    plt.xlim(xmax=300000)
+#    plt.title(xaxis_long_name ,color="blue") 
+    if filename is not None:
+        plt.savefig(filename, format="pdf")
+    if show is False:
+        plt.ioff()
+    else:
+        plt.show()
+    plt.close(fig)
+    
+def everything():
+    filename = os.path.join(DESTINATION_DIR,"all2012.pdf")
+    loop_over_targets()
+    all_in_one_graph(filename=filename)
+    loop_over_revenue_type(show=False)
 
 if __name__ == '__main__':
+<<<<<<< HEAD
     test_case()
 #    test_bareme()
 #2    plot_avg_tax_rate()         
+=======
+
+#    get_target()
+#    loop_over_targets()
+#    all_in_one_graph()
+#    test_case(2011)
+#    test_bareme("f3vz")
+#    plot_avg_tax_rate("f3vg")         
+>>>>>>> a0f36ad7cae8f3627a99ddc07610d90a2aeb5f51
 #    filename = os.path.join(DESTINATION_DIR,"figure.pdf")
-#    loop_over_year()
-    
-    #loop_over_revenue_type()
+#    loop_over_year("f2da")
+    everything()   
+
     
     
     
