@@ -62,11 +62,16 @@ def test_case():
     # intérêts 
     # f2ee intpfl (pdts de placement soumis aux prélèvements obligatoires autres que 2DA et 2DH
     # f2tr intb (intérêts et autres revenus assimilés)
+    test_case.declar[0].update({"f2ts":0})
     test_case.declar[0].update({"f2tr":0})
     
     # dividendes
     # f2da divplf (revenus des actions et parts soumis au prélèvement libératoire à 21 %
     # f2dc divb (revenus des actions et parts ouvrant droit à abattement)
+    
+    test_case.declar[0].update({"f2da":0})
+    test_case.declar[0].update({"f2dh":0})
+   
     test_case.declar[0].update({"f2dc":0})
     
     # REVENUS FONCIERS
@@ -77,7 +82,8 @@ def test_case():
     #PLUS-VALUES DE CESSION DE VALEURS MOBILIERES, DROITS SOCIAUX ET GAINS ASSIMILéS
     # plus-values TODO: F3VG 
     test_case.declar[0].update({"f3vg":0})     
-      
+    test_case.declar[0].update({"f3vz":0}) 
+     
     df = simulation.get_results_dataframe(index_by_code=True)
     rev_cols = ["salsuperbrut", "chobrut", "rstbrut",  "fon", "rev_cap_bar", "rev_cap_lib"]
     prelev_cols = ["cotpat_noncontrib", "cotsal_noncontrib", "csgsald", "csgsali", "crdssal", "cotpat_noncontrib",  
@@ -91,8 +97,10 @@ def test_case():
     rev = rev_df.sum(axis=0)
     prelev_df = df.loc[prelev_cols]
     prelev = prelev_df.sum(axis=0)
-    
+   
     print -prelev/rev
+    print rev
+#    print prelev_df, rev, -prelev
     ax = win.mplwidget.axes
     if SHOW_OPENFISCA:
         title ="Mon titre"
@@ -290,9 +298,9 @@ def loop_over_revenue_type(revenues_dict = None):
 
 
 if __name__ == '__main__':
-#    test_case()
+    test_case()
 #    test_bareme()
-    plot_avg_tax_rate()         
+#2    plot_avg_tax_rate()         
 #    filename = os.path.join(DESTINATION_DIR,"figure.pdf")
 #    loop_over_year()
     
