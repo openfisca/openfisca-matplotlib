@@ -19,8 +19,8 @@ from src.lib.simulation import ScenarioSimulation
 SHOW_OPENFISCA = True
 EXPORT = False
 
-#DESTINATION_DIR = "c:/Users/Laurence Bouvard/Documents/cecilia/"      
-DESTINATION_DIR = "c:/Users/Utilisateur/Documents/cecilia/"      
+DESTINATION_DIR = "c:/Users/Laurence Bouvard/Documents/cecilia/"      
+      
 
 class ApplicationWindow(QMainWindow):
     def __init__(self):
