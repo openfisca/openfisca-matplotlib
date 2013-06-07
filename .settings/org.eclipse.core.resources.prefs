@@ -1,6 +1,6 @@
 =\=\=\=\=\=\=
 <<<<<<<=HEAD
->>>>>>>=spyder_dirty
+>>>>>>>=4f98613acf97fa2646947d49fa99870f5b1eb588
 eclipse.preferences.version=1
 encoding//src/countries/__init__.py=utf-8
 encoding//src/countries/france/__init__.py=utf-8
@@ -11,11 +11,9 @@ encoding//src/countries/france/data/erf/build_survey/01pre_proc.py=utf-8
 encoding//src/countries/france/data/erf/build_survey/03_fip.py=utf-8
 encoding//src/countries/france/data/erf/build_survey/04_famille.py=utf-8
 encoding//src/countries/france/data/erf/build_survey/05_foyer.py=utf-8
-<<<<<<< HEAD
 encoding//src/countries/france/data/erf/build_survey/06_rebuild.py=utf-8
-=======
 encoding//src/countries/france/data/erf/build_survey/07_invalides.py=utf-8
->>>>>>> 4f98613acf97fa2646947d49fa99870f5b1eb588
+encoding//src/countries/france/data/erf/build_survey/08_final.py=utf-8
 encoding//src/countries/france/data/erf/build_survey/__init__.py=utf-8
 encoding//src/countries/france/data/erf/datatable.py=utf-8
 encoding//src/countries/france/data/sources/build_actualisation_groups_from_sources.py=utf-8
@@ -26,6 +24,7 @@ encoding//src/countries/france/data/sources/config.py=utf-8
 encoding//src/countries/france/data/sources/configREMOVEMEWHENCONFIGURED.py=utf-8
 encoding//src/countries/france/data/sources/utils.py=utf-8
 encoding//src/countries/france/data/test_hd5.py=utf-8
+encoding//src/countries/france/data/zone_apl/__init__.py=utf-8
 encoding//src/countries/france/model/calage.py=utf-8
 encoding//src/countries/france/model/common.py=utf-8
 encoding//src/countries/france/model/cotsoc.py=utf-8
