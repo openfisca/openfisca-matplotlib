@@ -11,7 +11,11 @@ encoding//src/countries/france/data/erf/build_survey/01pre_proc.py=utf-8
 encoding//src/countries/france/data/erf/build_survey/03_fip.py=utf-8
 encoding//src/countries/france/data/erf/build_survey/04_famille.py=utf-8
 encoding//src/countries/france/data/erf/build_survey/05_foyer.py=utf-8
+<<<<<<< HEAD
+encoding//src/countries/france/data/erf/build_survey/06_rebuild.py=utf-8
+=======
 encoding//src/countries/france/data/erf/build_survey/07_invalides.py=utf-8
+>>>>>>> 4f98613acf97fa2646947d49fa99870f5b1eb588
 encoding//src/countries/france/data/erf/build_survey/__init__.py=utf-8
 encoding//src/countries/france/data/erf/datatable.py=utf-8
 encoding//src/countries/france/data/sources/build_actualisation_groups_from_sources.py=utf-8
