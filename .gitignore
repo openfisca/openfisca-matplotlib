@@ -3,6 +3,7 @@
 .pydevproject
 .project
 .settings
+.settings/org.eclipse.core.resources.prefs
 
 build
 src/openfisca_crash.log

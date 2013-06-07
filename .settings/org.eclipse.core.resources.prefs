@@ -11,7 +11,11 @@ encoding//src/countries/france/data/erf/build_survey/01pre_proc.py=utf-8
 encoding//src/countries/france/data/erf/build_survey/03_fip.py=utf-8
 encoding//src/countries/france/data/erf/build_survey/04_famille.py=utf-8
 encoding//src/countries/france/data/erf/build_survey/05_foyer.py=utf-8
+<<<<<<< HEAD
 encoding//src/countries/france/data/erf/build_survey/06_rebuild.py=utf-8
+=======
+encoding//src/countries/france/data/erf/build_survey/07_invalides.py=utf-8
+>>>>>>> 4f98613acf97fa2646947d49fa99870f5b1eb588
 encoding//src/countries/france/data/erf/build_survey/__init__.py=utf-8
 encoding//src/countries/france/data/erf/datatable.py=utf-8
 encoding//src/countries/france/data/sources/build_actualisation_groups_from_sources.py=utf-8
@@ -128,12 +132,14 @@ encoding//src/plugins/survey/survey_explorer.py=utf-8
 encoding//src/scripts/aggregates_all_years.py=utf-8
 encoding//src/scripts/avantage_enfant.py=utf-8
 encoding//src/scripts/cecilia.py=utf-8
+encoding//src/scripts/data/survey_1_to_4.py=utf-8
 encoding//src/scripts/desindex.py=utf-8
 encoding//src/scripts/euromod.py=utf-8
 encoding//src/scripts/example.py=utf-8
 encoding//src/scripts/sandbox/age_structure.py=utf-8
 encoding//src/scripts/test_psl.py=utf-8
 encoding//src/scripts/validation/check_consistency_tests.py=utf-8
+encoding//src/scripts/validation/check_num_table.py=utf-8
 encoding//src/scripts/validation/comparison.py=utf-8
 encoding//src/scripts/validation/test.py=utf-8
 encoding//src/setup.py=utf-8
