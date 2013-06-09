@@ -94,11 +94,12 @@ class Inequality(object):
         FILTERING_VARS = of_import(None, 'FILTERING_VARS', self.simulation.country) 
         for varname, entities in self.vars.iteritems():
             for entity in entities:
-                idx =  output.index[entity]
-                val  = output.get_value(varname, idx)
-                weights = output._inputs.get_value(WEIGHT, idx)
+                #idx =  output.index[entity]
+                
+                val  = output.get_value(varname, entity)
+                weights = output._inputs.get_value(WEIGHT, entity)
                 filter_var_name = FILTERING_VARS[0]
-                filter_var= output._inputs.get_value(filter_var_name, idx)
+                filter_var= output._inputs.get_value(filter_var_name, entity)
                 
             items = []
             # Compute mean
@@ -136,12 +137,12 @@ class Inequality(object):
         entity = "men"
         varname = "nivvie"
         for percentage in [ 40, 50, 60]:
-            idx =  output.index[entity]
+#            idx =  output.index[entity]
             varname = "pauvre" + str(percentage) 
-            val = output.get_value(varname, idx)
-            weights = output._inputs.get_value(WEIGHT, idx)
+            val = output.get_value(varname, entity)
+            weights = output._inputs.get_value(WEIGHT, entity)
             filter_var_name = FILTERING_VARS[0]
-            filter_var= output._inputs.get_value(filter_var_name, idx) 
+            filter_var= output._inputs.get_value(filter_var_name, entity) 
             poverty[percentage] =  (weights*filter_var*val).sum()/(weights*filter_var).sum()
             
         self.poverty = poverty
@@ -233,17 +234,15 @@ class InequalityWidget(OpenfiscaPluginWidget):
         simulation = self.inequality.simulation
         WEIGHT = of_import(None, 'WEIGHT', simulation.country)
 
-        idx_weight = {'ind': output._inputs.index['ind'],
-                      'men': output._inputs.index['men']}
+        entities = ['ind', 'men']
         weights = {}
-        for entity, idx in idx_weight.iteritems():
-            weights[entity] = output._inputs.get_value(WEIGHT, idx)
+        for entity in entities:
+            weights[entity] = output._inputs.get_value(WEIGHT, entity)
         
         for varname, entities in self.inequality.vars.iteritems():
             for entity in entities:
-                
-                idx =  output.index[entity]
-                values  = output.get_value(varname, idx)
+            
+                values  = output.get_value(varname, entity)
                 
                 x, y = lorenz(values, weights[entity])
                 label = varname + ' (' + entity + ') ' 
