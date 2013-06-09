@@ -103,9 +103,9 @@ class Calibration(object):
         WEIGHT = of_import("","WEIGHT", self.simulation.country)
         WEIGHT_INI = of_import("","WEIGHT_INI", self.simulation.country)
         
-        self.weights = 1*inputs.get_value(WEIGHT, inputs.index[self.entity])
-        self.weights_init = inputs.get_value(WEIGHT_INI, inputs.index[self.entity])
-        self.champm =  inputs.get_value("champm", inputs.index[self.entity])
+        self.weights = 1*inputs.get_value(WEIGHT, self.entity)
+        self.weights_init = inputs.get_value(WEIGHT_INI, self.entity)
+        self.champm =  inputs.get_value("champm", self.entity)
         
         self.ini_totalpop = sum(self.weights_init*self.champm)
         
@@ -173,7 +173,7 @@ class Calibration(object):
         outputs = self.simulation.outputs
 
         varcol = self.simulation.get_col(varname)
-        idx = inputs.index[self.entity]
+        entity = self.entity
         enum = inputs.description.get_col('qui'+self.entity).enum
         people = [x[1] for x in enum]
 
@@ -286,14 +286,14 @@ class Calibration(object):
         data = {weights_in: self.weights_init*self.champm}
         for var in marges:
             if inputs.description.has_col(var):
-                data[var] = inputs.get_value(var, inputs.index[self.entity])
+                data[var] = inputs.get_value(var, self.entity)
             else:
                 if outputs:
                     if outputs.description.has_col(var):
-                        idx = outputs.index[self.entity]
+                        entity = self.entity
                         enum = inputs.description.get_col('qui'+self.entity).enum
                         people = [x[1] for x in enum]
-                        data[var] = outputs.get_value(var, index=idx, opt=people, sum_=True)        
+                        data[var] = outputs.get_value(var, entity=entity, opt=people, sum_=True)        
         return data
 
     
@@ -365,12 +365,12 @@ class Calibration(object):
         w = self.weights
         for var in margins.keys():
             if inputs.description.has_col(var):
-                value = inputs.get_value(var, inputs.index[self.entity])
+                value = inputs.get_value(var, self.entity)
             else:
-                idx = outputs.index[self.entity]
+                entity = self.entity
                 enum = outputs._inputs.description.get_col('qui'+self.entity).enum
                 people = [x[1] for x in enum]
-                value = outputs.get_value(var, index=idx, opt=people, sum_=True)
+                value = outputs.get_value(var, entity=entity, opt=people, sum_=True)
                 
             if isinstance(margins[var], dict):
                 items = [('marge', w  ),('mod', value)]
@@ -667,11 +667,9 @@ class CalibrationWidget(OpenfiscaPluginWidget):
                             target = {str(varname): val*1e6}
                 else:
                     if datatable_name =='outputs':
-                        idx = self.outputs.index[self.entity]
-                        unique_values = unique(self.outputs.get_value(varname, idx))
+                        unique_values = unique(self.outputs.get_value(varname, self.entity))
                     elif datatable_name =='inputs':
-                        idx = self.inputs.index[self.entity]
-                        unique_values = unique(self.inputs.get_value(varname, idx))
+                        unique_values = unique(self.inputs.get_value(varname, self.entity))
                     target = {}
                     
                     for mod in unique_values:
