@@ -84,5 +84,5 @@ def survey_case():
 
 
 if __name__ == '__main__':
-    test_case()
-#    survey_case()
+#    test_case()
+    survey_case()
