@@ -15,6 +15,7 @@ encoding//src/countries/france/data/erf/build_survey/06_rebuild.py=utf-8
 encoding//src/countries/france/data/erf/build_survey/07_invalides.py=utf-8
 encoding//src/countries/france/data/erf/build_survey/08_final.py=utf-8
 encoding//src/countries/france/data/erf/build_survey/__init__.py=utf-8
+encoding//src/countries/france/data/erf/build_survey/utilitaries.py=utf-8
 encoding//src/countries/france/data/erf/datatable.py=utf-8
 encoding//src/countries/france/data/sources/build_actualisation_groups_from_sources.py=utf-8
 encoding//src/countries/france/data/sources/build_aggregates_from_sources.py=utf-8
