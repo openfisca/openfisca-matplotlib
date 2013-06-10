@@ -376,8 +376,7 @@ class MainWindow(QMainWindow):
         """
         Actions to perform after parameters are changed
         """
-        self.debug_print("Actions after changing parameters")
-        self.composition.action_compute.setEnabled(True)
+        self.debug_print("Entering parameters_changed")
         P, P_default = self.parameters.getParam(), self.parameters.getParam(defaut = True)
         self.scenario_simulation.set_param(P, P_default)
         self.composition.set_reform(reform = False)
@@ -386,7 +385,7 @@ class MainWindow(QMainWindow):
             self.survey_simulation.set_param(P, P_default)
             self.survey_explorer.set_reform(reform = False)
             self.survey_explorer.action_compute.setEnabled(True)
-        
+        self.debug_print("Exiting parameters_changed")
 
     def country_changed(self):
         """
@@ -683,7 +682,7 @@ class MainWindow(QMainWindow):
         datesim = CONF.get('parameters', 'datesim')
         self.scenario_simulation.set_config(country=country, datesim=datesim)
         CompositionWidget = of_import('widgets.Composition', 'CompositionWidget', country)
-        self.composition = CompositionWidget(self.scenario_simulation, self)
+        self.composition = CompositionWidget(self.scenario_simulation, parent=self)
         self.composition.register_plugin()
 
         # Scenario Graph widget
@@ -765,8 +764,6 @@ class MainWindow(QMainWindow):
             self.survey_toolbar = self.create_toolbar(_("Survey toolbar"),
                                            "survey_toolbar")
         add_actions(self.survey_toolbar, self.survey_toolbar_actions)
-        
-
         self.splash.hide()
 
             
