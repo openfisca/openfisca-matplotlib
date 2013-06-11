@@ -341,7 +341,7 @@ class MainWindow(QMainWindow):
         '''
         # liberate some memory before loading new data
         calibration = CalibrationWidget(inputs = self.survey_simulation.survey, 
-                                        outputs = self.survey_simulation.outputs, parent = self)
+                                        output_table = self.survey_simulation.output_table, parent = self)
         calibration.exec_()
         
     def inflate(self):
@@ -428,11 +428,11 @@ class MainWindow(QMainWindow):
         '''
         self._explore_data_widget.set_year(self.survey_simulation.survey.survey_year)
         self._explore_data_widget.add_dataframe(self.survey_simulation.survey.table, name = "input")
-        if self.survey_simulation.outputs is not None:
-            self._explore_data_widget.add_dataframe(self.survey_simulation.outputs.table, name = "output")
+        if self.survey_simulation.output_table is not None:
+            self._explore_data_widget.add_dataframe(self.survey_simulation.output_table.table, name = "output")
         if self.reforme:
-            if self.survey_simulation.outputs_default is not None:
-                self._explore_data_widget.add_dataframe(self.survey_simulation.outputs_default.table, name = "output_default")
+            if self.survey_simulation.output_table_default is not None:
+                self._explore_data_widget.add_dataframe(self.survey_simulation.output_table_default.table, name = "output_default")
 
     
     def closeEvent(self, event):
@@ -538,5 +538,5 @@ class MainWindow(QMainWindow):
         self.statusbar.showMessage(u"Aggrégats calculés")
         self.emit(SIGNAL('aggregate_calculated()'))
         self.action_refresh_aggregate.setEnabled(False)
-        self._inequality_widget.set_data(self.survey_simulation.outputs)
+        self._inequality_widget.set_data(self.survey_simulation.output_table)
         self._inequality_widget.refresh()

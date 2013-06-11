@@ -169,8 +169,7 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         # load_from_file(self):        
         fname = self.get_option('data_file')
         if path.isfile(fname):
-#            try:
-            if True:
+            try:
                 simulation.set_survey(filename = fname)
                 year = simulation.survey.survey_year
                 # Sets year in label
@@ -180,11 +179,11 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
                 
                 
                 self.update_view(fill_default=True)
-#            except:
-#                print 'Survey data loading failed: disabling survey mode'
-#                self.set_option('bareme_only', True)
+            except:
+                print 'Survey data loading failed: disabling survey mode'
+                self.set_option('bareme_only', True)
                  
-#                raise Exception('Survey data loading failed')
+                #raise Exception('Survey data loading failed')
                 
         self.simulation = simulation
             
@@ -450,12 +449,12 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         '''
         self.starting_long_process(_("Refreshing survey explorer dataframe ..."))
         simulation = self.main.survey_simulation        
-        if simulation.outputs is not None:
-            self.add_dataframe(simulation.outputs.table, 
+        if simulation.output_table is not None:
+            self.add_dataframe(simulation.output_table.table, 
                                name = "output")
         if simulation.reforme:
-            if simulation.outputs_default is not None:
-                self.add_dataframe(simulation.outputs_default.table, 
+            if simulation.output_table_default is not None:
+                self.add_dataframe(simulation.output_table_default.table, 
                                    name = "output_default")
         self.update_choices()
         self.update_btns()

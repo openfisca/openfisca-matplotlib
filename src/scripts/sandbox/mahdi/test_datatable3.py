@@ -56,7 +56,7 @@ def build_aggregates3():
 #            import pdb
 #            pdb.set_trace()
 ##            com.convert_to_r_dataframe
-            simu.outputs.table3[ent][:num_output].to_csv(dir_name)
+            simu.output_table.table3[ent][:num_output].to_csv(dir_name)
 
         
         deb1 = time.clock()
@@ -67,7 +67,7 @@ def build_aggregates3():
         
         dir_name = destination_dir + 'en1' +'.csv'
         print "prob output"
-        simu.outputs.table[:num_output].to_csv(dir_name)
+        simu.output_table.table[:num_output].to_csv(dir_name)
         
         agg = Aggregates()
         print "prob set"

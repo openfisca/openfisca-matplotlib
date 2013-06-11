@@ -63,7 +63,7 @@ def compar_num_table():
  
         agg3 = Aggregates()
         for ent in ['ind','men','foy','fam']:
-            tab = simu.outputs.table3[ent]
+            tab = simu.output_table.table3[ent]
             renam={}
             renam['wprm_'+ent] = 'wprm'
             tab = tab.rename(columns=renam)
@@ -83,7 +83,7 @@ def compar_num_table():
         # export to csv to run compar in R
         for ent in ['ind','men','foy','fam']:
             dir_name = destination_dir + ent +'.csv'
-            tab = simu.outputs.table3[ent]
+            tab = simu.output_table.table3[ent]
             renam ={}
             renam['wprm_'+ent] = 'wprm'
             if ent=='ind':
@@ -109,7 +109,7 @@ def compar_num_table():
         
         # export to csv to run compar in R
         dir_name = destination_dir + 'en1' +'.csv'
-        tab = simu.outputs.table
+        tab = simu.output_table.table
         tab = tab.drop(['idfam_fam','idfam_foy','idfam_men','idfoy_fam','idfoy_foy','idfoy_men','idmen_men','idmen_fam','idmen_foy','wprm_foy','wprm_fam'],axis=1)
         renam ={}
         ent = 'ind'

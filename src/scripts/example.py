@@ -46,7 +46,7 @@ def test_case():
     # df.to_excel(destination_dir = "c:/users/utilisateur/documents/" + fname)
 
 def survey_case():
-    year = 2009 
+    year = 2006 
     yr = str(year)
 #        fname = "Agg_%s.%s" %(str(yr), "xls")
     simulation = SurveySimulation()
