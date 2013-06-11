@@ -199,7 +199,7 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
         Note: after some thinking, it appears that using a method
         is more flexible here than using a class attribute
         """
-        return "Parameters"
+        return _("Legislative parameters")
 
     
     def get_plugin_icon(self):

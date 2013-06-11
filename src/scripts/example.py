@@ -34,22 +34,18 @@ def test_case():
     # Adding a husband/wife on the same tax sheet (foyer)
     simulation.scenario.addIndiv(1, datetime(1975,1,1).date(), 'conj', 'part') 
     simulation.set_param()
-
+    
     # A the aefa prestation can be disabled by uncommenting the following line
     # simulation.disable_prestations( ['aefa'])
-    
     df = simulation.get_results_dataframe()
-
     print df.to_string()
-
+    
     # Save example to excel
     # destination_dir = "c:/users/utilisateur/documents/"
     # fname = "Example_%s.%s" %(str(yr), "xls")    
     # df.to_excel(destination_dir = "c:/users/utilisateur/documents/" + fname)
 
-
 def survey_case():
-    
     year = 2009 
     yr = str(year)
 #        fname = "Agg_%s.%s" %(str(yr), "xls")
