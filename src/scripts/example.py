@@ -29,7 +29,7 @@ def test_case():
     country = 'france'
 
     simulation = ScenarioSimulation()
-    simulation.set_config(year = yr, country = country, 
+    simulation.set_config(year = yr, country = country, reforme=True,
                     nmen = 3, maxrev = 100000, xaxis = 'sali')
     # Adding a husband/wife on the same tax sheet (foyer)
     simulation.scenario.addIndiv(1, datetime(1975,1,1).date(), 'conj', 'part') 
@@ -84,5 +84,5 @@ def survey_case():
 
 
 if __name__ == '__main__':
-#    test_case()
-    survey_case()
+    test_case()
+#     survey_case()
