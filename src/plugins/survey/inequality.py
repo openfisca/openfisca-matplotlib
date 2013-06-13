@@ -87,7 +87,7 @@ class Inequality(object):
         """
         Compute inequality dataframe
         """
-        output = self.simulation.outputs
+        output = self.simulation.output_table
         final_df = None
         
         WEIGHT = of_import(None, 'WEIGHT', self.simulation.country)
@@ -230,7 +230,7 @@ class InequalityWidget(OpenfiscaPluginWidget):
         axes.clear()
         
             
-        output = self.inequality.simulation.outputs
+        output = self.inequality.simulation.output_table
         simulation = self.inequality.simulation
         WEIGHT = of_import(None, 'WEIGHT', simulation.country)
 

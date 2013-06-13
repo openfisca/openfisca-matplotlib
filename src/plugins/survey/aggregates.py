@@ -148,8 +148,8 @@ class Aggregates(object):
         """
         Compute aggregate amounts
         """
-        if self.simulation.outputs is None:
-            raise Exception("No outputs found for the current survey_simulation")
+        if self.simulation.output_table is None:
+            raise Exception("No output_table found for the current survey_simulation")
         
         V  = []    
         M = {'data': [], 'default': []}
@@ -161,7 +161,7 @@ class Aggregates(object):
         B_label = {'data': self.labels['benef'], 
                    'default': self.labels['benef_default']}
 
-        description = self.simulation.outputs.description
+        description = self.simulation.output_table.description
         label2var, var2label, var2enum = description.builds_dicts()
         for var in self.varlist:
             # amounts and beneficiaries from current data and default data if exists
@@ -217,7 +217,7 @@ class Aggregates(object):
         country = self.simulation.country
         WEIGHT = of_import("","WEIGHT", country)
         simulation = self.simulation
-        description = simulation.outputs.description
+        description = simulation.output_table.description
         
         def aggregate(var, filter_by):  # TODO: should be a method of Presta
             varcol  = description.get_col(var)            
@@ -238,8 +238,18 @@ class Aggregates(object):
             for name, data in datasets.iteritems():
                 montants = data[var]
                 beneficiaires = data[var].values != 0
-                m_b[name] = [int(round(sum(montants*weight)/10**6)),
-                            int(round(sum(beneficiaires*weight)/10**3))]
+                from numpy import nan
+                try:
+                    amount = int(round(sum(montants*weight)/10**6))
+                except:
+                    amount = nan
+                try:
+                    benef = int(round(sum(beneficiaires*weight)/10**3))
+                except:
+                    benef = nan
+                    
+                m_b[name] = [amount, benef]
+            
             return m_b
         
         return aggregate(variable, filter_by)
@@ -656,7 +666,7 @@ class AggregatesWidget(OpenfiscaPluginWidget):
 
     def refresh_plugin(self):
         '''
-        Update aggregate outputs and refresh view
+        Update aggregate output_table and refresh view
         '''
         
         simulation = self.main.survey_simulation
@@ -667,7 +677,7 @@ class AggregatesWidget(OpenfiscaPluginWidget):
         
         self.aggregates = agg
         self.survey_year = self.aggregates.simulation.survey.survey_year
-        self.description = self.aggregates.simulation.outputs.description
+        self.description = self.aggregates.simulation.output_table.description
 
         self.select_menu = QMenu()
         action_dep = create_action(self, u"Dépenses", 

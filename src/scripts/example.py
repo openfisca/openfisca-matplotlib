@@ -29,7 +29,7 @@ def test_case():
     country = 'france'
 
     simulation = ScenarioSimulation()
-    simulation.set_config(year = yr, country = country, 
+    simulation.set_config(year = yr, country = country, reforme=True,
                     nmen = 3, maxrev = 100000, xaxis = 'sali')
     # Adding a husband/wife on the same tax sheet (foyer)
     simulation.scenario.addIndiv(1, datetime(1975,1,1).date(), 'conj', 'part') 
@@ -46,13 +46,13 @@ def test_case():
     # df.to_excel(destination_dir = "c:/users/utilisateur/documents/" + fname)
 
 def survey_case():
-    year = 2009 
+    year = 2006 
     yr = str(year)
 #        fname = "Agg_%s.%s" %(str(yr), "xls")
     simulation = SurveySimulation()
     simulation.set_config(year = yr, country = country)
     simulation.set_param()
-    simulation.set_survey()
+
 
 #    Ignore this
 #    inflator = get_loyer_inflator(year)
@@ -84,5 +84,5 @@ def survey_case():
 
 
 if __name__ == '__main__':
-#    test_case()
+#     test_case()
     survey_case()
