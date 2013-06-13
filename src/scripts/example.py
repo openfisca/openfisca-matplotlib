@@ -52,7 +52,7 @@ def survey_case():
     simulation = SurveySimulation()
     simulation.set_config(year = yr, country = country)
     simulation.set_param()
-    simulation.set_survey()
+
 
 #    Ignore this
 #    inflator = get_loyer_inflator(year)
@@ -84,5 +84,5 @@ def survey_case():
 
 
 if __name__ == '__main__':
-    test_case()
-#     survey_case()
+#     test_case()
+    survey_case()
