@@ -331,18 +331,20 @@ def loop_over_revenue_type(revenues_dict = None, filename = None, show=True):
     and every revenue type
     """
     if revenues_dict is None:
-        revenues_dict = {"sali" : 350000,
+        revenues_dict = {"sali" : 500000,
+                         "f2tr" : 500000,
+                         }
+    """       
                          "rsti" : 350000,
                          "f2da" : 350000,
                          "f2dh" : 350000,
                          "f2dc" : 350000,
-                         "f2ts" : 350000,
-                         "f2tr" : 350000,
+                         "f2ts" : 350000,        
                          "f4ba" : 350000,
                          "f3vg" : 350000,
                          "f3vz" : 350000,
-                         }
-        
+    """
+    
     for xaxis, maxrev in revenues_dict.iteritems():
         print xaxis
         if filename is None:
