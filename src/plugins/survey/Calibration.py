@@ -96,7 +96,7 @@ class Calibration(object):
         """
 
         self.simulation = simulation
-        inputs = self.simulation.survey
+        inputs = self.simulation.input_table
         if inputs is None:
             return
         self.entity = 'men' # TODO: shoud not be france specific
@@ -991,7 +991,7 @@ class CalibrationWidget(OpenfiscaPluginWidget):
         Register plugin in OpenFisca's main window
         """
         simulation = self.main.survey_simulation
-        if simulation.survey is None:
+        if simulation.input_table is None:
             return
         calibration = Calibration()
         if simulation is not None: 

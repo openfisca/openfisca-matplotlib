@@ -400,7 +400,7 @@ class Aggregates(object):
         descr =  [u'OpenFisca', 
                          u'Calculé le %s à %s' % (now.strftime('%d-%m-%Y'), now.strftime('%H:%M')),
                          u'Système socio-fiscal au %s' % self.simulation.datesim,
-                         u"Données d'enquêtes de l'année %s" %str(self.simulation.survey.survey_year) ]
+                         u"Données d'enquêtes de l'année %s" %str(self.simulation.input_table.survey_year) ]
         return DataFrame(descr)
         
     
@@ -676,7 +676,7 @@ class AggregatesWidget(OpenfiscaPluginWidget):
         agg.compute()
         
         self.aggregates = agg
-        self.survey_year = self.aggregates.simulation.survey.survey_year
+        self.survey_year = self.aggregates.simulation.input_table.survey_year
         self.description = self.aggregates.simulation.output_table.description
 
         self.select_menu = QMenu()
