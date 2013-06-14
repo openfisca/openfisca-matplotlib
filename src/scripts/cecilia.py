@@ -19,8 +19,8 @@ from src.lib.simulation import ScenarioSimulation
 SHOW_OPENFISCA = True
 EXPORT = False
 
-#DESTINATION_DIR = "c:/Users/Laurence Bouvard/Documents/cecilia/"      
-DESTINATION_DIR = "c:/Users/Utilisateur/Documents/cecilia/"      
+DESTINATION_DIR = "c:/Users/Laurence Bouvard/Documents/cecilia/"      
+#DESTINATION_DIR = "c:/Users/Utilisateur/Documents/cecilia/"      
 
 class ApplicationWindow(QMainWindow):
     def __init__(self):
@@ -159,7 +159,7 @@ def test_bareme(xaxis="sali"):
     # foncier  f4ba fon (micro foncier f4be)
 
 
-    maxrev = 350000    
+    maxrev = 500000    
     year = 2012
     country = 'france'
     simulation = ScenarioSimulation()        
