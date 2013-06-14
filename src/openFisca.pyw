@@ -725,7 +725,7 @@ class MainWindow(QMainWindow):
             self.survey_simulation.set_config(country = country)
             self.survey_simulation.set_param()
 
-            if self.survey_simulation.survey is None:
+            if self.survey_simulation.input_table is None:
                 self.debug_print("No survey data, dont load survey plugins")
                 return
                 

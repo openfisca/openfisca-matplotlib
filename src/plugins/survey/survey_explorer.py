@@ -162,26 +162,34 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         reforme = self.get_option('reform')
         year = datesim.year
         simulation.set_config(year = year, country = country, reforme = reforme)
+        survey_filename = self.get_option('data_file')
+        if path.isfile(survey_filename):
+            simulation.set_config(survey_filename = survey_filename)
         self.simulation = simulation
 
     def load_data(self):
         simulation = self.main.survey_simulation
-        # load_from_file(self):        
         fname = self.get_option('data_file')
-        if path.isfile(fname):
-            try:
-                simulation.set_survey(filename = fname)
-                year = simulation.survey.survey_year
+#         if path.isfile(fname):
+#             try:
+        if True:    
+                simulation.initialize_input_table()
+                simulation.input_table.load_data_from_survey(simulation.survey_filename,  
+                                               num_table = 1,
+                                               subset=None, 
+                                               print_missing=True)
+                year = simulation.input_table.survey_year
+                
+                
                 # Sets year in label
                 self.data_label.setText("Survey data from year " + str(year))
-                self.add_dataframe(simulation.survey.table, name = "input")
-                self.set_dataframe(simulation.survey.table, name = "input")
-                
+                self.add_dataframe(simulation.input_table.table, name = "input")
+                self.set_dataframe(simulation.input_table.table, name = "input")
                 
                 self.update_view(fill_default=True)
-            except:
-                print 'Survey data loading failed: disabling survey mode'
-                self.set_option('bareme_only', True)
+#             except:
+#                 print 'Survey data loading failed: disabling survey mode'
+#                 self.set_option('bareme_only', True)
                  
                 #raise Exception('Survey data loading failed')
                 

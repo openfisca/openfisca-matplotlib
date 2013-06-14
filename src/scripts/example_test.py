@@ -29,7 +29,7 @@ def test_case():
     country = 'france'
 
     simulation = ScenarioSimulation()
-    simulation.set_config(year = yr, country = country, reforme=False,
+    simulation.set_config(year = yr, country = country, reforme=True,
                     nmen = 3, maxrev = 100000, xaxis = 'sali')
     # Adding a husband/wife on the same tax sheet (foyer)
     simulation.scenario.addIndiv(1, datetime(1975,1,1).date(), 'conj', 'part') 
@@ -50,7 +50,10 @@ def survey_case():
     yr = str(year)
 #        fname = "Agg_%s.%s" %(str(yr), "xls")
     simulation = SurveySimulation()
-    simulation.set_config(year = yr, country = country)
+    from src import SRC_PATH
+    survey_filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'sources', 'test.h5')
+    simulation.set_config(year=yr, country=country, 
+                          survey_filename=survey_filename)
     simulation.set_param()
 
 
@@ -84,5 +87,5 @@ def survey_case():
 
 
 if __name__ == '__main__':
-    test_case()
+#     test_case()
     survey_case()

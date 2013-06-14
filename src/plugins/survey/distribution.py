@@ -387,7 +387,10 @@ class DistributionWidget(OpenfiscaPluginWidget):
             choices = []
         
         for var in choices:
-            combobox.addItem(var2label[var], var )
+            try:
+                combobox.addItem(var2label[var], var )
+            except:
+                combobox.addItem(var, var )
 
         if hasattr(self, 'distribution_by_var'):
             index = combobox.findData(self.distribution_by_var)
@@ -454,6 +457,7 @@ class DistributionWidget(OpenfiscaPluginWidget):
         self.main.add_dockwidget(self)
         dist = OpenfiscaPivotTable()
         dist.set_simulation(self.main.survey_simulation)
+        print self.main.survey_simulation.var_list
         self.set_openfisca_pivot_table(dist)
         
 
