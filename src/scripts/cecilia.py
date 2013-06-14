@@ -333,8 +333,6 @@ def loop_over_revenue_type(revenues_dict = None, filename = None, show=True):
     if revenues_dict is None:
         revenues_dict = {"sali" : 500000,
                          "f2tr" : 500000,
-                         }
-    """       
                          "rsti" : 350000,
                          "f2da" : 350000,
                          "f2dh" : 350000,
@@ -343,7 +341,9 @@ def loop_over_revenue_type(revenues_dict = None, filename = None, show=True):
                          "f4ba" : 350000,
                          "f3vg" : 350000,
                          "f3vz" : 350000,
-    """
+                         }
+        
+    
     
     for xaxis, maxrev in revenues_dict.iteritems():
         print xaxis
@@ -385,10 +385,10 @@ def loop_over_targets(revenues_dict=None, year=2012):
 def all_in_one_graph(revenues_dict=None, year=2012, filename=None, show=True):
     if revenues_dict is None:
         revenues_dict = {"sali" : 400000,
-                         "rsti" : 400000,
-                         "f2dc" : 400000,
+#                         "rsti" : 400000,
+#                         "f2dc" : 400000,
                          "f2tr" : 400000,
-                         "f4ba" : 400000,
+#                         "f4ba" : 400000,
                          }
 
     fig = plt.figure()
