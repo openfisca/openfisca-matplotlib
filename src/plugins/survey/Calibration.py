@@ -96,7 +96,7 @@ class Calibration(object):
         """
 
         self.simulation = simulation
-        inputs = self.simulation.survey
+        inputs = self.simulation.input_table
         if inputs is None:
             return
         self.entity = 'men' # TODO: shoud not be france specific
@@ -170,7 +170,7 @@ class Calibration(object):
         w_init = self.weights_init*self.champm
         w = self.weights*self.champm
         inputs = self.simulation.survey
-        outputs = self.simulation.outputs
+        output_table = self.simulation.output_table
 
         varcol = self.simulation.get_col(varname)
         entity = self.entity
@@ -179,9 +179,9 @@ class Calibration(object):
 
         if inputs.description.has_col(varname):
             value = inputs.get_value(varname, index = idx)
-        elif  outputs is not None:
-            if outputs.description.has_col(varname):
-                value = outputs.get_value(varname, index = idx, opt = people, sum_ = True)
+        elif  output_table is not None:
+            if output_table.description.has_col(varname):
+                value = output_table.get_value(varname, index = idx, opt = people, sum_ = True)
  
         label = varcol.label
         # TODO: rewrite this using pivot table
@@ -281,19 +281,19 @@ class Calibration(object):
         """
         # Select only champm ménages by nullifying weight for irrelevant ménages
         inputs = self.simulation.survey
-        outputs = self.simulation.outputs
+        output_table = self.simulation.output_table
         
         data = {weights_in: self.weights_init*self.champm}
         for var in marges:
             if inputs.description.has_col(var):
                 data[var] = inputs.get_value(var, self.entity)
             else:
-                if outputs:
-                    if outputs.description.has_col(var):
+                if output_table:
+                    if output_table.description.has_col(var):
                         entity = self.entity
                         enum = inputs.description.get_col('qui'+self.entity).enum
                         people = [x[1] for x in enum]
-                        data[var] = outputs.get_value(var, entity=entity, opt=people, sum_=True)        
+                        data[var] = output_table.get_value(var, entity=entity, opt=people, sum_=True)        
         return data
 
     
@@ -337,7 +337,7 @@ class Calibration(object):
 
         df = self.frame
         inputs = self.simulation.survey
-        outputs = self.simulation.outputs
+        output_table = self.simulation.output_table
         margins = {}
         
         if df is not None:
@@ -368,9 +368,9 @@ class Calibration(object):
                 value = inputs.get_value(var, self.entity)
             else:
                 entity = self.entity
-                enum = outputs._inputs.description.get_col('qui'+self.entity).enum
+                enum = output_table._inputs.description.get_col('qui'+self.entity).enum
                 people = [x[1] for x in enum]
-                value = outputs.get_value(var, entity=entity, opt=people, sum_=True)
+                value = output_table.get_value(var, entity=entity, opt=people, sum_=True)
                 
             if isinstance(margins[var], dict):
                 items = [('marge', w  ),('mod', value)]
@@ -656,8 +656,8 @@ class CalibrationWidget(OpenfiscaPluginWidget):
                 target_df = (self.input_margins_df['target'][indices]).reset_index()
                 target = dict(zip(target_df['mod'] ,target_df['target']))
             else:
-                if datatable_name =='outputs':
-                    varcol = self.outputs.description.get_col(varname)
+                if datatable_name =='output_table':
+                    varcol = self.output_table.description.get_col(varname)
                 elif datatable_name =='inputs':
                     varcol = self.inputs.description.get_col(varname) 
                 
@@ -666,8 +666,8 @@ class CalibrationWidget(OpenfiscaPluginWidget):
                         if ok:
                             target = {str(varname): val*1e6}
                 else:
-                    if datatable_name =='outputs':
-                        unique_values = unique(self.outputs.get_value(varname, self.entity))
+                    if datatable_name =='output_table':
+                        unique_values = unique(self.output_table.get_value(varname, self.entity))
                     elif datatable_name =='inputs':
                         unique_values = unique(self.inputs.get_value(varname, self.entity))
                     target = {}
@@ -744,10 +744,10 @@ class CalibrationWidget(OpenfiscaPluginWidget):
         Builds the sorted list of all accessible variables
         '''
         inputs = self.calibartion.simulation.inputs
-        outputs = self.calibartion.simulation.outputs
+        output_table = self.calibartion.simulation.output_table
         outset = set(inputs.col_names) - set(self.table_vars_list)
         if self.aggregate_calculated:
-            outset = outset.union(set(outputs.col_names)) - set(self.table_vars_list)
+            outset = outset.union(set(output_table.col_names)) - set(self.table_vars_list)
         return sorted(list(outset))
     
     @property
@@ -756,14 +756,14 @@ class CalibrationWidget(OpenfiscaPluginWidget):
 
         output_margins_df = self.output_margins_df
         try:
-            outputs = self.calibartion.simulation.outputs
+            output_table = self.calibartion.simulation.output_table
         except:
             return []
         if output_margins_df is not None:
             df = output_margins_df.reset_index() 
             #   data_oc = df[ df['source'] == 'output'] # + df['source'] == 'config']
             set_oc = set(df['var'].unique())
-            loc = set_oc.intersection( set(outputs.col_names))
+            loc = set_oc.intersection( set(output_table.col_names))
             return sorted(list(loc - set(self.table_vars_list)))
         else:
             return []
@@ -815,7 +815,7 @@ class CalibrationWidget(OpenfiscaPluginWidget):
         return True
                 
 #    def update_output_margins(self):
-#        datatable = self.outputs
+#        datatable = self.output_table
 #        inputs    = self.inputs
 #        w = inputs.get_value("wprm", inputs.index['men']) # TODO wprm_init ?
 #        for varname in datatable.description.col_names:
@@ -873,10 +873,10 @@ class CalibrationWidget(OpenfiscaPluginWidget):
     def get_var_datatable(self, varname):
         if self.calibration.simulation.survey.description.has_col(varname):
             return 'inputs'
-        elif self.self.calibration.simulation.outputs.description.has_col(varname):
-            return 'outputs'
+        elif self.self.calibration.simulation.output_table.description.has_col(varname):
+            return 'output_table'
         else:
-            print "Variable %s is absent from both inputs and outputs" % varname
+            print "Variable %s is absent from both inputs and output_table" % varname
             return ''
 
     def save_config(self):
@@ -991,7 +991,7 @@ class CalibrationWidget(OpenfiscaPluginWidget):
         Register plugin in OpenFisca's main window
         """
         simulation = self.main.survey_simulation
-        if simulation.survey is None:
+        if simulation.input_table is None:
             return
         calibration = Calibration()
         if simulation is not None: 
@@ -1011,7 +1011,7 @@ class CalibrationWidget(OpenfiscaPluginWidget):
         
     def refresh_plugin(self):
         '''
-        Update aggregate outputs and refresh view
+        Update aggregate output_table and refresh view
         '''
         
         self.starting_long_process(_("Refreshing calibration table ..."))

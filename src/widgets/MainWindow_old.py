@@ -87,8 +87,8 @@ class MainWindow(QMainWindow):
             # each update (there is nothing there for now, but it could 
             # be useful some day...
         
-        self.InputTable = None
-        self.ModelSF = None
+        self.InputDescription = None
+        self.OutputDescription = None
         self.start()
         
     def start(self, restart = False):
@@ -96,20 +96,20 @@ class MainWindow(QMainWindow):
         country = CONF.get('simulation', 'country')
         self.old_country = country
         
-        if self.InputTable is not None:
-            del self.InputTable
+        if self.InputDescription is not None:
+            del self.InputDescription
         
-        self.InputTable = of_import('model.data', 'InputTable')
+        self.InputDescription = of_import('model.data', 'InputDescription')
         
-        if self.ModelSF is not None:
-            del self.ModelSF
+        if self.OutputDescription is not None:
+            del self.OutputDescription
         
-        self.ModelSF = of_import('model.model', 'ModelSF')        
+        self.OutputDescription = of_import('model.model', 'OutputDescription')        
         Scenario = of_import('utils', 'Scenario')
 
 
         if restart is True:
-#            del InputTable, ModelSF, Scenario, ScenarioWidget 
+#            del InputDescription, OutputDescription, Scenario, ScenarioWidget 
             self.reset_aggregate()
             del self.scenario
             
@@ -295,7 +295,7 @@ class MainWindow(QMainWindow):
             
             fname = CONF.get('paths', 'survey_data/file')
             if path.isfile(fname):
-                self.survey = DataTable(self.InputTable, survey_data = fname)
+                self.survey = DataTable(self.InputDescription, survey_data = fname)
                 return True
 #            self.survey.inflate() #to be activated when data/inflate.csv is fixed
         except Exception, e:
@@ -410,7 +410,7 @@ class MainWindow(QMainWindow):
         # set the table model to None before changing data
         self._table.clearModel()
                 
-        input_table = DataTable(self.InputTable, scenario = self.scenario)
+        input_table = DataTable(self.InputDescription, scenario = self.scenario)
         output, output_default = self.preproc(input_table)
         data = gen_output_data(output)
         
@@ -430,16 +430,16 @@ class MainWindow(QMainWindow):
 
     def preproc(self, input_table):
         '''
-        Prepare the output values according to the ModelSF definitions/Reform status/input_table
+        Prepare the output values according to the OutputDescription definitions/Reform status/input_table
         '''
         P_default = self._parametres.getParam(defaut = True)    
         P         = self._parametres.getParam(defaut = False)
         
-        output = SystemSf(self.ModelSF, P, P_default)
+        output = SystemSf(self.OutputDescription, P, P_default)
         output.set_inputs(input_table)
                 
         if self.reforme:
-            output_default = SystemSf(self.ModelSF, P_default, P_default)
+            output_default = SystemSf(self.OutputDescription, P_default, P_default)
             output_default.set_inputs(input_table)
         else:
             output_default = output

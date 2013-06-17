@@ -2,13 +2,13 @@
 # Copyright © 2011 Clément Schaff, Mahdi Ben Jelloul
 
 """
-µSim, Logiciel libre de simulation du système socio-fiscal français
+OpenFisca, Logiciel libre de simulation du système socio-fiscal français
 Copyright © 2011 Clément Schaff, Mahdi Ben Jelloul
 
 
-This file is part of µSim.
+This file is part of OpenFisca.
 
-    µSim is free software: you can redistribute it and/or modify
+    OpenFisca is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
@@ -19,16 +19,15 @@ This file is part of µSim.
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with µSim.  If not, see <http://www.gnu.org/licenses/>.
+    along with OpenFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 from distutils.core import setup
-from Config import VERSION
+from src import __version__ as VERSION
 import py2exe
 import matplotlib
 import os
 import glob
-
 
 def find_data_files(source,target,patterns):
     """
@@ -80,9 +79,10 @@ tuples_list = []
 
 for country in countries:
     
-    model = find_data_files('./%s/model/' %country,
-                               '%s/model/' %country,
+    model = find_data_files('./countries//%s/model' %country,
+                               '/countries/%s/model' %country,
                                ['*.py'])
+    print model
     tuples_list.append(model[0])
     
     castypes = find_data_files('./%s/castypes/' %country,
@@ -128,7 +128,7 @@ setup(windows=[{
                 }], 
       options={"py2exe" : {"includes" : ["sip", "encodings.*", "numpy.*"],
                            "dist_dir": dist_dir,
-                           "packages": ["france","tunisia"],
+#                           "packages": ["france","tunisia"],
                            "bundle_files":3,
                            "dll_excludes": ["MSVCP90.dll"]
                            }}, 

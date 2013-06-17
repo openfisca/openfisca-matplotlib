@@ -34,12 +34,12 @@ def getattr_deep(obj, attr):
 
 def from_one_to_three(table,entity):
     from src.lib.utils import of_import
-    InputTable = of_import('model.data', 'InputTable', country)    
-    vars = [x for x in dir(InputTable()) if x[0] !="_" and x not in ['columns','get_comment','get_title','to_string']]
+    InputDescription = of_import('model.data', 'InputDescription', country)    
+    vars = [x for x in dir(InputDescription()) if x[0] !="_" and x not in ['columns','get_comment','get_title','to_string']]
     vars_entity = []
     for var in vars:  
         if var in table.columns:
-            if getattr_deep(InputTable(), str(var) +'.entity') == entity:
+            if getattr_deep(InputDescription(), str(var) +'.entity') == entity:
                 vars_entity.append(str(var))
     return vars_entity
   

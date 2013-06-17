@@ -41,7 +41,7 @@ class ApplicationWindow(QMainWindow):
 
 from datetime import datetime    
 
-
+destination_dir = "c:/users/utilisateur/documents/test_enfant/"    
 
 if __name__ == '__main__':
 
@@ -50,7 +50,7 @@ if __name__ == '__main__':
     win = ApplicationWindow()    
 
     country = 'france'
-    destination_dir = "c:/users/utilisateur/documents/"    
+
     yr = 2010
 
     marginal = True
@@ -69,7 +69,9 @@ if __name__ == '__main__':
         ax = win.mplwidget.axes    
             
         simu = ScenarioSimulation()        
-        simu.set_config(year = yr, country = country, nmen = 201, xaxis = 'sali', maxrev = 130000, reforme = False, mode ='bareme', same_rev_couple = True)
+        simu.set_config(year = yr, country = country, nmen = 201, 
+                        xaxis = 'sali', maxrev = 130000, reforme = False,
+                        mode ='bareme', same_rev_couple = True)
         simu.set_param()
         simu.scenario.addIndiv(1, datetime(1975,1,1).date(), 'conj', 'part') 
         
