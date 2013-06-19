@@ -41,8 +41,11 @@ def survey_case():
 #    simulation.inflate_survey({'loyer' : inflator})
 
     simulation.compute()
+    simul_out_df = simulation.output_table.table
+    print simul_out_df.loc[:,['af', 'af_base']].describe()
+    print simul_out_df.columns
     
-
+    return
 # Compute aggregates
     agg = Aggregates()
     agg.set_simulation(simulation)
@@ -124,5 +127,5 @@ def convert_to_3_tables(year=2006):
                 
         
 if __name__ == '__main__':
-#    survey_case()
-    convert_to_3_tables()
+    survey_case()
+#     convert_to_3_tables()

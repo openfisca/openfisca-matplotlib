@@ -64,7 +64,7 @@ def check_inputs_enumcols(simulation):
     
     is_ok = True
     message = None
-    survey = simulation.survey
+    survey = simulation.input_table
     for var in survey.col_names:
         varcol  = survey.description.get_col(var)
         if isinstance(varcol, EnumCol):
