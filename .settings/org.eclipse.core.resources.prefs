@@ -132,6 +132,7 @@ encoding//src/plugins/survey/distribution.py=utf-8
 encoding//src/plugins/survey/inequality.py=utf-8
 encoding//src/plugins/survey/survey_explorer.py=utf-8
 encoding//src/scripts/aggregates_all_years.py=utf-8
+encoding//src/scripts/alexis/chunk.py=utf-8
 encoding//src/scripts/avantage_enfant.py=utf-8
 encoding//src/scripts/cecilia.py=utf-8
 encoding//src/scripts/data/survey_1_to_4.py=utf-8
