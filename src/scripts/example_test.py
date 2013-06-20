@@ -15,7 +15,9 @@ from src.plugins.survey.aggregates import Aggregates
 from datetime import datetime
 from pandas import ExcelWriter, HDFStore
 import os
-
+# from src.scripts.validation.check_consistency_tests import ( check_inputs_enumcols,
+#                                                               check_entities,
+#                                                               check_weights)
 
 country = 'france'
 # destination_dir = "c:/users/utilisateur/documents/"
@@ -42,10 +44,14 @@ def survey_case():
 
     simulation.compute()
     simul_out_df = simulation.output_table.table
-    print simul_out_df.loc[:,['af', 'af_base']].describe()
+    simul_in_df = simulation.input_table.table
+    print simul_out_df.loc[:,['af', 'af_base', 'af_forf', 'af_majo', 'af_nbenf']].describe()
+    print 'output vars'
     print simul_out_df.columns
+    print 'input vars'
+    print simul_in_df.columns
+#     check_inputs_enumcols(simulation)
     
-    return
 # Compute aggregates
     agg = Aggregates()
     agg.set_simulation(simulation)
