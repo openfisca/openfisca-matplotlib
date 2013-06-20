@@ -44,6 +44,9 @@ def test_chunk():
         
         deb3 = time.clock()           
         sous_ech = None
+        sous_ech = range(0,5)
+        print sous_ech
+        simu.set_config(survey_filename='C:\\Til\\output\\to_run_leg.h5', num_table=3, subset=sous_ech, print_missing=False)
         simu.set_config(survey_filename='C:\\Til\\output\\to_run_leg.h5', num_table=3, chunk=3, print_missing=False)
         simu.compute()
  
