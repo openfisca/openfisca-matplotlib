@@ -46,10 +46,11 @@ def survey_case():
     simul_out_df = simulation.output_table.table
     simul_in_df = simulation.input_table.table
     print simul_out_df.loc[:,['af', 'af_base', 'af_forf', 'af_majo', 'af_nbenf']].describe()
+    print 'input vars'
+    print simul_in_df.columns    
     print 'output vars'
     print simul_out_df.columns
-    print 'input vars'
-    print simul_in_df.columns
+
 #     check_inputs_enumcols(simulation)
     
 # Compute aggregates
