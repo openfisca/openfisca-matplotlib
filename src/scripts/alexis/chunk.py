@@ -41,26 +41,24 @@ def test_chunk():
         simu.set_param()
         import time
         
-        
-        deb3 = time.clock()           
-        sous_ech = None
-        sous_ech = range(0,5)
-        print sous_ech
-        simu.set_config(survey_filename='C:\\Til\\output\\to_run_leg.h5', num_table=3, subset=sous_ech, print_missing=False)
-        simu.set_config(survey_filename='C:\\Til\\output\\to_run_leg.h5', num_table=3, chunk=3, print_missing=False)
-        simu.compute()
- 
-#         agg3 = Aggregates()
-#         for ent in ['ind','men','foy','fam']:
-#             tab = simu.outputs.table3[ent]
-#             renam={}
-#             renam['wprm_'+ent] = 'wprm'
-#             tab = tab.rename(columns=renam)
-#         agg3.set_simulation(simu)
-#         agg3.compute()       
-        
-        fin_chunk  = time.clock()
-
+        tps = {}
+        for nb_chunk in range(1,5): 
+            deb_chunk = time.clock()           
+            simu.set_config(survey_filename='C:\\Til\\output\\to_run_leg.h5', num_table=3, chunk=nb_chunk ,
+                            print_missing=False)
+            simu.compute()
+            tps[nb_chunk] = time.clock() - deb_chunk
+            
+            voir = simu.output_table.table3['foy']
+            print len(voir)
+            pdb.set_trace()
+            agg3 = Aggregates()
+            agg3.set_simulation(simu)
+            agg3.compute()       
+            df1 = agg3.aggr_frame
+            print df1.to_string()
+    
+    print tps
     store.close()
     
 if __name__ == '__main__':
