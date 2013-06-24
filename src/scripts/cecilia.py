@@ -19,8 +19,8 @@ from src.lib.simulation import ScenarioSimulation
 SHOW_OPENFISCA = True
 EXPORT = False
 
-#DESTINATION_DIR = "c:/Users/Laurence Bouvard/Documents/cecilia/"      
-DESTINATION_DIR = "c:/Users/Utilisateur/Documents/cecilia/"      
+DESTINATION_DIR = "c:/Users/Laurence Bouvard/Documents/cecilia/"      
+#DESTINATION_DIR = "c:/Users/Utilisateur/Documents/cecilia/"      
 
 class ApplicationWindow(QMainWindow):
     def __init__(self):
@@ -159,7 +159,7 @@ def test_bareme(xaxis="sali"):
     # foncier  f4ba fon (micro foncier f4be)
 
 
-    maxrev = 350000    
+    maxrev = 500000    
     year = 2012
     country = 'france'
     simulation = ScenarioSimulation()        
@@ -331,18 +331,20 @@ def loop_over_revenue_type(revenues_dict = None, filename = None, show=True):
     and every revenue type
     """
     if revenues_dict is None:
-        revenues_dict = {"sali" : 350000,
+        revenues_dict = {"sali" : 500000,
+                         "f2tr" : 500000,
                          "rsti" : 350000,
                          "f2da" : 350000,
                          "f2dh" : 350000,
                          "f2dc" : 350000,
-                         "f2ts" : 350000,
-                         "f2tr" : 350000,
+                         "f2ts" : 350000,        
                          "f4ba" : 350000,
                          "f3vg" : 350000,
                          "f3vz" : 350000,
                          }
         
+    
+    
     for xaxis, maxrev in revenues_dict.iteritems():
         print xaxis
         if filename is None:
@@ -383,10 +385,10 @@ def loop_over_targets(revenues_dict=None, year=2012):
 def all_in_one_graph(revenues_dict=None, year=2012, filename=None, show=True):
     if revenues_dict is None:
         revenues_dict = {"sali" : 400000,
-                         "rsti" : 400000,
-                         "f2dc" : 400000,
+#                         "rsti" : 400000,
+#                         "f2dc" : 400000,
                          "f2tr" : 400000,
-                         "f4ba" : 400000,
+#                         "f4ba" : 400000,
                          }
 
     fig = plt.figure()
