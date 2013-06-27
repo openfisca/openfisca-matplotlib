@@ -28,7 +28,7 @@ from src import SRC_PATH
     
 
 def survey_case():
-    year = 2006 
+    year = 2008 
     yr = str(year)
 #        fname = "Agg_%s.%s" %(str(yr), "xls")
     simulation = SurveySimulation()
