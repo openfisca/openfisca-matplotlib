@@ -64,23 +64,23 @@ def check_inputs_enumcols(simulation):
     
     is_ok = True
     message = None
-    input_table = simulation.input_table
-    for var in input_table.col_names:
-        varcol  = input_table.description.get_col(var)
+    survey = simulation.input_table
+    for var in survey.col_names:
+        varcol  = survey.description.get_col(var)
         if isinstance(varcol, EnumCol):
             try:
                 x = sorted(varcol.enum._nums.values())
-                if set(input_table.table[var].unique()) > set(varcol.enum._nums.values()):  
+                if set(survey.table[var].unique()) > set(varcol.enum._nums.values()):  
                     print "Wrong nums for %s" %var
                     print varcol.enum._nums
-                    print sorted(input_table.table[var].unique())
+                    print sorted(survey.table[var].unique())
                     is_ok = False
             except:
                 is_ok = False
                 print var
                 print "Wrong nums"
                 print varcol.enum
-                print sorted(input_table.table[var].unique())
+                print sorted(survey.table[var].unique())
                 print "\n"
 
             try:
@@ -90,7 +90,7 @@ def check_inputs_enumcols(simulation):
                 print var
                 print "wrong vars"
                 print varcol.enum
-                print sorted(input_table.table[var].unique())
+                print sorted(survey.table[var].unique())
                 print "\n"
     
     return is_ok, message
