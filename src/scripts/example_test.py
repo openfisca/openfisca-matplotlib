@@ -27,8 +27,7 @@ country = 'france'
 from src import SRC_PATH
     
 
-def survey_case():
-    year = 2008 
+def survey_case(year = 2006): 
     yr = str(year)
 #        fname = "Agg_%s.%s" %(str(yr), "xls")
     simulation = SurveySimulation()
@@ -134,5 +133,5 @@ def convert_to_3_tables(year=2006):
                 
         
 if __name__ == '__main__':
-    survey_case()
+    survey_case(year = 2009)
 #     convert_to_3_tables()
