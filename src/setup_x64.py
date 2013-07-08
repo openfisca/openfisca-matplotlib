@@ -25,6 +25,7 @@ This file is part of OpenFisca.
 from distutils.core import setup
 from src import __version__ as VERSION
 import py2exe
+
 import matplotlib
 import os
 import glob
