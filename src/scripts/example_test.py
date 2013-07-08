@@ -409,15 +409,17 @@ def convert_to_3_tables(year=2006):
             
 def test_laurence():
     import gc
-    def transform_to_excel(dfs, dfs_erf):
+    def reshape_tables(dfs, dfs_erf):
         agg = Aggregates()
-        agg.set_header_labels()
-
+        agg.set_header_labels() # We need this for the columns labels to work
+        
+        # Resetting index to avoid later trouble on manipulation
         for d in dfs:
             d.reset_index(inplace = True)
         for d in dfs_erf:
             d.reset_index(inplace = True)
             d['Mesure'] = agg.labels['dep']
+            
     #         d.set_index( agg.labels['var'], inplace = True) #, drop = True ?
 #         temp = dfs[0].merge(dfs[1], on = agg.labels['var'], suffixes = ('_2006','_2007'))
 #         temp = temp.merge(dfs[2], on = agg.labels['var'], suffixes = ('_2007','_2008'))
@@ -426,7 +428,15 @@ def test_laurence():
         temp = pd.concat([temp,dfs[2]], ignore_index = True)
         temp = pd.concat([temp,dfs[3]], ignore_index = True)
         
+        # We split the real aggregates from the of table
         temp2 = temp[[agg.labels['var'], agg.labels['benef_real'], agg.labels['dep_real'], 'year']]
+        del temp[agg.labels['benef_real']], temp[agg.labels['dep_real']]
+        temp['source'] = 'of'
+        temp2['source'] = 'reel'
+        temp2.rename(columns = {agg.labels['benef_real'] : agg.labels['benef'],
+                                agg.labels['dep_real'] : agg.labels['dep']}, 
+                     inplace = True)
+        temp = pd.concat([temp,temp2], ignore_index = True)
         
         temp3 = pd.concat([dfs_erf[0], dfs_erf[1]], ignore_index = True)
         temp3 = pd.concat([temp3, dfs_erf[2]], ignore_index = True)
@@ -437,16 +447,11 @@ def test_laurence():
         temp3.rename(columns = {'1' : agg.labels['var'], '2' : agg.labels['dep']}, inplace = True)
         temp3['source'] = 'erfs'
         
-        del temp[agg.labels['benef_real']], temp[agg.labels['dep_real']]
-        temp['source'] = 'of'
-        temp2['source'] = 'reel'
-        temp2.rename(columns = {agg.labels['benef_real'] : agg.labels['benef'],
-                                agg.labels['dep_real'] : agg.labels['dep']}, 
-                     inplace = True)
-        temp = pd.concat([temp,temp2], ignore_index = True)
         temp = pd.concat([temp, temp3], ignore_index = True)
 #         temp.set_index(agg.labels['var'], inplace = True, drop = False)
         print temp.to_string()
+        
+        # Index manipulation to reshape the output
         temp.reset_index(drop = True, inplace = True)
 #         index = pd.MultiIndex.from_arrays([temp['Mesure'], temp['source'], temp['year']])
         temp.set_index('Mesure', drop = True, inplace = True)
@@ -468,9 +473,11 @@ def test_laurence():
         wb.save("C:\outputtest.xls")
 
     dfs = []
+    dfs_erf = []
     for i in range(2006,2010):
         year = i
         yr = str(i)
+        # Running a standard SurveySim to get aggregates
         simulation = SurveySimulation()
         survey_filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'sources', 'test.h5')
         simulation.set_config(year=yr, country=country, 
@@ -487,22 +494,18 @@ def test_laurence():
         variables = agg.varlist
         del simulation, agg, label2var, var2enum
         
+        #Getting ERF aggregates from ERF table
+        dfs_erf.append(build_erf_aggregates(variables=variables, year= year))
+        dfs_erf[i - 2006] = year
         gc.collect()
-    print ' GO GO GO GALO SENGEN'
 
-    dfs_erf = build_erf_aggregates(variables)
-    print 'INUYASHA'
-    dfs_erf[0]['year'] = 2006
-    dfs_erf[1]['year'] = 2007
-    dfs_erf[2]['year'] = 2008
-    dfs_erf[3]['year'] = 2009
-    print 'OPEN YOUR EYES'
-    datatest = transform_to_excel(dfs, dfs_erf)
+    datatest = reshape_tables(dfs, dfs_erf)
     save_as_xls(datatest)
        
         
 if __name__ == '__main__':
 #     survey_case(year = 2006)
 #     convert_to_3_tables()
-#    test_laurence()
-    dfs_erf = build_erf_aggregates(variables =["af"])
+    test_laurence()
+#     year = 2006
+#     dfs_erf = build_erf_aggregates(variables =["af"], year=year)
