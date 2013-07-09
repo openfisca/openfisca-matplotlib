@@ -496,7 +496,7 @@ def test_laurence():
         
         #Getting ERF aggregates from ERF table
         dfs_erf.append(build_erf_aggregates(variables=variables, year= year))
-        dfs_erf[i - 2006] = year
+        (dfs_erf[i - 2006])['year'] = year
         gc.collect()
 
     datatest = reshape_tables(dfs, dfs_erf)

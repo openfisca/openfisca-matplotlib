@@ -95,8 +95,8 @@ def test(year=2006):
     # Detect the biggest differences
     bigtable = merge(erf_df, output_df, on = 'idmen', how = 'inner', suffixes=('_erf','_of'))
     print 'Length of new dataframe is %s' %str(len(bigtable))
-    del erf_df, output_df
-    gc.collect()
+#     del erf_df, output_df
+#     gc.collect()
     for col in colcom:
 #         temp = (bigtable[col+'_erf'] - bigtable[col+'_of']) / bigtable[col+'_erf']
 #         temp1 = np.isinf(temp)
@@ -127,6 +127,55 @@ def test(year=2006):
         bigtable.sort(column = col, ascending = False, inplace = True)
         print bigtable[['idmen', col]][0:10] #Should print the idmen along with col by descreasing number of discrapencies
         print "\n"
+        
+        # If variable is a Prestation, we show the dependancies
+        from src.lib.columns import Prestation
+        varcol = varcol  = simulation.output_table.description.get_col(col)
+        if isinstance(varcol, Prestation):
+            temp = list(varcol._parents)
+            temp = map(lambda x: x.name, temp)
+                
+            if set(temp) <= set(output_df.columns):
+                print "Variables the prestation %s depends of :" %col
+                for i in xrange(len(temp)):
+                    if temp[i] + '_of' in bigtable.columns:
+                        temp[i] += '_of'
+            elif set(temp) <= set(output_df.columns).union(erf_df.columns):
+                print "Variables the prestation %s depends of (some missing picked in erf):" %col
+                for i in xrange(len(temp)):
+                    var = temp[i]
+                    if var in output_df.columns:
+                        if var + '_of' in bigtable.columns:
+                            var = var + '_of'
+                    else:
+                        if var + '_erf' in bigtable.columns:
+                            var = var + '_erf'
+                    temp[i] = var
+            else:
+                print "Variables the prestation %s depends of (some missing):" %col
+                for i in xrange(len(temp)):
+                    var = temp[i]
+                    if var in output_df.columns:
+                        if var + '_of' in bigtable.columns:
+                            var = var + '_of'
+                    elif var in erf_df.columns:
+                        if var + '_erf' in bigtable.columns:
+                            var = var + '_erf'
+                    else:
+                        temp.remove(var)
+                    temp[i] = var
+    #             temp = list(varcol._parents)
+    #             for cp in temp:
+    #                 cp = cp.name
+            print bigtable[['idmen', col] + temp][0:10]
+            print "\n"
+#             if varcol._children <= simulation.output_table.description.columns:
+#                 print "Prestations which need %s to be computed :" %col
+#     #             temp = list(varcol._children)
+#     #             for cp in temp:
+#     #                 cp = cp.name
+#                 print bigtable[['idmen', col] + temp][0:10]
+#                 print "\n"
     
     
  
