@@ -10,7 +10,8 @@
 
 from __future__ import division
 from datetime import datetime
-from pandas import ExcelWriter, HDFStore, DataFrame, merge
+import pandas as pd
+from pandas import ExcelWriter, HDFStore, DataFrame, merge, Series
 import os
 import numpy as np
 from numpy import logical_and as and_, logical_or as or_
@@ -69,14 +70,7 @@ def test(year=2006, variables = ['af']):
         variables =[variable]
         return simulation.aggregated_by_entity(entity="men", variables=variables,  
                                                 all_output_vars = False, force_sum=True)[0]
-    output_df_nonaggr = (simulation.output_table.table)#[variables]
-    output_df_nonaggr.sort(columns = 'idmen_ind', inplace = True)
-    print 'noi' in output_df_nonaggr.columns
-    print output_df_nonaggr[['idfam_fam', 'idfam_foy', 'idfam_ind', 'idfam_men', 'idfoy_fam', 'idfoy_foy'
-                             , 'idfoy_ind', 'idfoy_men', 'idmen_fam', 'idmen_foy', 'idmen_ind', 'idmen_men']][0:15]
-    
-#     output_df_nonaggr.set_index('idmen', inplace = True, drop = True)
-    
+        
     output_df = get_var(variables[0])
     for var in variables[1:]:
         output_df = output_df.merge(get_var(var)[['idmen', var]], on = 'idmen', how = 'outer') 
@@ -86,10 +80,53 @@ def test(year=2006, variables = ['af']):
     from src.countries.france.data.erf import get_erf2of
     erf2of = get_erf2of()
     erf_df.rename(columns = erf2of, inplace = True)
+    
+#     print simulation.output_table.table.columns
+#     print sorted(set(simulation.input_table.table.columns))
+#     print simulation.output_table.table['quimen_ind']
+#     print simulation.input_table.table['quimen']
+#     print simulation.input_table.table['noindiv']
+    
+    s1 = [var for var in set(options).intersection(set(simulation.output_table.table.columns))] + ['idmen_ind', 'quimen_ind']
+    output_df_nonaggr = (simulation.output_table.table)[s1]
+    output_df_nonaggr.rename(columns = {'idmen_ind' : 'idmen', 'quimen_ind':'quimen'}, inplace = True)
+    print output_df_nonaggr.columns
+    print 'idmen' in output_df_nonaggr.columns
+    if (set(s1)- set(['idmen_ind', 'quimen_ind'])) < set(options):
+        s2 = [var for var in (set(options).intersection(set(simulation.input_table.table.columns)) - set(s1))] + ['idmen', 'quimen']
+        print s2
+        temp = simulation.input_table.table[s2]
+        print temp.columns
+        print output_df_nonaggr.columns
+        output_df_nonaggr = output_df_nonaggr.merge(temp, on = ['idmen', 'quimen'], how = 'inner', sort = False)
+        print 'idmen' in output_df_nonaggr.columns
+        if (set(s1).union(set(s2))- set(['idmen', 'quimen'])) < set(options): # Need to call upon erf table
+            s3 = [var for var in set(options).intersection(set(erf_data.get_of_values(variables = None, table ="erf_menage").columns)) - set(s1).union(set(s2))] + ['ident']
+            print s3
+            temp = erf_data.get_of_values(variables = s3, table = "erf_menage")
+            temp.rename(columns = {'ident' : 'idmen'}, inplace = True)
+            output_df_nonaggr = output_df_nonaggr.merge(temp, on = 'idmen', how = 'inner', sort = False)
+            print 'idmen' in output_df_nonaggr.columns
+            del s3
+        del s2, temp
+    del s1
+    gc.collect()
+    
+    output_df_nonaggr = output_df_nonaggr[list(set(options)) + ['idmen', 'quimen']] # - set(variables)
+    print options, variables
+    print output_df_nonaggr.columns
+    assert 'idmen' in output_df_nonaggr.columns, 'Idmen not in output_df_nonaggr columns'
+    
+    print 'noi' in simulation.input_table.table.columns
+#     print output_df_nonaggr[['idfam_fam', 'idfam_foy', 'idfam_ind', 'idfam_men', 'idfoy_fam', 'idfoy_foy'
+#                              , 'idfoy_ind', 'idfoy_men', 'idmen_fam', 'idmen_foy', 'idmen_ind', 'idmen_men']][0:15]
+    
+#     output_df_nonaggr.set_index('idmen', inplace = True, drop = True)
 
 
     # Check the idmens that are not common        
     erf_df.rename(columns = {'ident' : 'idmen'}, inplace = True)
+    output_df_nonaggr.rename(columns = {'idmen_ind' : 'idmen'}, inplace = True)
     # <=============== MODIFY HERE TO STUDY =/= ENTITIES ====================>
     
     print "\n"
@@ -143,11 +180,13 @@ def test(year=2006, variables = ['af']):
     # Detect the biggest differences
     bigtable = merge(erf_df, output_df, on = 'idmen', how = 'inner', suffixes=('_erf','_of'))
     print 'Length of new dataframe is %s' %str(len(bigtable))
-    bigtable.set_index('idmen', drop = True, inplace = True)
+    print bigtable.columns
+    bigtable.set_index('idmen', drop = False, inplace = True)
 #     del erf_df, output_df
 #     gc.collect()    
     
     already_met = []
+    options_met = []
 
     for col in colcom:
         table = bigtable[and_(bigtable[col+'_erf']!=0,bigtable[col+'_of']!=0)] 
@@ -172,7 +211,7 @@ def test(year=2006, variables = ['af']):
     
     # Show the relevant information for the most deviant households
         table.sort(columns = col, ascending = False, inplace = True)
-        print table[col][0:100].to_string() #Should print the idmen along with col by descreasing number of discrapencies
+        print table[col][0:10].to_string() #Should print the idmen along with col by descreasing number of discrapencies
         print "\n"
         
         # If variable is a Prestation, we show the dependancies
@@ -215,9 +254,7 @@ def test(year=2006, variables = ['af']):
                 print "\n"
     
             def iter_on_parents(varcol):
-                print varcol._option
-                print "PINGAs"
-                if varcol._parents == set() or varcol.name in already_met:
+                if (varcol._parents == set() and varcol._option == {}) or varcol.name in already_met:
                     return
                 else:
                     temp = list(varcol._parents)
@@ -258,8 +295,24 @@ def test(year=2006, variables = ['af']):
             #             for cp in temp:
             #                 cp = cp.name
                     if len(temp2) > 0:
-                        print table[[col] + temp2][0:10]
-                        print "\n"
+                        temp = table[[col] + temp2][0:10]
+                        print temp.to_string(), "\n"
+                        if varcol._option != {} and not set(varcol._option.keys()) < set(options_met):
+                            vars_to_fetch = list(set(varcol._option.keys())-set(options_met))
+                            print "and the options to current variable %s for the id's with strongest difference :\n %s \n" %(varcol.name, varcol._option.keys())
+                            liste = [i for i in range(0,10)]
+                            liste = map(lambda x: table['idmen'].iloc[x], liste)
+                            temp2 = output_df_nonaggr[['idmen', 'quimen'] 
+                                                      + vars_to_fetch][output_df_nonaggr['idmen'].isin(table['idmen'][0:10])]
+                            
+                            temp3 = temp2[temp2['idmen'] == liste[0]]
+                            for i in xrange(1,10):
+                                temp3 = temp3.append(temp2[temp2['idmen'] == liste[i]])
+                            temp3.set_index(['idmen', 'quimen'], drop = True, inplace = True)
+                            print temp3.to_string(), "\n"
+#                             print pd.pivot_table(temp, rows = 'temp', cols = 'idmen', values = varcol._option.keys()).to_string()
+                            del temp, temp2, temp3
+                            gc.collect()
                         
         #             if varcol._children <= simulation.output_table.description.columns:
         #                 print "Prestations which need %s to be computed :" %col
@@ -270,6 +323,7 @@ def test(year=2006, variables = ['af']):
         #                 print "\n"
                             
                     already_met.append(varcol.name)
+                    options_met.extend(varcol._option.keys())
                     for var in varcol._parents:
                         iter_on_parents(var)
                         
