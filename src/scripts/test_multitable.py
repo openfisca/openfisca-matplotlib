@@ -20,83 +20,66 @@ from datetime import datetime
 from pandas import ExcelWriter, HDFStore
 import os
 from src.countries.france.data.erf.aggregates import build_erf_aggregates
+from src.scripts.data_management.separate_tables_generator import convert_to_3_tables
 import pandas as pd
 from src import SRC_PATH
-from src.countries.france.data.erf.build_survey.utilitaries import check_structure
+from src.countries.france.data.erf.build_survey.utilitaries import check_structure, control
+
+
 
 country = 'france'
-
-def vars_matching_entity_from_table(table, simulation=None, entity='ind'):
-    """
-    Extract simulation input variables which entity attribute matches entity
-    from table 
-    """
-    if simulation is None:
-        raise Exception('You need a simulation to extract the variables from')
-    
-    vars_matching_entity = ['quifoy', 'quifam','quimen'] #TODO: faire qqchose de plus propre
-    for var in simulation.input_var_list:  
-        if var in table.columns:
-            col = simulation.get_col(var)
-            if col.entity == entity:
-                vars_matching_entity.append(str(var))
-    return vars_matching_entity
+#Setting the files path:
+survey_filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'sources', 'test.h5')
+filename3 = os.path.join(SRC_PATH, 'countries', country, 'data', 'sources', 'test3.h5')
 
 
 def test_convert_to_3_tables(year=2006):
-    survey_filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'sources', 'test.h5')
-    filename3 = os.path.join(SRC_PATH, 'countries', country, 'data', 'sources', 'test3.h5')
+    
+    #Performing the separation :
+    convert_to_3_tables(year=year, survey_file=survey_filename, output_file=filename3)
+    import gc
+    gc.collect()
+    
+def check_converted():
+    #Retrieving the input and output files for analysis : 
     store = HDFStore(survey_filename)
-    print store
+    input_df = store['survey_2006']
     
     output = HDFStore(filename3)
-    print output
-    
-    from src.lib.simulation import SurveySimulation
-    simulation = SurveySimulation()
-    simulation.set_config(country="france", year=year)
-    
-    table1 = store['survey_'+str(year)]   
-    print table1
-    
-
-    for entity in ['ind','foy','men','fam']:
-        key = 'survey_'+str(year) + '/'+str(entity)
-        
-        vars_matching_entity = vars_matching_entity_from_table(table1, simulation, entity)
-        print entity, vars_matching_entity_from_table
-        if entity == 'ind': 
-            table_entity = table1[vars_matching_entity]
-        # we take care have all ident and selecting qui==0
-        else:
-            enum = 'qui'+entity
-            table_entity = table1.ix[table1[enum] ==0 ,['noi','idmen','idfoy','idfam'] + 
-                                                        vars_matching_entity]
-            table_entity= table_entity.rename_axis(table_entity['id'+entity], axis=1)
-        print key
-        output.put(key, table_entity)
     
     df_fam = output['survey_2006/fam']
     df_foy = output['survey_2006/foy']
     df_men = output['survey_2006/men']
-    
-    
+    df_ind = output['survey_2006/ind']
+     
     df_foy['noindiv'] = df_foy['noi'] ; del df_foy['noi']
     df_fam['noindiv'] = df_fam['noi'] ; del df_fam['noi']
     df_men['noindiv'] = df_men['noi'] ; del df_men['noi']
-    
 #     print df_fam, df_foy, df_men
-    check_structure(df_foy)
-    check_structure(df_fam)
-    check_structure(df_men)
-    check_structure(store['survey_2006'])
 
-    del table1
+#     check_structure(store['survey_2006'])
+#     control(input_df, verbose=True, verbose_columns=['noindiv'])
+#     control(df_foy, verbose=True, verbose_columns=['noindiv'])
     
-    import gc
-    gc.collect()
-    store.close()
-    output.close()
+    print input_df.duplicated('noindiv').sum(), len(input_df)
+    print df_foy.duplicated('noindiv').sum(), len(df_foy)
+    print df_fam.duplicated('noindiv').sum(), len(df_fam)
+    print df_men.duplicated('noindiv').sum(), len(df_men)
+#     print df_ind.head(10).to_string()
+    print '    FAM'
+    print df_fam['idfam'].head(5).to_string()
+    print '    FOY'
+    print df_foy['idfoy'].head(5).to_string()
+    print '    MEN'
+    print df_men['idmen'].head(5).to_string()
+
+#     print df_fam.columns
+    print '    INPUT'
+    print input_df['noindiv'].head(10).to_string()
+#     print input_df.loc[input_df.duplicated('noindiv'), ['noindiv', 'idfoy']].head(10).to_string()
+    del input_df
+
 
 if __name__ == '__main__':
     test_convert_to_3_tables()
+#     check_converted()
