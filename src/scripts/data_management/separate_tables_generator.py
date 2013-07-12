@@ -51,21 +51,25 @@ def convert_to_3_tables(year=2006, survey_file=None, output_file=None):
         
         vars_matching_entity = vars_matching_entity_from_table(table1, simulation, entity)
         print entity, vars_matching_entity_from_table
-        
         print 'table1 enum'
+        
         if entity == 'ind': 
+            print 'INDIVIDUALS'
+            print table1['noindiv']
             table_entity = table1.loc[:, ['noi','idmen','idfoy','idfam','quifoy','quimen','quifam'] + vars_matching_entity]
             
         # we take care have all ident and selecting qui==0
         else:
+#             print '    entity :', entity
+#             print table1['noindiv'].head()
             position = 'qui'+entity
 #             print table1[position]
             table_entity = table1.ix[table1[position] == 0 ,['noi','idmen','idfoy','idfam','quifoy','quimen','quifam'] + 
                                                         vars_matching_entity]
-            print table_entity.noi.head()
+#             print table_entity.noi.head()
             table_entity= table_entity.rename_axis(table_entity['id'+entity], axis=1)
-            print '    APRES'
-            print table_entity.noi.head()
+#             print '    APRES'
+#             print table_entity.noi.head()
         print key
         output.put(key, table_entity)
     
