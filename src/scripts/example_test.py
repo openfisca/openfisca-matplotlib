@@ -173,6 +173,8 @@ def test_laurence():
         label2var, var2label, var2enum = simulation.output_table.description.builds_dicts()
         dfs.append(df)
         variables = agg.varlist
+        print agg
+        return
         del simulation, agg, label2var, var2enum
         
         #Getting ERF aggregates from ERF table
@@ -185,8 +187,8 @@ def test_laurence():
        
         
 if __name__ == '__main__':
-    survey_case(year = 2006)
+#     survey_case(year = 2006)
 #     convert_to_3_tables()
-#    test_laurence()
+    test_laurence()
 #     year = 2006
 #     dfs_erf = build_erf_aggregates(variables =["af"], year=year)
