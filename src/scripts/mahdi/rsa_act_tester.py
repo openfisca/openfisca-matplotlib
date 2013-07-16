@@ -25,9 +25,11 @@ def test_case(year):
 
     simulation = ScenarioSimulation()
     simulation.set_config(year = year, country = country, reforme=False,
-                    nmen = 3, maxrev = 100000, xaxis = 'sali')
+                    nmen = 3, maxrev = 1180*12, xaxis = 'sali')
     # Adding a husband/wife on the same tax sheet (foyer)
     simulation.scenario.addIndiv(1, datetime(1975,1,1).date(), 'conj', 'part') 
+    simulation.scenario.addIndiv(2, datetime(2000,1,1).date(), 'pac', 'enf')
+    simulation.scenario.addIndiv(3, datetime(2000,1,1).date(), 'pac', 'enf')
     simulation.set_param()
     
     # A the aefa prestation can be disabled by uncommenting the following line
@@ -78,9 +80,8 @@ def survey_case(year):
 
 
 if __name__ == '__main__':
-#    test_case()
-    for year in range(2008,2010):
-        survey_case(year)
+    test_case(2010)
+    
         
 
 
