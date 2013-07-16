@@ -56,7 +56,7 @@ def convert_to_3_tables(year=2006, survey_file=None, output_file=None):
         if entity == 'ind': 
             print 'INDIVIDUALS'
             print table1['noindiv']
-            table_entity = table1.loc[:, ['noi','idmen','idfoy','idfam','quifoy','quimen','quifam'] + vars_matching_entity]
+            table_entity = table1.loc[:, vars_matching_entity]
             
         # we take care have all ident and selecting qui==0
         else:
