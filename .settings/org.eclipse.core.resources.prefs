@@ -136,6 +136,7 @@ encoding//src/scripts/aggregates_all_years.py=utf-8
 encoding//src/scripts/alexis/chunk.py=utf-8
 encoding//src/scripts/avantage_enfant.py=utf-8
 encoding//src/scripts/cecilia.py=utf-8
+encoding//src/scripts/data_management/separate_tables_generator.py=utf-8
 encoding//src/scripts/data_management/survey_1_to_4.py=utf-8
 encoding//src/scripts/desindex.py=utf-8
 encoding//src/scripts/euromod.py=utf-8

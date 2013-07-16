@@ -57,7 +57,7 @@ def survey_case(year = 2006):
     simul_in_df = simulation.input_table.table
     print simul_out_df.loc[:,['af', 'af_base', 'af_forf', 'af_majo', 'af_nbenf']].describe()
     print 'input vars'
-    print simul_in_df.columns    
+    print simul_in_df.columns
     print 'output vars'
     print simul_out_df.columns
     
