@@ -81,12 +81,40 @@ def test(year=2006, variables = ['af']):
                                                  
     # We load the data from erf table in case we have to pick data there
     erf_data = DataCollection(year=year)
-    erf_df = erf_data.get_of_values(variables=variables + ["ident", "wprm"], table="erf_menage")
+    os.system('cls')
+    todo = set(variables + ["ident", "wprm"]).union(set(options))
+    print 'Loading data from erf_menage table'
+    erf_df = erf_data.get_of_values(variables= list(todo), table="erf_menage")
+    erf_df['noi'] = 01 # Creation of 'quimen' to ease future merge
+    
+    if todo - set(erf_df.columns) != set(): # Need to call upon erf_indivi
+        todo = todo - set(erf_df.columns)
+        print 'Could not get all variables, loading variables from erf_indivi table'
+        temp = erf_data.get_of_values(variables= list(set(list(todo) + ['ident', 'noi'])), table = "erf_indivi")
+        assert 'noi' in temp.columns
+        
+        erf_df = erf_df.merge(temp, on = ['ident','noi'], how = 'right', suffixes = ('(men)', '(ind)'), sort = True)
+        print erf_df[0:20].to_string()
+        if todo - set(temp.columns) != set():
+            print 'Could not get all variables, loading variables from eec_indivi table'
+            todo = todo - set(temp.columns) 
+            temp = erf_data.get_of_values(variables= list(todo) + ['ident', 'noi'], table = "eec_indivi")
+            erf_df = erf_df.merge(temp, on = ['ident', 'noi'], how = 'inner', suffixes = ('(ind_erf)', '(ind_eec)'), sort = False)
+            if todo - set(erf_df.columns) != set():
+                print "Warning, couldn't still get all values from erf tables : \n %s \n" %str(todo - set(erf_df.columns))
+        del temp
+    del todo
+    gc.collect()
+    return
+    assert 'ident' in erf_df.columns, "ident not in erf_df.columns"
+    
+    print erf_df[0:20].to_string()
+    return
+        
     from src.countries.france.data.erf import get_erf2of
     erf2of = get_erf2of()
     erf_df.rename(columns = erf2of, inplace = True)
     
-    os.system('cls')
     
 # We get the options from the simulation tables:
 
@@ -108,15 +136,18 @@ def test(year=2006, variables = ['af']):
         #print 'idmen' in output_df_nonaggr.columns
         
         # Finally, we might add data from erf table
+        
         if (set(s1).union(set(s2))- set(['idmen', 'quimen'])) < set(options): # Need to call upon erf table
-            print 'Warning, picking data directly from survey table'
-            s3 = [var for var in set(options).intersection(set(erf_data.get_of_values(variables = None, table ="erf_menage").columns)) - set(s1).union(set(s2))] + ['ident']
-            #print s3
-            temp = erf_data.get_of_values(variables = s3, table = "erf_menage")
-            temp.rename(columns = {'ident' : 'idmen'}, inplace = True)
-            output_df_nonaggr = output_df_nonaggr.merge(temp, on = 'idmen', how = 'inner', sort = False)
-            #print 'idmen' in output_df_nonaggr.columns
-            del s3
+            print "Warning, some variables couldn't be found in simulation tables"
+#             print 'Warning, picking data directly from survey table'
+#             s3 = [var for var in set(options).intersection(set(erf_data.get_of_values(variables = None, table ="erf_menage").columns)) - set(s1).union(set(s2))] + ['ident']
+#             #print s3
+#             temp = erf_data.get_of_values(variables = s3, table = "erf_menage")
+#             temp.rename(columns = {'ident' : 'idmen'}, inplace = True)
+#             output_df_nonaggr = output_df_nonaggr.merge(temp, on = 'idmen', how = 'inner', sort = False)
+#             #print 'idmen' in output_df_nonaggr.columns
+#             del s3
+            
         del s2, temp
     del s1
     gc.collect()

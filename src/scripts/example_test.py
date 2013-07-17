@@ -9,14 +9,21 @@
 
 # Exemple of a simple simulation
 
-from src.lib.simulation import ScenarioSimulation
-from src.lib.simulation import SurveySimulation
+from src.lib.simulation import ScenarioSimulation, SurveySimulation, Simulation
 from src.plugins.survey.aggregates import Aggregates
 from datetime import datetime
 from pandas import ExcelWriter, HDFStore
 import os
 from src.countries.france.data.erf.aggregates import build_erf_aggregates
 import pandas as pd
+from src.lib.utils import of_import
+from pandas import DataFrame
+# DataFrame.groupby(self, by, axis, level, as_index, sort, group_keys)
+# DataFrame.unstack(self, level)
+from pandas.core.index import Index
+import numpy as np
+import gc
+import random
 
 try:
     import xlwt
@@ -89,27 +96,70 @@ def survey_case(year = 2006):
 
             
 def test_laurence():
-    import gc
+    '''
+    Computes the openfisca/real numbers comparaison table in excel worksheet.
+    
+    Warning: To add more years you'll have to twitch the code manually. 
+    Default is years 2006 to 2009 included.
+    '''
+#     from numpy.random import randn
+#     mesures = ['cotsoc','af', 'add', 'cotsoc','af', 'add', 'cotsoc','af', 'add', 
+#                'cotsoc','af', 'add', 'cotsoc','af', 'add', 'cotsoc','af', 'add', 
+#                'cotsoc','af', 'add', 'cotsoc','af', 'add', 'cotsoc','af', 'add']
+#     sources = ['of', 'of', 'of', 'erfs', 'erfs', 'erfs', 'reel', 'reel', 'reel',
+#                'of', 'of', 'of', 'erfs', 'erfs', 'erfs', 'reel', 'reel', 'reel',
+#                'of', 'of', 'of', 'erfs', 'erfs', 'erfs', 'reel', 'reel', 'reel']
+#     year = ['2006', '2006', '2006', '2006', '2006', '2006', '2006', '2006', '2006',
+#             '2007', '2007', '2007', '2007', '2007', '2007', '2007', '2007', '2007',
+#             '2008', '2008', '2008', '2008', '2008', '2008', '2008', '2008', '2008',
+#             '2009', '2009', '2009', '2009', '2009', '2009', '2009', '2009', '2009']
+#     ind = zip(*[mesures,sources, year])
+# #     print ind
+#     from pandas.core.index import MultiIndex
+#     ind = MultiIndex.from_tuples(ind, names = ['mesure', 'source', 'year'])
+# #     print ind
+#     d = pd.DataFrame(randn(27,2), columns = ['A', 'B'], index = ind)
+#     d_unstacked = d.unstack()
+#     print d
+#     indtemp1 = d.index.get_level_values(0)
+#     indtemp2 = d.index.get_level_values(1)
+#     indexi = zip(*[indtemp1, indtemp2])
+#     print indexi
+#     indexi = MultiIndex.from_tuples(indexi, names = ['Mesure', 'source'])
+#     print indexi
+# #     d_unstacked = d_unstacked.reindex_axis(indexi, axis = 0)
+#     print d_unstacked.columns.get
+#     return
+    
     def reshape_tables(dfs, dfs_erf):
         agg = Aggregates()
-        agg.set_header_labels() # We need this for the columns labels to work
+        agg.varlist = of_import("","AGGREGATES_DEFAULT_VARS", 'france')
+         
+        # We need this for the columns labels to work
         
-        # Resetting index to avoid later trouble on manipulation
+        print 'Resetting index to avoid later trouble on manipulation'
         for d in dfs:
             d.reset_index(inplace = True)
+            d.set_index('Mesure', inplace = True, drop = False)
+            d.reindex_axis(labels_variables, axis = 0)
+            d.reset_index(inplace = True, drop = True)
+#             print d.to_string()
         for d in dfs_erf:
             d.reset_index(inplace = True)
             d['Mesure'] = agg.labels['dep']
+            d.set_index('index', inplace = True, drop = False)
+            d.reindex_axis(agg.labels.values(), axis = 0)
+            d.reset_index(inplace = True, drop = True)
+#             print d.to_string()
             
-    #         d.set_index( agg.labels['var'], inplace = True) #, drop = True ?
-#         temp = dfs[0].merge(dfs[1], on = agg.labels['var'], suffixes = ('_2006','_2007'))
-#         temp = temp.merge(dfs[2], on = agg.labels['var'], suffixes = ('_2007','_2008'))
-#         temp = temp.merge(dfs[3], on = agg.labels['var'], suffixes = ('_2008','_2009'))
+        # Concatening the openfisca tables for =/= years
         temp = pd.concat([dfs[0],dfs[1]], ignore_index = True)
         temp = pd.concat([temp,dfs[2]], ignore_index = True)
         temp = pd.concat([temp,dfs[3]], ignore_index = True)
+        del temp[agg.labels['entity']], temp['index']
+        gc.collect()
         
-        # We split the real aggregates from the of table
+        print 'We split the real aggregates from the of table'
         temp2 = temp[[agg.labels['var'], agg.labels['benef_real'], agg.labels['dep_real'], 'year']]
         del temp[agg.labels['benef_real']], temp[agg.labels['dep_real']]
         temp['source'] = 'of'
@@ -119,39 +169,77 @@ def test_laurence():
                      inplace = True)
         temp = pd.concat([temp,temp2], ignore_index = True)
         
+        print 'We add the erf data to the table'
+        for df in dfs_erf:
+            del df['level_0'], df['Mesure']
+            df.rename(columns = {'index' : agg.labels['var'], 1 : agg.labels['dep']}, inplace = True)
         temp3 = pd.concat([dfs_erf[0], dfs_erf[1]], ignore_index = True)
         temp3 = pd.concat([temp3, dfs_erf[2]], ignore_index = True)
         temp3 = pd.concat([temp3, dfs_erf[3]], ignore_index = True)
-        temp3.rename(columns = var2label, inplace = True)
-        temp3 = temp3.T
-        temp3.reset_index(inplace = True)
-        temp3.rename(columns = {'1' : agg.labels['var'], '2' : agg.labels['dep']}, inplace = True)
         temp3['source'] = 'erfs'
-        
+        gc.collect()
         temp = pd.concat([temp, temp3], ignore_index = True)
-#         temp.set_index(agg.labels['var'], inplace = True, drop = False)
-        print temp.to_string()
+#         print temp.to_string()
         
-        # Index manipulation to reshape the output
+        print 'Index manipulation to reshape the output'
         temp.reset_index(drop = True, inplace = True)
-#         index = pd.MultiIndex.from_arrays([temp['Mesure'], temp['source'], temp['year']])
-        temp.set_index('Mesure', drop = True, inplace = True)
-        temp.set_index('source', drop = True, append = True, inplace = True)
-        temp.set_index('year', drop = True, append = True, inplace = True)
-        print isinstance(temp, pd.DataFrame)
-#         temp = temp.pivot(columns = 'year')
-        temp = temp.unstack('year')
-        print temp.to_string()
-#         temp = temp.stack(agg.labels['var'], dropna = False)
-        temp.fillna(0, inplace = True)
-        return temp
+        # We set the new index
+#         temp.set_index('Mesure', drop = True, inplace = True)
+#         temp.set_index('source', drop = True, append = True, inplace = True)
+#         temp.set_index('year', drop = False, append = True, inplace = True)
+        temp = temp.groupby(by=["Mesure", "source", "year"], sort = False).sum()
+        # Tricky, the [mesure, source, year] index is unique so sum() will return the only value
+        # Groupby automatically deleted the source, mesure... columns and added them to index
+        assert(isinstance(temp, pd.DataFrame))
+#         print temp.to_string()
+        
+        # We want the years to be in columns, so we use unstack
+        temp_unstacked = temp.unstack()
+        # Unfortunately, unstack automatically sorts rows and columns, we have to reindex the table :
+        
+        ## Reindexing rows
+        from pandas.core.index import MultiIndex
+        indtemp1 = temp.index.get_level_values(0)
+        indtemp2 = temp.index.get_level_values(1)
+        indexi = zip(*[indtemp1, indtemp2])
+        indexi_bis = []
+        for i in xrange(0,len(indexi)):
+            if indexi[i] not in indexi_bis:
+                indexi_bis.append(indexi[i])
+        indexi = indexi_bis
+        del indexi_bis
+        indexi = MultiIndex.from_tuples(indexi, names = ['Mesure', 'source'])
+#         import pdb
+#         pdb.set_trace()
+        temp_unstacked = temp_unstacked.reindex_axis(indexi, axis = 0)
+        
+        ## Reindexing columns
+        col_indexi = []
+        for col in temp_unstacked.columns.get_level_values(0).unique():
+            for yr in temp_unstacked.columns.get_level_values(1).unique():
+                col_indexi.append((col, str(yr)))
+        col_indexi = MultiIndex.from_tuples(col_indexi)
+#         print col_indexi
+#         print temp_unstacked.columns
+        print agg.labels.values()
+        temp_unstacked = temp_unstacked.reindex_axis(agg.labels.values(), level = 0, axis = 1)
+        
+        # Our table is ready to be turned to Excel worksheet !
+        print temp_unstacked.to_string()
+        temp_unstacked.fillna(0, inplace = True)
+        return temp_unstacked
 
     def save_as_xls(df):
+        # Saves a datatable under Excel table using XLtable
         stxl = XLtable(df)
         wb = xlwt.Workbook()
         ws = wb.add_sheet('resultatstest')
         erfxcel = stxl.place_table(ws)
-        wb.save("C:\outputtest.xls")
+        try: # I dunno more clever commands
+            wb.save("C:\outputtest.xls")
+        except:
+            n = random.randint(0,100)
+            wb.save("C:\outputtest_"+str(n)+".xls")
 
     dfs = []
     dfs_erf = []
@@ -171,17 +259,25 @@ def test_laurence():
         df = agg.aggr_frame
         df['year'] = year
         label2var, var2label, var2enum = simulation.output_table.description.builds_dicts()
+        colonnes = simulation.output_table.table.columns
         dfs.append(df)
         variables = agg.varlist
-        print agg
-        return
-        del simulation, agg, label2var, var2enum
+        labels_variables = map(lambda x: var2label[x], variables)
+        del simulation, agg, var2enum, df
+        gc.collect()
         
         #Getting ERF aggregates from ERF table
-        dfs_erf.append(build_erf_aggregates(variables=variables, year= year))
-        (dfs_erf[i - 2006])['year'] = year
+        temp = (build_erf_aggregates(variables=variables, year= year))
+        temp.rename(columns = var2label, inplace = True)
+        temp = temp.T
+        temp.reset_index(inplace = True)
+        temp['year'] = year
+        dfs_erf.append(temp)
+        del temp
         gc.collect()
-
+        print 'Out of data fetching for year ' + str(year)
+    print 'Out of data fetching'
+    
     datatest = reshape_tables(dfs, dfs_erf)
     save_as_xls(datatest)
        
