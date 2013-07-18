@@ -90,6 +90,7 @@ encoding//src/gui/utils/inspector/__init__.py=utf-8
 encoding//src/gui/utils/inspector/conf.py=utf-8
 encoding//src/gui/utils/inspector/sphinxify.py=utf-8
 encoding//src/gui/utils/iofuncs.py=utf-8
+encoding//src/gui/utils/misc.py=utf-8
 encoding//src/gui/utils/module_completion.py=utf-8
 encoding//src/gui/utils/programs.py=utf-8
 encoding//src/gui/utils/qthelpers.py=utf-8
