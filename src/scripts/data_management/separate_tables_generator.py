@@ -1,3 +1,4 @@
+# -*- coding:utf-8 -*-
 '''
 Created on 9 juil. 2013
 
@@ -6,6 +7,8 @@ Created on 9 juil. 2013
 from src import SRC_PATH
 import os
 from pandas import HDFStore
+from src.lib.simulation import SurveySimulation
+
 country = "france"
 
 
@@ -18,6 +21,7 @@ def vars_matching_entity_from_table(table, simulation=None, entity='ind'):
         raise Exception('You need a simulation to extract the variables from')
     
     vars_matching_entity = []
+        
     for var in simulation.input_var_list:  
         if var in table.columns:
             col = simulation.get_col(var)
@@ -26,23 +30,20 @@ def vars_matching_entity_from_table(table, simulation=None, entity='ind'):
     return vars_matching_entity
 
 
-def convert_to_3_tables(year=2006, simulation=None):
+def convert_to_3_tables(year=2006, survey_file=None, output_file=None):
     
-    if simulation is None:
-        raise Exception('You need a simulation to extract the variables from')
+    if survey_file is None:
+        raise Exception('You need a .h5 file with the survey to extract the variables from')
+    if output_file is None:
+        output_file = survey_file
+        raise Warning('the survey file will be used to store the created tables')
     
-    survey_filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'sources', 'test.h5')
-    filename3 = os.path.join(SRC_PATH, 'countries', country, 'data', 'sources', 'test3.h5')
-    store = HDFStore(survey_filename)
-    print store
-    
-    output = HDFStore(filename3)
+    store = HDFStore(survey_file)
+    output = HDFStore(output_file)
     print output
     
-    from src.lib.simulation import SurveySimulation
     simulation = SurveySimulation()
     simulation.set_config(country="france", year=year)
-    
     table1 = store['survey_'+str(year)]   
 
     for entity in ['ind','foy','men','fam']:
@@ -50,14 +51,25 @@ def convert_to_3_tables(year=2006, simulation=None):
         
         vars_matching_entity = vars_matching_entity_from_table(table1, simulation, entity)
         print entity, vars_matching_entity_from_table
+        print 'table1 enum'
+        
         if entity == 'ind': 
-            table_entity = table1[vars_matching_entity]
+            print 'INDIVIDUALS'
+            print table1['noindiv']
+            table_entity = table1.loc[:, vars_matching_entity]
+            
         # we take care have all ident and selecting qui==0
         else:
-            enum = 'qui'+entity
-            table_entity = table1.ix[table1[enum] ==0 ,['noi','idmen','idfoy','idfam'] + 
+#             print '    entity :', entity
+#             print table1['noindiv'].head()
+            position = 'qui'+entity
+#             print table1[position]
+            table_entity = table1.ix[table1[position] == 0 ,['noi','idmen','idfoy','idfam','quifoy','quimen','quifam'] + 
                                                         vars_matching_entity]
+#             print table_entity.noi.head()
             table_entity= table_entity.rename_axis(table_entity['id'+entity], axis=1)
+#             print '    APRES'
+#             print table_entity.noi.head()
         print key
         output.put(key, table_entity)
     
@@ -65,8 +77,8 @@ def convert_to_3_tables(year=2006, simulation=None):
     import gc
     gc.collect()
 
-    return output
-
+    store.close()
+    output.close()
 
 if __name__ == '__main__':
     convert_to_3_tables()

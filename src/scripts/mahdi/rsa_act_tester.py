@@ -1,13 +1,8 @@
-# -*- coding:utf-8 -*-# -*- coding:utf-8 -*-
-#
-# This file is part of OpenFisca.
-# OpenFisca is a socio-fiscal microsimulation software
-# Copyright © 2011 Clément Schaff, Mahdi Ben Jelloul
-# Licensed under the terms of the GVPLv3 or later license
-# (see openfisca/__init__.py for details)
+'''
+Created on 9 juil. 2013
 
-
-# Exemple of a simple simulation
+@author: benjello
+'''
 
 from src.lib.simulation import ScenarioSimulation
 from src.lib.simulation import SurveySimulation
@@ -25,14 +20,16 @@ country = 'france'
 
 
 def test_case(year):
-    
+
     country = 'france'
 
     simulation = ScenarioSimulation()
     simulation.set_config(year = year, country = country, reforme=False,
-                    nmen = 3, maxrev = 100000, xaxis = 'sali')
+                    nmen = 3, maxrev = 1180*12, xaxis = 'sali')
     # Adding a husband/wife on the same tax sheet (foyer)
     simulation.scenario.addIndiv(1, datetime(1975,1,1).date(), 'conj', 'part') 
+    simulation.scenario.addIndiv(2, datetime(2000,1,1).date(), 'pac', 'enf')
+    simulation.scenario.addIndiv(3, datetime(2000,1,1).date(), 'pac', 'enf')
     simulation.set_param()
     
     # A the aefa prestation can be disabled by uncommenting the following line
@@ -46,20 +43,22 @@ def test_case(year):
     # df.to_excel(destination_dir = "c:/users/utilisateur/documents/" + fname)
 
 def survey_case(year):
-     
+
     yr = str(year)
 #        fname = "Agg_%s.%s" %(str(yr), "xls")
     simulation = SurveySimulation()
-    simulation.set_config(year = yr, country = country)
+    simulation.set_config(year = yr, country = country, num_table=1)
     simulation.set_param()
-
-
-#    Ignore this
-#    inflator = get_loyer_inflator(year)
-#    simulation.inflate_survey({'loyer' : inflator})
 
     simulation.compute()
     
+    df = simulation.get_variables_dataframe( variables=["rsa_act"], entity='ind')
+    print df["rsa_act"].describe()
+    
+    del simulation
+    import gc
+    gc.collect()
+    return
 
 # Compute aggregates
     agg = Aggregates()
@@ -69,10 +68,7 @@ def survey_case(year):
     df1 = agg.aggr_frame
     print df1.to_string()
     
-#    Saving aggregates
-#    if writer is None:
-#        writer = ExcelWriter(str(fname)
-#    agg.aggr_frame.to_excel(writer, yr, index= False, header= True)
+
 
 
 # Displaying a pivot table    
@@ -84,5 +80,15 @@ def survey_case(year):
 
 
 if __name__ == '__main__':
-    test_case(2006)
-    survey_case(2006)
+    test_case(2010)
+    
+        
+
+
+
+
+
+
+
+if __name__ == '__main__':
+    pass

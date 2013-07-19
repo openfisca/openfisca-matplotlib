@@ -64,7 +64,7 @@ def survey_case(year = 2006):
     simul_in_df = simulation.input_table.table
     print simul_out_df.loc[:,['af', 'af_base', 'af_forf', 'af_majo', 'af_nbenf']].describe()
     print 'input vars'
-    print simul_in_df.columns    
+    print simul_in_df.columns
     print 'output vars'
     print simul_out_df.columns
     
@@ -102,6 +102,28 @@ def test_laurence():
     Warning: To add more years you'll have to twitch the code manually. 
     Default is years 2006 to 2009 included.
     '''
+    def save_as_xls(df, alter_method = True):
+        # Saves a datatable under Excel table using XLtable
+        if alter_method:
+            filename = "C:\desindexation.xls"
+            print filename
+            writer = ExcelWriter(str(filename))
+            df.to_excel(writer)
+            writer.save()
+        else:
+            # XLtable utile pour la mise en couleurs, reliefs, etc. de la table, inutile sinon
+            stxl = XLtable(df)
+            # <========== HERE TO CHANGE OVERLAY ======>
+            wb = xlwt.Workbook()
+            ws = wb.add_sheet('resultatstest')
+            erfxcel = stxl.place_table(ws)
+            try: # I dunno more clever commands
+                wb.save("C:\outputtest.xls")
+            except:
+                n = random.randint(0,100)
+                wb.save("C:\outputtest_"+str(n)+".xls")
+    
+#===============================================================================
 #     from numpy.random import randn
 #     mesures = ['cotsoc','af', 'add', 'cotsoc','af', 'add', 'cotsoc','af', 'add', 
 #                'cotsoc','af', 'add', 'cotsoc','af', 'add', 'cotsoc','af', 'add', 
@@ -111,29 +133,37 @@ def test_laurence():
 #                'of', 'of', 'of', 'erfs', 'erfs', 'erfs', 'reel', 'reel', 'reel']
 #     year = ['2006', '2006', '2006', '2006', '2006', '2006', '2006', '2006', '2006',
 #             '2007', '2007', '2007', '2007', '2007', '2007', '2007', '2007', '2007',
-#             '2008', '2008', '2008', '2008', '2008', '2008', '2008', '2008', '2008',
-#             '2009', '2009', '2009', '2009', '2009', '2009', '2009', '2009', '2009']
+#             '2008', '2008', '2008', '2008', '2008', '2008', '2008', '2008', '2008']
 #     ind = zip(*[mesures,sources, year])
 # #     print ind
 #     from pandas.core.index import MultiIndex
 #     ind = MultiIndex.from_tuples(ind, names = ['mesure', 'source', 'year'])
 # #     print ind
-#     d = pd.DataFrame(randn(27,2), columns = ['A', 'B'], index = ind)
+#     d = pd.DataFrame(randn(27,2), columns = ['Depenses', 'Recettes'], index = ind)
+#     d.reset_index(inplace = True, drop = False)
+#     d = d.groupby(by = ['mesure', 'source', 'year'], sort = False).sum()
+#     print d
 #     d_unstacked = d.unstack()
 #     print d
 #     indtemp1 = d.index.get_level_values(0)
 #     indtemp2 = d.index.get_level_values(1)
 #     indexi = zip(*[indtemp1, indtemp2])
 #     print indexi
+#     indexi_bis = []
+#     for i in xrange(len(indexi)):
+#         if indexi[i] not in indexi_bis:
+#             indexi_bis.append(indexi[i])
+#     indexi = indexi_bis
 #     indexi = MultiIndex.from_tuples(indexi, names = ['Mesure', 'source'])
 #     print indexi
-# #     d_unstacked = d_unstacked.reindex_axis(indexi, axis = 0)
-#     print d_unstacked.columns.get
+#     d_unstacked = d_unstacked.reindex_axis(indexi, axis = 0)
+#     print d_unstacked.to_string()
+#     save_as_xls(d_unstacked)
 #     return
+#===============================================================================
     
     def reshape_tables(dfs, dfs_erf):
         agg = Aggregates()
-        agg.varlist = of_import("","AGGREGATES_DEFAULT_VARS", 'france')
          
         # We need this for the columns labels to work
         
@@ -211,35 +241,26 @@ def test_laurence():
         indexi = MultiIndex.from_tuples(indexi, names = ['Mesure', 'source'])
 #         import pdb
 #         pdb.set_trace()
-        temp_unstacked = temp_unstacked.reindex_axis(indexi, axis = 0)
+        temp_unstacked = temp_unstacked.reindex_axis(indexi, axis = 0) # axis = 0 for rows, 1 for columns
         
         ## Reindexing columns
+        # TODO : still not working
         col_indexi = []
-        for col in temp_unstacked.columns.get_level_values(0).unique():
-            for yr in temp_unstacked.columns.get_level_values(1).unique():
+        for col in temp.columns.get_level_values(0).unique():
+            for yr in range(2006,2010):
                 col_indexi.append((col, str(yr)))
         col_indexi = MultiIndex.from_tuples(col_indexi)
 #         print col_indexi
 #         print temp_unstacked.columns
-        print agg.labels.values()
-        temp_unstacked = temp_unstacked.reindex_axis(agg.labels.values(), level = 0, axis = 1)
+        print col_indexi
+#         temp_unstacked = temp_unstacked.reindex_axis(col_indexi, axis = 1)
         
         # Our table is ready to be turned to Excel worksheet !
         print temp_unstacked.to_string()
         temp_unstacked.fillna(0, inplace = True)
         return temp_unstacked
 
-    def save_as_xls(df):
-        # Saves a datatable under Excel table using XLtable
-        stxl = XLtable(df)
-        wb = xlwt.Workbook()
-        ws = wb.add_sheet('resultatstest')
-        erfxcel = stxl.place_table(ws)
-        try: # I dunno more clever commands
-            wb.save("C:\outputtest.xls")
-        except:
-            n = random.randint(0,100)
-            wb.save("C:\outputtest_"+str(n)+".xls")
+
 
     dfs = []
     dfs_erf = []
@@ -279,7 +300,7 @@ def test_laurence():
     print 'Out of data fetching'
     
     datatest = reshape_tables(dfs, dfs_erf)
-    save_as_xls(datatest)
+    save_as_xls(datatest, alter_method = False)
        
         
 if __name__ == '__main__':
