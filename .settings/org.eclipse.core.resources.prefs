@@ -151,6 +151,7 @@ encoding//src/scripts/validation/check_num_table.py=utf-8
 encoding//src/scripts/validation/comparison.py=utf-8
 encoding//src/scripts/validation/test.py=utf-8
 encoding//src/scripts/victor/debugger.py=utf-8
+encoding//src/scripts/victor/test_simupickle.py=utf-8
 encoding//src/setup.py=utf-8
 encoding//src/setup_x64.py=utf-8
 encoding//src/widgets/AggregateOuput.py=utf-8

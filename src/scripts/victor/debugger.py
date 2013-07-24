@@ -83,33 +83,60 @@ def test(year=2006, variables = ['af']):
     erf_data = DataCollection(year=year)
     os.system('cls')
     todo = set(variables + ["ident", "wprm"]).union(set(options))
+    print 'Variables or equivalents to fetch :'
+    print todo
+    
+    '''
+    Méthode générale pour aller chercher les variables de l'erf/eec
+    ( qui n'ont pas forcément le même nom
+    et parfois sont les variables utilisées pour créér l'of ):
+    1 - essayer le get_of2erf, ça doit marcher pour les variables principales ( au moins les aggrégats
+    que l'on compare )
+    Si les variables ne sont pas directement dans la table, 
+    elles ont été calculées à partir d'autres variables de données erf/eec 
+    donc chercher dans :
+    2 - build_survey
+    3 - model/model.py qui dira éventuellement dans quel module de model/ chercher
+    Le 'print todo' vous indique quelles variables chercher 
+    ( attention à ne pas inclure les enfants directs )
+    L'utilisation du Ctrl-H est profitable !
+    '''
+    
+    fetch_eec = ['statut','titc','chpub','encadr','prosa','age','naim','naia','ident','noi']
+    fetch_erf = ['zsali','af','ident','wprm','noi']
+    erf_df = erf_data.get_of_values(variables= fetch_erf, table="erf_indivi")
+#     print sorted(erf_df.columns)
+#     erf_df['noi'] = 0
+    eec_df = erf_data.get_of_values(variables= fetch_eec, table="eec_indivi")
+    erf_df_fetched = erf_df.merge(eec_df, on =['ident','noi'], how = 'inner' )
+    print erf_df_fetched.columns
+    del eec_df
+
     print 'Loading data from erf_menage table'
     erf_df = erf_data.get_of_values(variables= list(todo), table="erf_menage")
-    erf_df['noi'] = 01 # Creation of 'quimen' to ease future merge
-    
-    if todo - set(erf_df.columns) != set(): # Need to call upon erf_indivi
-        todo = todo - set(erf_df.columns)
-        print 'Could not get all variables, loading variables from erf_indivi table'
-        temp = erf_data.get_of_values(variables= list(set(list(todo) + ['ident', 'noi'])), table = "erf_indivi")
-        assert 'noi' in temp.columns
-        
-        erf_df = erf_df.merge(temp, on = ['ident','noi'], how = 'right', suffixes = ('(men)', '(ind)'), sort = True)
-        print erf_df[0:20].to_string()
-        if todo - set(temp.columns) != set():
-            print 'Could not get all variables, loading variables from eec_indivi table'
-            todo = todo - set(temp.columns) 
-            temp = erf_data.get_of_values(variables= list(todo) + ['ident', 'noi'], table = "eec_indivi")
-            erf_df = erf_df.merge(temp, on = ['ident', 'noi'], how = 'inner', suffixes = ('(ind_erf)', '(ind_eec)'), sort = False)
-            if todo - set(erf_df.columns) != set():
-                print "Warning, couldn't still get all values from erf tables : \n %s \n" %str(todo - set(erf_df.columns))
-        del temp
+    erf_df['noi'] = 0 # Creation of 'quimen' to ease future merge
+     
+#     if todo - set(erf_df.columns) != set(): # Need to call upon erf_indivi
+#         todo = todo - set(erf_df.columns)
+#         print 'Could not get all variables, loading variables from erf_indivi table'
+#         temp = erf_data.get_of_values(variables= list(set(list(todo) + ['ident', 'noi'])), table = "erf_indivi")
+#         assert 'noi' in temp.columns
+#          
+#         erf_df = erf_df.merge(temp, on = ['ident','noi'], how = 'right', suffixes = ('(men)', '(ind)'), sort = True)
+# #         print erf_df[0:20].to_string()
+#         if todo - set(temp.columns) != set():
+#             print 'Could not get all variables, loading variables from eec_indivi table'
+#             todo = todo - set(temp.columns) 
+#             temp = erf_data.get_of_values(variables= list(todo) + ['ident', 'noi'], table = "eec_indivi")
+#             erf_df = erf_df.merge(temp, on = ['ident', 'noi'], how = 'inner', suffixes = ('(ind_erf)', '(ind_eec)'), sort = False)
+#             if todo - set(erf_df.columns) != set():
+#                 print "Warning, couldn't still get all values from erf tables : \n %s \n" %str(todo - set(erf_df.columns))
+#         del temp
     del todo
     gc.collect()
-    return
     assert 'ident' in erf_df.columns, "ident not in erf_df.columns"
     
-    print erf_df[0:20].to_string()
-    return
+#     print sorted(erf_df['ident'])[0:50]
         
     from src.countries.france.data.erf import get_erf2of
     erf2of = get_erf2of()
@@ -172,7 +199,7 @@ def test(year=2006, variables = ['af']):
     print "\n"
 
     #print 'Dropping duplicates of idmen for both tables...'
-    assert not erf_df["idmen"].duplicated().any(), "Duplicated idmen in erf" 
+#     assert not erf_df["idmen"].duplicated().any(), "Duplicated idmen in erf_menage" 
     #erf_df.drop_duplicates('idmen', inplace = True)
     output_df.drop_duplicates('idmen', inplace = True)
     assert not output_df["idmen"].duplicated().any(), "Duplicated idmen in of"
@@ -245,7 +272,7 @@ def test(year=2006, variables = ['af']):
         table.sort(columns = col, ascending = False, inplace = True)
         #print table[col][0:10].to_string() #Should #print the idmen along with col by descreasing number of discrapencies
         if bigtemp is None:
-            bigtemp = {'table' : table[[col, 'idmen']][0:10],
+            bigtemp = {'table' : table[[col, col+'_of', col+'_erf', 'idmen']][0:10],
                        'options' : None}
         #print "\n"
         
@@ -377,6 +404,9 @@ def test(year=2006, variables = ['af']):
                 somme += l[i]
                 
             print "Table of values for %s dependencies : \n" %col
+            erf_df_fetched.rename(columns = {'ident':'idmen', 'noi':'quimen'}, inplace = True)
+            erf_df_fetched.set_index(['idmen','quimen'], drop = True, inplace = True)
+            concatene = concatene.merge(erf_df_fetched,left_index = True, right_index = True , how = 'left', suffixes = ('(concat)','(fetched)'))
             print concatene.to_string()
             del bigtemp['table'], bigtemp['options'], concatene
             gc.collect()    
