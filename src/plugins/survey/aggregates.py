@@ -409,6 +409,9 @@ class Aggregates(object):
         self.data_default = None
         self.totals_df = None
         
+    def get_aggregates(self, variable):
+        self.aggr_frame
+        
         
 class AggregatesConfigPage(PluginConfigPage):
     def __init__(self, plugin, parent):
