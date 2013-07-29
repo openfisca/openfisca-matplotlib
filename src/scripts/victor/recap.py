@@ -46,7 +46,6 @@ class Recap(object):
     def __init__(self):
         super(Recap, self).__init__()
 
-
     def set_country(self, country):
         self.country = country
 
@@ -75,8 +74,7 @@ class Recap(object):
                     
         from pandas.core.index import MultiIndex
         self.index = MultiIndex.from_tuples(index, names = ['measure', 'source', 'year'])
-        
-        
+               
     def _generate_aggregates(self):
         dfs = list()
         dfs_erf = list()
@@ -230,8 +228,7 @@ class Recap(object):
     def build_dataframe(self):
         self._generate_aggregates()
         self.dataframe = self._reshape_tables()
-        
-    
+
     def save(self):
         
         save_as_xls(self.dataframe, alter_method = False)
@@ -362,8 +359,8 @@ def test_laurence():
         gc.collect()
         print 'Out of data fetching for year ' + str(year)
     print 'Out of data fetching'
-    
-    datatest = reshape_tables(dfs, dfs_erf)
+    datatest = 3
+#     datatest = reshape_tables(dfs, dfs_erf)
     save_as_xls(datatest, alter_method = False)
        
         
