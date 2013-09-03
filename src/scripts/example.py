@@ -47,12 +47,11 @@ def test_case(year):
 
 def survey_case(year):
      
-    yr = str(year)
+
 #        fname = "Agg_%s.%s" %(str(yr), "xls")
     simulation = SurveySimulation()
-    simulation.set_config(year = yr, country = country)
+    simulation.set_config(year = year, country = country)
     simulation.set_param()
-
 
 #    Ignore this
 #    inflator = get_loyer_inflator(year)
@@ -85,4 +84,4 @@ def survey_case(year):
 
 if __name__ == '__main__':
     test_case(2006)
-    survey_case(2006)
+#    survey_case(2006)
