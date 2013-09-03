@@ -85,4 +85,4 @@ def survey_case(year):
 
 if __name__ == '__main__':
     test_case(2006)
-    survey_case(2006)
+#    survey_case(2006)
