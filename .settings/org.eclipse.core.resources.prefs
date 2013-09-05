@@ -64,6 +64,7 @@ encoding//src/countries/tunisia_pension/__init__.py=utf-8
 encoding//src/countries/tunisia_pension/model/data.py=utf-8
 encoding//src/countries/tunisia_pension/model/model.py=utf-8
 encoding//src/countries/tunisia_pension/model/pension.py=utf-8
+encoding//src/countries/tunisia_pension/tests/test_pension.py=utf-8
 encoding//src/countries/tunisia_pension/utils.py=utf-8
 encoding//src/doc/conf.py=utf-8
 encoding//src/doc/sphinxext/ipython_directive.py=utf-8
