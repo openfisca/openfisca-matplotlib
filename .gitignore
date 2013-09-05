@@ -28,3 +28,4 @@ src/countries/france/data/sources/test3.h5
 src/countries/france/data/survey_sparse.h5
 src/countries/france/data/sources/config.py
 
+src/countries/tunisia_pension/data/sources/survey.h5
