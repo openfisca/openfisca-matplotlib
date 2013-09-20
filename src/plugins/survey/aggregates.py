@@ -161,16 +161,14 @@ class Aggregates(object):
         B_label = {'data': self.labels['benef'], 
                    'default': self.labels['benef_default']}
 
-        description = self.simulation.output_table.description
-        label2var, var2label, var2enum = description.builds_dicts()
+        simulation = self.simulation
         for var in self.varlist:
             # amounts and beneficiaries from current data and default data if exists
             montant_benef = self.get_aggregate(var, filter_by)
-            V.append(var2label[var])
-                        
+            V.append(simulation.var2label[var])        
             try:
-                varcol  = description.get_col(var)
-                entity = varcol._entity
+                varcol  = simulation.get_col(var)
+                entity = varcol.entity
             except:
                 entity = 'NA'
                  
