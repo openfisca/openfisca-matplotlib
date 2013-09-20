@@ -759,7 +759,7 @@ def test(year=2006, variables = ['af']):
                                 if var + '_of' in table.columns:
                                     par_fetched.append(var + '_of')
                             elif var + '_erf' in table.columns:
-                                    par_fetched.append(var + '_erf')
+                                par_fetched.append(var + '_erf')
                             else:
                                 par_fetched.append(var)
                     else:
