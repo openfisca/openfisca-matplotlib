@@ -217,11 +217,11 @@ class Aggregates(object):
         country = self.simulation.country
         WEIGHT = of_import("","WEIGHT", country)
         simulation = self.simulation
-        description = simulation.output_table.description
+#        description = simulation.output_table.description
         
         def aggregate(var, filter_by):  # TODO: should be a method of Presta
-            varcol  = description.get_col(var)            
-            entity = varcol._entity
+            varcol  = simulation.get_col(var)
+            entity = varcol.entity
             # amounts and beneficiaries from current data and default data if exists
             data, data_default = simulation.aggregated_by_entity(entity, [var], all_output_vars = False, force_sum = True)
 
@@ -408,6 +408,9 @@ class Aggregates(object):
         self.data = None
         self.data_default = None
         self.totals_df = None
+        
+    def get_aggregates(self, variable):
+        self.aggr_frame
         
         
 class AggregatesConfigPage(PluginConfigPage):
