@@ -1,18 +1,14 @@
-# -*- coding:utf-8 -*-# -*- coding:utf-8 -*-
-#
-# This file is part of OpenFisca.
-# OpenFisca is a socio-fiscal microsimulation software
-# Copyright © 2011 Clément Schaff, Mahdi Ben Jelloul
-# Licensed under the terms of the GVPLv3 or later license
-# (see openfisca/__init__.py for details)
+'''
+Created on 9 juil. 2013
 
-
-# Exemple of a simple simulation
+@author: benjello
+'''
 
 from src.lib.simulation import ScenarioSimulation
 from src.lib.simulation import SurveySimulation
 from src.plugins.survey.aggregates import Aggregates
 from datetime import datetime
+
 
 country = 'france'
 # destination_dir = "c:/users/utilisateur/documents/"
@@ -20,19 +16,21 @@ country = 'france'
 # fname_all = os.path.join(destination_dir, fname_all)              
 
 
+
 def test_case(year):
-    
+
     country = 'france'
 
     simulation = ScenarioSimulation()
     simulation.set_config(year = year, country = country, reforme=False,
-                    nmen = 3, maxrev = 100000, xaxis = 'sali')
+                    nmen = 3, maxrev = 16000, xaxis = 'sali')
+    print simulation.scenario
     # Adding a husband/wife on the same tax sheet (foyer)
-    simulation.scenario.addIndiv(1, datetime(1975,1,1).date(), 'conj', 'part') 
+#     simulation.scenario.addIndiv(1, datetime(1975,1,1).date(), 'conj', 'part') 
+#     simulation.scenario.addIndiv(2, datetime(2000,1,1).date(), 'pac', 'enf')
+#     simulation.scenario.addIndiv(3, datetime(2000,1,1).date(), 'pac', 'enf')
     simulation.set_param()
-    
-    # A the aefa prestation can be disabled by uncommenting the following line
-    # simulation.disable_prestations( ['aefa'])
+    simulation.P.ir.autre.charge_loyer.active = 1  
     df = simulation.get_results_dataframe()
     print df.to_string()
     
@@ -42,20 +40,14 @@ def test_case(year):
     # df.to_excel(destination_dir = "c:/users/utilisateur/documents/" + fname)
 
 def survey_case(year):
-     
 
 #        fname = "Agg_%s.%s" %(str(yr), "xls")
     simulation = SurveySimulation()
-    simulation.set_config(year = year, country = country)
+    simulation.set_config(year = year, country = country, num_table=1, reforme=True)
     simulation.set_param()
-
-#    Ignore this
-#    inflator = get_loyer_inflator(year)
-#    simulation.inflate_survey({'loyer' : inflator})
-
+    simulation.P.ir.autre.charge_loyer.active = 1  
     simulation.compute()
     
-
 # Compute aggregates
     agg = Aggregates()
     agg.set_simulation(simulation)
@@ -64,10 +56,7 @@ def survey_case(year):
     df1 = agg.aggr_frame
     print df1.to_string()
     
-#    Saving aggregates
-#    if writer is None:
-#        writer = ExcelWriter(str(fname)
-#    agg.aggr_frame.to_excel(writer, yr, index= False, header= True)
+    return
 
 
 # Displaying a pivot table    
@@ -79,5 +68,10 @@ def survey_case(year):
 
 
 if __name__ == '__main__':
-    test_case(2006)
-#    survey_case(2006)
+    survey_case(2010)
+    
+
+
+
+if __name__ == '__main__':
+    pass
