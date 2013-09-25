@@ -215,7 +215,7 @@ class Aggregates(object):
         country = self.simulation.country
         WEIGHT = of_import("","WEIGHT", country)
         simulation = self.simulation
-#        description = simulation.output_table.description
+
         
         def aggregate(var, filter_by):  # TODO: should be a method of Presta
             varcol  = simulation.get_col(var)

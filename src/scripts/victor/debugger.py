@@ -23,8 +23,6 @@ from src.countries.france.data.erf.datatable import DataCollection
 from src.lib.columns import Prestation
 from src.lib.simulation import load_content
 
-
-country= "france"
 from src import SRC_PATH
 
 
@@ -43,6 +41,19 @@ class Debugger(object):
 
 
     def set_simulation(self, simulation = None, name = None, filename = None):
+        """
+        Set the simulation to debug
+        
+        Parameters
+        ----------
+        
+        simulation : Simualtion, default None
+                     simulation to debug   
+        name : str, default None
+               name of the simulation to retrieve from filename
+        filename : str, default None
+                   path to the filename
+        """
         if simulation is None:
             try:
                 self.simulation = load_content(name, filename)
@@ -68,12 +79,13 @@ class Debugger(object):
         of_aggregates.set_simulation(self.simulation)
         of_aggregates.compute()
 
-        temp = (build_erf_aggregates(variables=variable, year= self.simulation.datesim.year))
+        temp = (build_erf_aggregates(variables=[variable], year= self.simulation.datesim.year))
         
-        label2var, var2label, var2enum = self.simulation.output_table.description.builds_dicts()
+
         
-        selection = of_aggregates.aggr_frame["Mesure"] == var2label[variable] 
+        selection = of_aggregates.aggr_frame["Mesure"] == self.simulation.var2label[variable] 
         print of_aggregates.aggr_frame[selection] 
+        
         print temp
         # TODO: clean this
         return 
@@ -454,7 +466,7 @@ def test(year=2006, variables = ['af']):
     '''
     
     '''
-    
+    country= "france"
     simulation = SurveySimulation()
     survey_filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'sources', 'test.h5')
     simulation.set_config(year=year, country=country, 
@@ -822,25 +834,30 @@ def test(year=2006, variables = ['af']):
             gc.collect()    
  
 if __name__ == '__main__':
-#     test()
-    
-    restart = False
-    save_path = os.path.join(SRC_PATH,'countries','france','data','erf')
-    
+
+    restart = True
+    survey = 'survey.h5'
+    country= "france"
+    save_path = os.path.join(SRC_PATH, 'countries', country, 'data', 'erf')
+    saved_simulation_filename = os.path.join(save_path, 'debugger_' + survey[:-3])
+
     if restart:
         year = 2006
         simulation = SurveySimulation()
-        survey_filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'sources', 'test.h5')
+        if survey == 'survey.h5':
+            survey_filename = os.path.join(SRC_PATH, 'countries', country, 'data', survey)
+        else:
+            survey_filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'sources', survey)
+
         simulation.set_config(year=year, country=country, 
                               survey_filename=survey_filename)
         simulation.set_param()
         simulation.compute()
-
-        simulation.save_content('pootis',save_path + 'simu_for_debugger')
-
+        simulation.save_content('debug', saved_simulation_filename)
 
     deb = Debugger()
-    deb.set_simulation(name = 'pootis', filename = save_path + 'simu_for_debugger')
+    deb.set_simulation(name = 'debug', filename = saved_simulation_filename)
     deb.set_variable('af')
+    deb.show_aggregates()
     deb.preproc()
     deb.describe_discrepancies(descending=False)
