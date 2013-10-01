@@ -45,7 +45,22 @@ def survey_case(year):
     simulation = SurveySimulation()
     simulation.set_config(year = year, country = country, num_table=1, reforme=True)
     simulation.set_param()
+    simulation.P.ir.autre.charge_loyer.plaf  = 500
     simulation.P.ir.autre.charge_loyer.active = 1  
+    simulation.P.ir.autre.charge_loyer.plaf_nbp = 0 
+    
+    # plaf=1000 plaf_nbp=0: -42160, =1: -41292
+    # plaf=500  plaf_nbp=0: -43033, =1: -42292
+    
+    # Bareme threshold reduction in pct
+    reduc = .1
+    print simulation.P.ir.bareme
+    print simulation.P.ir.bareme.nb
+    for i in range(2, simulation.P.ir.bareme.nb):
+        simulation.P.ir.bareme.setSeuil(i, simulation.P.ir.bareme.seuils[i]*(1-reduc) )
+
+    print simulation.P.ir.bareme
+    print simulation.P.ir.bareme.nb
     simulation.compute()
     
 # Compute aggregates
