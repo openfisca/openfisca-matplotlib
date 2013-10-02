@@ -147,9 +147,13 @@ class Recap(object):
 #             print d.to_string()
             
         # Concatening the openfisca tables for =/= years
-        temp = pd.concat([dfs[0],dfs[1]], ignore_index = True)
-        temp = pd.concat([temp,dfs[2]], ignore_index = True)
-        temp = pd.concat([temp,dfs[3]], ignore_index = True)
+
+        temp = dfs[0]        
+        if len(dfs) != 1:
+            for d in dfs[1:]:
+                temp = pd.concat([temp,d], ignore_index = True)
+
+        
         del temp[agg.labels['entity']], temp['index']
         gc.collect()
         
@@ -168,9 +172,13 @@ class Recap(object):
         for df in dfs_erf:
             del df['level_0'], df['Mesure']
             df.rename(columns = {'index' : agg.labels['var'], 1 : agg.labels['dep']}, inplace = True)
-        temp3 = pd.concat([dfs_erf[0], dfs_erf[1]], ignore_index = True)
-        temp3 = pd.concat([temp3, dfs_erf[2]], ignore_index = True)
-        temp3 = pd.concat([temp3, dfs_erf[3]], ignore_index = True)
+        
+        
+        temp3 = dfs_erf[0]        
+        if len(dfs) != 1:
+            for d3 in dfs_erf[1:]:
+                temp3 = pd.concat([temp3, d3], ignore_index = True)
+        
         temp3['source'] = 'erfs'
         gc.collect()
         temp = pd.concat([temp, temp3], ignore_index = True)
@@ -215,7 +223,7 @@ class Recap(object):
         for i in xrange(len(sauvegarde)):
 #         for col in temp.columns.get_level_values(0).unique():
             col = sauvegarde[i]
-            for yr in range(2006,2010):
+            for yr in self.years:
                 col_indexi.append((col, yr))
         col_indexi = MultiIndex.from_tuples(col_indexi)
 #         print col_indexi
@@ -242,7 +250,7 @@ class Recap(object):
 
  
 def test_recap():
-    years = range(2006, 2010)
+    years = [2006] + range(2008, 2010)
     country = 'france'
     variables = ['cotsoc', 'af']
     sources = ['of', 'erfs', 'reel']
