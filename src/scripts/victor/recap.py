@@ -39,6 +39,11 @@ from src import SRC_PATH
 class Recap(object):
     def __init__(self):
         super(Recap, self).__init__()
+        self.country = None 
+        self.years = None
+        self.aggregates_variables = None
+        self.sources = None
+        self.survey_filename = None
 
     def set_country(self, country):
         self.country = country
@@ -52,6 +57,9 @@ class Recap(object):
     def set_sources(self, sources):
         self.sources = sources
     
+    def set_survey_filename(self, survey_filename):
+        self.survey_filename = survey_filename
+        
     def _build_multiindex(self):
         variables = self.aggregates_variables
         sources = self.sources
@@ -77,7 +85,7 @@ class Recap(object):
         for year in years:
             # Running a standard SurveySimulation to get OF aggregates
             simulation = SurveySimulation()
-            survey_filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'sources', 'test.h5')
+            survey_filename = self.survey_filename
             simulation.set_config(year=year, country=country, 
                                   survey_filename=survey_filename)
             simulation.set_param()
@@ -112,7 +120,9 @@ class Recap(object):
         self.aggregates_erfs_dataframe = dfs_erf
         
     def _reshape_tables(self):
-        
+        """
+        TODO _reshape_tables should be cleaned !!!
+        """
         dfs = self.aggregates_of_dataframe
         dfs_erf = self.aggregates_erfs_dataframe
         labels_variables = self.labels_variables
@@ -232,12 +242,14 @@ class Recap(object):
 
  
 def test_recap():
-    years = range(2006,2010)
+    years = range(2006, 2010)
     country = 'france'
     variables = ['cotsoc', 'af']
     sources = ['of', 'erfs', 'reel']
     recap = Recap()
     recap.set_country(country)
+#    survey_filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'sources', 'test.h5')
+#    recap.set_survey_filename(survey_filename)
     recap.set_years(years)
     recap.set_aggregates_variables(variables)
     recap.set_sources(sources)
@@ -360,8 +372,6 @@ def test_laurence():
        
         
 if __name__ == '__main__':
-#     survey_case(year = 2006)
-#     convert_to_3_tables()
     test_recap()
 #     year = 2006
 #     dfs_erf = build_erf_aggregates(variables =["af"], year=year)
