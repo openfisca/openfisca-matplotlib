@@ -45,7 +45,7 @@ def survey_case(year):
     simulation = SurveySimulation()
     simulation.set_config(year = year, country = country, num_table=1, reforme=True)
     simulation.set_param()
-    simulation.P.ir.autre.charge_loyer.plaf  = 500
+    simulation.P.ir.autre.charge_loyer.plaf = 500
     simulation.P.ir.autre.charge_loyer.active = 1  
     simulation.P.ir.autre.charge_loyer.plaf_nbp = 0 
     
