@@ -260,10 +260,12 @@ class Recap(object):
             ws = wb.add_sheet('resultatstest')
             erfxcel = stxl.place_table(ws)
             try: # I dunno more clever commands
-                wb.save("C:\outputtest.xls")
+                wb.save(filename)
             except:
-                n = random.randint(0,100)
-                wb.save("C:\outputtest_"+str(n)+".xls")
+                pass
+                print "error"
+#                 n = random.randint(0,100)
+#                 wb.save(filename+str(n)+".xls")
 
     def save(self, filename = None, alter_method = True):
         self._save_as_xls(filename, alter_method)
@@ -276,15 +278,15 @@ def test_recap():
     sources = ['of', 'erfs', 'reel']
     recap = Recap()
     recap.set_country(country)
-#    survey_filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'sources', 'test.h5')
-#    recap.set_survey_filename(survey_filename)
+    survey_filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'sources', 'test.h5')
+    recap.set_survey_filename(survey_filename)
     recap.set_years(years)
     recap.set_aggregates_variables(variables)
     recap.set_sources(sources)
     recap._build_multiindex()
     recap.build_dataframe()
     print recap.dataframe.to_string()
-    recap.save(filename="myrecap.xls")
+    recap.save(filename="myrecap.xls", alter_method=False)
     
     
     
@@ -309,10 +311,11 @@ def test_laurence():
             # <========== HERE TO CHANGE OVERLAY ======>
             wb = xlwt.Workbook()
             ws = wb.add_sheet('resultatstest')
-            erfxcel = stxl.place_table(ws)
+            stxl.place_table(ws)
             try: # I dunno more clever commands
                 wb.save("C:\outputtest.xls")
             except:
+                print "toto"
                 n = random.randint(0,100)
                 wb.save("C:\outputtest_"+str(n)+".xls")
     
