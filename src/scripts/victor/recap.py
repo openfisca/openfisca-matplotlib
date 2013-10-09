@@ -242,11 +242,31 @@ class Recap(object):
         self._generate_aggregates()
         self.dataframe = self._reshape_tables()
 
-    def save(self):
+    def _save_as_xls(self, filename = None, alter_method = True):
+        # Saves a datatable under Excel table using XLtable
         
-        save_as_xls(self.dataframe, alter_method = False)
-        
-        
+        if filename is None:
+            raise("filename argument is None") 
+        if alter_method:
+            print filename
+            writer = ExcelWriter(str(filename))
+            self.dataframe.to_excel(writer)
+            writer.save()
+        else:
+            # XLtable utile pour la mise en couleurs, reliefs, etc. de la table, inutile sinon
+            stxl = XLtable(self.dataframe)
+            # <========== HERE TO CHANGE OVERLAY ======>
+            wb = xlwt.Workbook()
+            ws = wb.add_sheet('resultatstest')
+            erfxcel = stxl.place_table(ws)
+            try: # I dunno more clever commands
+                wb.save("C:\outputtest.xls")
+            except:
+                n = random.randint(0,100)
+                wb.save("C:\outputtest_"+str(n)+".xls")
+
+    def save(self, filename = None, alter_method = True):
+        self._save_as_xls(filename, alter_method)
 
  
 def test_recap():
@@ -264,7 +284,7 @@ def test_recap():
     recap._build_multiindex()
     recap.build_dataframe()
     print recap.dataframe.to_string()
-    
+    recap.save(filename="myrecap.xls")
     
     
     
