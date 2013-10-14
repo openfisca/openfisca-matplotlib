@@ -271,138 +271,31 @@ class Recap(object):
         self._save_as_xls(filename, alter_method)
 
  
-def test_recap():
+def test_recap(source_file_name=None, export_file_name = "myrecap.xls"):
     years = [2006] + range(2008, 2010)
     country = 'france'
     variables = ['cotsoc', 'af']
     sources = ['of', 'erfs', 'reel']
     recap = Recap()
     recap.set_country(country)
-    survey_filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'sources', 'test.h5')
-    recap.set_survey_filename(survey_filename)
+    
+    if source_file_name is not None:
+        survey_filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'sources', source_file_name + '.h5')
+        recap.set_survey_filename(survey_filename)
+    
     recap.set_years(years)
     recap.set_aggregates_variables(variables)
     recap.set_sources(sources)
     recap._build_multiindex()
     recap.build_dataframe()
     print recap.dataframe.to_string()
-    recap.save(filename="myrecap.xls", alter_method=False)
+    recap.save(filename=export_file_name, alter_method=False)
     
-    
-    
-def test_laurence():
-    '''
-    Computes the openfisca/real numbers comparaison table in excel worksheet.
-    
-    Warning: To add more years you'll have to twitch the code manually. 
-    Default is years 2006 to 2009 included.
-    '''
-    def save_as_xls(df, alter_method = True):
-        # Saves a datatable under Excel table using XLtable
-        if alter_method:
-            filename = "C:\desindexation.xls"
-            print filename
-            writer = ExcelWriter(str(filename))
-            df.to_excel(writer)
-            writer.save()
-        else:
-            # XLtable utile pour la mise en couleurs, reliefs, etc. de la table, inutile sinon
-            stxl = XLtable(df)
-            # <========== HERE TO CHANGE OVERLAY ======>
-            wb = xlwt.Workbook()
-            ws = wb.add_sheet('resultatstest')
-            stxl.place_table(ws)
-            try: # I dunno more clever commands
-                wb.save("C:\outputtest.xls")
-            except:
-                print "toto"
-                n = random.randint(0,100)
-                wb.save("C:\outputtest_"+str(n)+".xls")
-    
-#===============================================================================
-#     from numpy.random import randn
-#     mesures = ['cotsoc','af', 'add', 'cotsoc','af', 'add', 'cotsoc','af', 'add', 
-#                'cotsoc','af', 'add', 'cotsoc','af', 'add', 'cotsoc','af', 'add', 
-#                'cotsoc','af', 'add', 'cotsoc','af', 'add', 'cotsoc','af', 'add']
-#     sources = ['of', 'of', 'of', 'erfs', 'erfs', 'erfs', 'reel', 'reel', 'reel',
-#                'of', 'of', 'of', 'erfs', 'erfs', 'erfs', 'reel', 'reel', 'reel',
-#                'of', 'of', 'of', 'erfs', 'erfs', 'erfs', 'reel', 'reel', 'reel']
-#     year = ['2006', '2006', '2006', '2006', '2006', '2006', '2006', '2006', '2006',
-#             '2007', '2007', '2007', '2007', '2007', '2007', '2007', '2007', '2007',
-#             '2008', '2008', '2008', '2008', '2008', '2008', '2008', '2008', '2008']
-#     ind = zip(*[mesures,sources, year])
-# #     print ind
-#     from pandas.core.index import MultiIndex
-#     ind = MultiIndex.from_tuples(ind, names = ['mesure', 'source', 'year'])
-# #     print ind
-#     d = pd.DataFrame(randn(27,2), columns = ['Depenses', 'Recettes'], index = ind)
-#     d.reset_index(inplace = True, drop = False)
-#     d = d.groupby(by = ['mesure', 'source', 'year'], sort = False).sum()
-#     print d
-#     d_unstacked = d.unstack()
-#     print d
-#     indtemp1 = d.index.get_level_values(0)
-#     indtemp2 = d.index.get_level_values(1)
-#     indexi = zip(*[indtemp1, indtemp2])
-#     print indexi
-#     indexi_bis = []
-#     for i in xrange(len(indexi)):
-#         if indexi[i] not in indexi_bis:
-#             indexi_bis.append(indexi[i])
-#     indexi = indexi_bis
-#     indexi = MultiIndex.from_tuples(indexi, names = ['Mesure', 'source'])
-#     print indexi
-#     d_unstacked = d_unstacked.reindex_axis(indexi, axis = 0)
-#     print d_unstacked.to_string()
-#     save_as_xls(d_unstacked)
-#     return
-#===============================================================================
-    
-
-
-
-    dfs = []
-    dfs_erf = []
-    for i in range(2006,2010):
-        year = i
-        yr = str(i)
-        # Running a standard SurveySim to get aggregates
-        simulation = SurveySimulation()
-        survey_filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'sources', 'test.h5')
-        simulation.set_config(year=yr, country=country, 
-                              survey_filename=survey_filename)
-        simulation.set_param()
-        simulation.compute()
-        agg = Aggregates()
-        agg.set_simulation(simulation)
-        agg.compute()
-        df = agg.aggr_frame
-        df['year'] = year
-        label2var, var2label, var2enum = simulation.output_table.description.builds_dicts()
-        colonnes = simulation.output_table.table.columns
-        dfs.append(df)
-        variables = agg.varlist
-        labels_variables = map(lambda x: var2label[x], variables)
-        del simulation, agg, var2enum, df
-        gc.collect()
-        
-        #Getting ERF aggregates from ERF table
-        temp = (build_erf_aggregates(variables=variables, year= year))
-        temp.rename(columns = var2label, inplace = True)
-        temp = temp.T
-        temp.reset_index(inplace = True)
-        temp['year'] = year
-        dfs_erf.append(temp)
-        del temp
-        gc.collect()
-        print 'Out of data fetching for year ' + str(year)
-    print 'Out of data fetching'
-    datatest = 3
-#     datatest = reshape_tables(dfs, dfs_erf)
-    save_as_xls(datatest, alter_method = False)
-       
         
 if __name__ == '__main__':
-    test_recap()
+    
+#    test_2013_10_10_16_58
+    source_file_name = "test_2013_10_10_16_58"
+    test_recap(source_file_name)
 #     year = 2006
 #     dfs_erf = build_erf_aggregates(variables =["af"], year=year)
