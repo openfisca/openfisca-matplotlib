@@ -296,6 +296,6 @@ if __name__ == '__main__':
     
 #    test_2013_10_10_16_58
     source_file_name = "test_2013_10_10_16_58"
-    test_recap(source_file_name)
+    test_recap()
 #     year = 2006
 #     dfs_erf = build_erf_aggregates(variables =["af"], year=year)

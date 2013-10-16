@@ -101,14 +101,13 @@ def test_gini():
     """
     Compute Gini coefficients
     """
-    years = range(2006,2010)
+    years = range(2006, 2010)
     for year in years:        
         yr = str(year)
 #        fname = "Agg_%s.%s" %(str(yr), "xls")
         simu = SurveySimulation()
         simu.set_config(year = yr, country = country)
         simu.set_param()
-        simu.set_survey()
         inflator = get_loyer_inflator(year)
         simu.inflate_survey({'loyer' : inflator})
         simu.compute()
@@ -118,10 +117,10 @@ def test_gini():
         inequality.compute()
         print inequality.inequality_dataframe
         print inequality.poverty
-
+        del simu
 
 if __name__ == '__main__':
 
-    build_aggregates()
+#    build_aggregates()
 #    diag_aggregates()
     test_gini()
