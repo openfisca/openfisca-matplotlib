@@ -10,11 +10,7 @@
 # Exemple of a simple simulation
 
 from src.lib.simulation import ScenarioSimulation
-from src.lib.simulation import SurveySimulation
-from src.plugins.survey.aggregates import Aggregates
 from datetime import datetime
-
-import os
 
 
 def test_case(year):
@@ -42,5 +38,5 @@ def test_case(year):
     # df.to_excel(destination_dir = destination_dir + fname)
 
 if __name__ == '__main__':
-    test_case(2010)
+    test_case(2012)
 

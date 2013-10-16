@@ -27,9 +27,11 @@ This file is part of openFisca.
 from src.lib.simulation import ScenarioSimulation 
 
 import sys
+import os
 from src.gui.qt.QtGui import QMainWindow, QApplication
 
 from src.widgets.matplotlibwidget import MatplotlibWidget
+from datetime import datetime    
 
 class ApplicationWindow(QMainWindow):
     def __init__(self):
@@ -38,27 +40,34 @@ class ApplicationWindow(QMainWindow):
         self.mplwidget.setFocus()
         self.setCentralWidget(self.mplwidget)
         
-
-from datetime import datetime    
-
-destination_dir = "c:/users/utilisateur/documents/tunisie/"    
+def run_simulation(year=2011, apply_reform=False, reforme=False):
+    country = 'tunisia'
+   
+    simulation = ScenarioSimulation()        
+    simulation.set_config(year = year, country = country, nmen = 101, 
+                    xaxis = 'sali', maxrev = 10000, reforme = reforme,
+                    mode ='bareme', same_rev_couple = False)
+    simulation.set_param()
+#    simulation.scenario.addIndiv(1, datetime(1975,1,1).date(), 'conj', 'part') 
+    if apply_reform:
+        simulation.P.ir.reforme.exemption.active = 1
+    return simulation
 
 if __name__ == '__main__':
 
-
+    destination_dir = u"c:/users/utilisateur/Desktop/Tunisie/Réforme barème"
     app = QApplication(sys.argv)
     win = ApplicationWindow()    
-
-    country = 'tunisia'
-    yr = 2011
     win = ApplicationWindow()
+    
     ax = win.mplwidget.axes    
-    simulation = ScenarioSimulation()        
-    simulation.set_config(year = yr, country = country, nmen = 11, 
-                    xaxis = 'sali', maxrev = 10000, reforme = False,
-                    mode ='bareme', same_rev_couple = False)
-    simulation.set_param()
-    simulation.scenario.addIndiv(1, datetime(1975,1,1).date(), 'conj', 'part') 
+
+
+#     simulation = run_simulation(year=2011, apply_reform=False)
+#     title = "Actuel" 
+    
+    simulation = run_simulation(year=2011, apply_reform=True, reforme=True)
+    title = u"Réforme différence" 
     
     simulation.draw_bareme(ax, legend = True, position = 4) 
     win.resize(1400,700)
@@ -69,7 +78,8 @@ if __name__ == '__main__':
     print df.to_string()
 
     
-#    win.mplwidget.print_figure(destination_dir + title + '.png')
+#    win.mplwidget.print_figure(os.path.join(destination_dir, title + '.png'))
+
     del ax, simulation 
     sys.exit(app.exec_())
 
