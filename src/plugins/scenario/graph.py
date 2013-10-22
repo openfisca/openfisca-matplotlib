@@ -46,9 +46,6 @@ from src.plugins.__init__ import OpenfiscaPluginWidget
 _ = get_translation('src')
 
 
-from src.countries.france import REVENUES_CATEGORIES # TODO: should be more general
-
-
 locale.setlocale(locale.LC_ALL, '')
 
 
@@ -661,10 +658,14 @@ def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None, legend = True
     
     if country is None:
         raise Exception('drawTaux: country must be defined')
+
+
+    REVENUES_CATEGORIES = of_import(None,"REVENUES_CATEGORIES",country)
         
     if dataDefault is None: 
         dataDefault = data
-
+        
+    print "xaxis :", xaxis 
     # TODO: the following is an ugly fix which is not general enough
     if xaxis == "rev_cap_brut":
         typ_rev = 'superbrut'
@@ -721,6 +722,8 @@ def RevTot(data, typrev, country = None):
     
     if country is None:
         raise Exception('RevTot: country must be set')
+    
+    REVENUES_CATEGORIES = of_import('',"REVENUES_CATEGORIES",country)
     
     dct = REVENUES_CATEGORIES
     first = True
