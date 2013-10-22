@@ -44,8 +44,8 @@ def run_simulation(year=2011, apply_reform=False, reforme=False):
     country = 'tunisia'
    
     simulation = ScenarioSimulation()        
-    simulation.set_config(year = year, country = country, nmen = 101, 
-                    xaxis = 'sali', maxrev = 10000, reforme = reforme,
+    simulation.set_config(year = year, country = country, nmen = 1001, 
+                    xaxis = 'sali', maxrev = 100000, reforme = reforme,
                     mode ='bareme', same_rev_couple = False)
     simulation.set_param()
 #    simulation.scenario.addIndiv(1, datetime(1975,1,1).date(), 'conj', 'part') 
@@ -61,15 +61,20 @@ if __name__ == '__main__':
     win = ApplicationWindow()
     
     ax = win.mplwidget.axes    
-
+    
+    simulation = run_simulation(year=2011, apply_reform=False)
+    title = "Actuel" 
 
 #     simulation = run_simulation(year=2011, apply_reform=False)
-#     title = "Actuel" 
+#     title = "Réforme" 
     
-    simulation = run_simulation(year=2011, apply_reform=True, reforme=True)
-    title = u"Réforme différence" 
+#    simulation = run_simulation(year=2011, apply_reform=True, reforme=True)
+#    title = u"Réforme différence" 
     
-    simulation.draw_bareme(ax, legend = True, position = 4) 
+#    simulation.draw_bareme(ax, legend = True, position = 4) 
+    
+    simulation.draw_taux(ax, legend=True)
+    
     win.resize(1400,700)
     win.mplwidget.draw()
     win.show()
