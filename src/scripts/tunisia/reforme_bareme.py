@@ -39,54 +39,125 @@ class ApplicationWindow(QMainWindow):
         self.mplwidget = MatplotlibWidget(self)
         self.mplwidget.setFocus()
         self.setCentralWidget(self.mplwidget)
+
         
-def run_simulation(year=2011, apply_reform=False, reforme=False):
+def run_simulation(apply_reform=False, reforme=False,
+                    conj = False, kids = 0, sal_conj=False, year=2011):
+
     country = 'tunisia'
-   
     simulation = ScenarioSimulation()        
-    simulation.set_config(year = year, country = country, nmen = 1001, 
-                    xaxis = 'sali', maxrev = 100000, reforme = reforme,
+    simulation.set_config(year = year, country = country, nmen = 11, 
+                    xaxis = 'sali', maxrev = 10000, reforme = reforme,
                     mode ='bareme', same_rev_couple = False)
     simulation.set_param()
-#    simulation.scenario.addIndiv(1, datetime(1975,1,1).date(), 'conj', 'part') 
+        
+    if sal_conj:
+        conj = True
+    
+    if conj:
+        simulation.scenario.addIndiv(1, datetime(1975,1,1).date(), 'vous', 'part')
+        if sal_conj:
+            simulation.scenario.indiv[1].update({'sali': simulation.P.cotsoc.gen.smig})
+    
+        if kids > 0:    
+            for n in range(1,kids+1): 
+                simulation.scenario.addIndiv(n+1, datetime(2000,1,1).date(), 'pac', 'enf') 
+
+    print simulation.scenario
     if apply_reform:
         simulation.P.ir.reforme.exemption.active = 1
+
     return simulation
 
-if __name__ == '__main__':
 
-    destination_dir = u"c:/users/utilisateur/Desktop/Tunisie/Réforme barème"
+def produce_graph(name="test", apply_reform=False, reforme=False, conj = False, 
+                  sal_conj=False, kids = 0, save_figure = False, destination_dir = None,
+                  bareme=True, tax_rates=False, year=2011):
+    
     app = QApplication(sys.argv)
     win = ApplicationWindow()    
-    win = ApplicationWindow()
+    ax = win.mplwidget.axes
+    simulation = run_simulation(year=year, 
+                                apply_reform=apply_reform, 
+                                reforme=reforme,
+                                conj = conj, 
+                                sal_conj=sal_conj,
+                                kids=kids)
     
-    ax = win.mplwidget.axes    
+    if bareme:
+        simulation.draw_bareme(ax, legend = True, position = 4) 
     
-    simulation = run_simulation(year=2011, apply_reform=False)
-    title = "Actuel" 
-
-#     simulation = run_simulation(year=2011, apply_reform=False)
-#     title = "Réforme" 
-    
-#    simulation = run_simulation(year=2011, apply_reform=True, reforme=True)
-#    title = u"Réforme différence" 
-    
-#    simulation.draw_bareme(ax, legend = True, position = 4) 
-    
-    simulation.draw_taux(ax, legend=True)
+    if tax_rates:
+        simulation.draw_taux(ax, legend=True)
     
     win.resize(1400,700)
     win.mplwidget.draw()
     win.show()
 
     df = simulation.get_results_dataframe()
-    print df.to_string()
+#    print df.to_string()
 
-    
-#    win.mplwidget.print_figure(os.path.join(destination_dir, title + '.png'))
+    if save_figure and destination_dir is not None:
+        win.mplwidget.print_figure(os.path.join(destination_dir, name + '.png'))
 
     del ax, simulation 
-    sys.exit(app.exec_())
+#    sys.exit(app.exec_())
+    
 
+# 
+# def test_case():
+# 
+#     title = "Actuel" 
+# 
+# #     simulation = run_simulation(year=2011, apply_reform=False)
+# #     title = "Réforme" 
+#     
+# #    simulation = run_simulation(year=2011, apply_reform=True, reforme=True)
+# #    title = u"Réforme différence" 
+#     
+# 
+#     simulation.draw_bareme(ax, legend = True, position = 4) 
+#     
+# #    simulation.draw_taux(ax, legend=True)
+#     
+#     win.resize(1400,700)
+#     win.mplwidget.draw()
+#     win.show()
+# 
+#     df = simulation.get_results_dataframe()
+#     print df.to_string()
+# 
+#     
+# #    win.mplwidget.print_figure(os.path.join(destination_dir, title + '.png'))
+# 
+#     del ax, simulation 
+#     sys.exit(app.exec_())
+# 
+# 
+# 
+#     
+#     
+#     return simulation
+
+if __name__ == '__main__':
+    destination_dir = u"c:/users/utilisateur/Desktop/Tunisie/Réforme barème"
+    
+ 
+    for conj in [False, True]:
+        name = "simulation_adulte"
+        if conj:
+            for sal_conj in [False, True]:
+                for kids in range(0,3):
+                    name = name + "_marié_%i_enf" %kids
+                    if sal_conj:
+                        name = name + "_conj_smig"
+                    produce_graph(name=name, conj = conj, 
+                                      sal_conj=sal_conj, kids=kids, 
+                                      save_figure=True, 
+                                      destination_dir = destination_dir)
+                    name="simulation_adulte"
+        else:
+            produce_graph(name=name, kids=0, save_figure=True, 
+                          destination_dir = destination_dir)
 
 
