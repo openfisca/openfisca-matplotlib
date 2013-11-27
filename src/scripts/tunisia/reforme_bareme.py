@@ -46,7 +46,7 @@ def run_simulation(apply_reform=False, reforme=False,
 
     country = 'tunisia'
     simulation = ScenarioSimulation()        
-    simulation.set_config(year = year, country = country, nmen = 11, 
+    simulation.set_config(year = year, country = country, nmen = 1001, 
                     xaxis = 'sali', maxrev = 10000, reforme = reforme,
                     mode ='bareme', same_rev_couple = False)
     simulation.set_param()
@@ -66,6 +66,8 @@ def run_simulation(apply_reform=False, reforme=False,
     print simulation.scenario
     if apply_reform:
         simulation.P.ir.reforme.exemption.active = 1
+        simulation.P.cotsoc.gen.smig = 320
+        simulation.P_default.cotsoc.gen.smig = 320
 
     return simulation
 
@@ -101,63 +103,61 @@ def produce_graph(name="test", apply_reform=False, reforme=False, conj = False,
         win.mplwidget.print_figure(os.path.join(destination_dir, name + '.png'))
 
     del ax, simulation 
-#    sys.exit(app.exec_())
-    
 
-# 
-# def test_case():
-# 
-#     title = "Actuel" 
-# 
-# #     simulation = run_simulation(year=2011, apply_reform=False)
-# #     title = "Réforme" 
-#     
-# #    simulation = run_simulation(year=2011, apply_reform=True, reforme=True)
-# #    title = u"Réforme différence" 
-#     
-# 
-#     simulation.draw_bareme(ax, legend = True, position = 4) 
-#     
-# #    simulation.draw_taux(ax, legend=True)
-#     
-#     win.resize(1400,700)
-#     win.mplwidget.draw()
-#     win.show()
-# 
-#     df = simulation.get_results_dataframe()
-#     print df.to_string()
-# 
-#     
-# #    win.mplwidget.print_figure(os.path.join(destination_dir, title + '.png'))
-# 
-#     del ax, simulation 
-#     sys.exit(app.exec_())
-# 
-# 
-# 
-#     
-#     
-#     return simulation
-
-if __name__ == '__main__':
-    destination_dir = u"c:/users/utilisateur/Desktop/Tunisie/Réforme barème"
-    
- 
+def do_graphs():
+    destination_dir = u"c:/users/utilisateur/Desktop/Tunisie/Réforme barème" 
     for conj in [False, True]:
-        name = "simulation_adulte"
+        name = "simulation_adulte_reforme"
         if conj:
             for sal_conj in [False, True]:
                 for kids in range(0,3):
                     name = name + "_marié_%i_enf" %kids
                     if sal_conj:
                         name = name + "_conj_smig"
-                    produce_graph(name=name, conj = conj, 
-                                      sal_conj=sal_conj, kids=kids, 
-                                      save_figure=True, 
-                                      destination_dir = destination_dir)
-                    name="simulation_adulte"
+                    produce_graph(name=name, 
+                                  conj = conj, 
+                                  sal_conj=sal_conj, kids=kids, 
+                                  save_figure=True, 
+                                  destination_dir = destination_dir,
+                                  apply_reform=True,
+                                  reforme=True)
+                    name="simulation_adulte_reforme"
         else:
             produce_graph(name=name, kids=0, save_figure=True, 
                           destination_dir = destination_dir)
 
 
+
+
+
+def test_case(year):
+    
+    country = 'tunisia'
+    simulation = ScenarioSimulation()
+    simulation.set_config(year = year, country = country, reforme=False,
+                    nmen = 11, maxrev = 12000, xaxis = 'sali')
+    # Adding a husband/wife on the same tax sheet (foyer)
+    simulation.scenario.addIndiv(1, datetime(1975,1,1).date(), 'conj', 'part') 
+    simulation.scenario.addIndiv(2, datetime(2000,1,1).date(), 'pac', 'enf') 
+    simulation.scenario.addIndiv(3, datetime(2000,1,1).date(), 'pac', 'enf')
+
+        
+    simulation.set_param()
+    simulation.P.ir.reforme.exemption.active = 1
+
+    
+    df = simulation.get_results_dataframe()
+    print df.to_string()
+
+
+def justify_decote():
+    destination_dir = u"c:/users/utilisateur/Desktop/Tunisie/Réforme barème" 
+    produce_graph(name="test2", apply_reform=True, reforme=False, conj = False, 
+                  sal_conj=False, kids = 0, save_figure = True, destination_dir = destination_dir,
+                  bareme=True, tax_rates=False, year=2011)
+
+if __name__ == '__main__':
+    #test_case(2011)
+    #do_graphs()
+    justify_decote()
+    

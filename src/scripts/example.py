@@ -14,7 +14,7 @@ from src.lib.simulation import SurveySimulation
 from src.plugins.survey.aggregates import Aggregates
 from datetime import datetime
 
-country = 'france'
+
 # destination_dir = "c:/users/utilisateur/documents/"
 # fname_all = "aggregates_inflated_loyers.xlsx"
 # fname_all = os.path.join(destination_dir, fname_all)              
