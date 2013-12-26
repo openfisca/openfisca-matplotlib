@@ -40,7 +40,7 @@ import os, re, os.path as osp, shutil
 from ConfigParser import (ConfigParser, MissingSectionHeaderError,
                           NoSectionError, NoOptionError)
 
-from src.gui.utils import encoding
+from .utils import encoding
 
 
 def get_home_dir():

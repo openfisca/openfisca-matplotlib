@@ -13,9 +13,9 @@ import re
 import keyword
 import __builtin__
 
-from src.gui.qt.QtGui import (QColor, QApplication, QFont,
+from ....gui.qt.QtGui import (QColor, QApplication, QFont,
                                 QSyntaxHighlighter, QCursor, QTextCharFormat)
-from src.gui.qt.QtCore import Qt
+from ....gui.qt.QtCore import Qt
 
 
 #==============================================================================

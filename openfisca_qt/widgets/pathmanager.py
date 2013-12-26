@@ -6,22 +6,20 @@
 
 """Openfisca path manager"""
 
+
 from __future__ import with_statement
 
-from src.gui.qt.QtGui import (QDialog, QListWidget, QDialogButtonBox,
-                                QVBoxLayout, QHBoxLayout, QMessageBox,
-                                QListWidgetItem)
-from src.gui.qt.QtCore import Qt, SIGNAL, SLOT
-from src.gui.qt.compat import getexistingdirectory
-
 import os
-import sys
 import os.path as osp
+import sys
 
-# Local imports
-from src.gui.utils.qthelpers import get_std_icon, create_toolbutton
-from src.gui.baseconfig import _
-from src.gui.config import get_icon
+from ..gui.baseconfig import _
+from ..gui.config import get_icon
+from ..gui.qt.compat import getexistingdirectory
+from ..gui.qt.QtCore import Qt, SIGNAL, SLOT
+from ..gui.qt.QtGui import (QDialog, QListWidget, QDialogButtonBox, QVBoxLayout, QHBoxLayout, QMessageBox,
+    QListWidgetItem)
+from ..gui.utils.qthelpers import get_std_icon, create_toolbutton
 
 
 class PathManager(QDialog):
@@ -152,7 +150,7 @@ class PathManager(QDialog):
             remove = True
         else:
             remove = False
-        from src.gui.utils.environ import (get_user_env, set_user_env,
+        from ..gui.utils.environ import (get_user_env, set_user_env,
                                              listdict2envdict)
         env = get_user_env()
         if remove:
@@ -237,7 +235,7 @@ class PathManager(QDialog):
 
 def test():
     """Run path manager test"""
-    from src.gui.utils.qthelpers import qapplication
+    from ..gui.utils.qthelpers import qapplication
     _app = qapplication()
     test = PathManager(None, sys.path[:-10], sys.path[-10:])
     test.exec_()

@@ -9,10 +9,13 @@
 
 # Exemple of a simple simulation
 
+
+from datetime import datetime
+
 from openfisca_core.simulations import ScenarioSimulation
 from openfisca_core.simulations import SurveySimulation
-from src.plugins.survey.aggregates import Aggregates
-from datetime import datetime
+from openfisca_qt.plugins.survey.aggregates import Aggregates
+
 
 country = 'france'
 # destination_dir = "c:/users/utilisateur/documents/"
@@ -75,7 +78,7 @@ def survey_case(year):
 
 
 # Displaying a pivot table    
-    from src.plugins.survey.distribution import OpenfiscaPivotTable
+    from openfisca_qt.plugins.survey.distribution import OpenfiscaPivotTable
     pivot_table = OpenfiscaPivotTable()
     pivot_table.set_simulation(simulation)
     df2 = pivot_table.get_table(by ='so', vars=['nivvie']) 

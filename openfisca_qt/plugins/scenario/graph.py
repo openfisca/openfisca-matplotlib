@@ -31,22 +31,22 @@ from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle, FancyArrow
 from matplotlib.ticker import FuncFormatter
 import numpy as np
-from openfisca_core import axestools
+from openfisca_core import axestools, model
 
-from src.gui.qt.QtCore import (QAbstractItemModel, QModelIndex, Qt, 
+from ...gui.baseconfig import get_translation
+from ...gui.config import get_icon
+from ...gui.qt.compat import (to_qvariant, getsavefilename)
+from ...gui.qt.QtCore import (QAbstractItemModel, QModelIndex, Qt, 
                           SIGNAL, QSize, QString)
-from src.gui.qt.QtGui import (QColor, QVBoxLayout, QDialog, 
+from ...gui.qt.QtGui import (QColor, QVBoxLayout, QDialog, 
                          QMessageBox, QTreeView, QIcon, QPixmap, QHBoxLayout, 
                          QPushButton)
-from src.gui.qt.compat import (to_qvariant, getsavefilename)
-from src.gui.views.ui_graph import Ui_Graph
-from src.gui.config import get_icon
-from src.gui.utils.qthelpers import create_action
-from src.gui.baseconfig import get_translation
-from src.plugins.__init__ import OpenfiscaPluginWidget
+from ...gui.utils.qthelpers import create_action
+from ...gui.views.ui_graph import Ui_Graph
+from .. import OpenfiscaPluginWidget
 
 
-_ = get_translation('src')
+_ = get_translation('openfisca_qt')
 locale.setlocale(locale.LC_ALL, '')
 
 
@@ -564,8 +564,7 @@ def drawBaremeCompareHouseholds(data, ax, xaxis, dataDefault = None, legend = Tr
     NMEN = len(xdata.vals)
     xlabel = xdata.desc
     ax.set_xlabel(xlabel)
-    from src.countries.france import CURRENCY
-    ax.set_ylabel(prefix + u"Revenu disponible (" + CURRENCY + " par an)")
+    ax.set_ylabel(prefix + u"Revenu disponible (" + model.CURRENCY + " par an)")
     ax.set_xlim(np.amin(xdata.vals), np.amax(xdata.vals))
     ax.plot(xdata.vals, np.zeros(NMEN), color = 'black', label = 'xaxis')
     

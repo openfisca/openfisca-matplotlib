@@ -21,14 +21,18 @@ This file is part of openFisca.
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from PyQt4.QtGui import QDockWidget, QFileDialog, QMessageBox
-from PyQt4.QtCore import SIGNAL
-from src.gui.views.ui_parametres import Ui_Parametres
-from openfisca_core.parameters import XmlReader, Tree2Object
-from src.parametres.paramModel import PrestationModel
-from src.parametres.Delegate import CustomDelegate, ValueColumnDelegate
-from src.Config import CONF
+
 import os
+
+from openfisca_core.parameters import XmlReader, Tree2Object
+from PyQt4.QtCore import SIGNAL
+from PyQt4.QtGui import QDockWidget, QFileDialog, QMessageBox
+
+from ..Config import CONF
+from ..gui.views.ui_parametres import Ui_Parametres
+from ..parametres.Delegate import CustomDelegate, ValueColumnDelegate
+from ..parametres.paramModel import PrestationModel
+
 
 class ParamWidget(QDockWidget, Ui_Parametres):
     def __init__(self, parent = None):

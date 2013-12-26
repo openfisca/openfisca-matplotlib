@@ -5,8 +5,8 @@
 # (see spyderlib/__init__.py for details)
 
 """
-src.gui.spyder_widgets.sourcecode
-============================
+openfisca_qt.gui.spyder_widgets.sourcecode
+==========================================
 
 Source code related widgets (code editor, console) based exclusively on Qt
 """

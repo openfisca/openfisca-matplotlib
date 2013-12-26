@@ -6,17 +6,17 @@
 
 """Configuration dialog / Preferences"""
 
+
 import os
 import os.path as osp
 
-from src.gui.baseconfig import _
-from src.gui.config import (get_icon, CONF, CUSTOM_COLOR_SCHEME_NAME,
+from ...gui.baseconfig import _
+from ...gui.config import (get_icon, CONF, CUSTOM_COLOR_SCHEME_NAME,
                               set_default_color_scheme, COLOR_SCHEME_NAMES)
-from src.gui.utils.qthelpers import get_std_icon
-from src.gui.userconfig import NoDefault
-from src.widgets.colors import ColorLayout
-
-from src.gui.qt.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
+from ...gui.qt.compat import (to_qvariant, from_qvariant,
+                                 getexistingdirectory, getopenfilename)
+from ...gui.qt.QtCore import Qt, QSize, SIGNAL, SLOT, Slot, QDate
+from ...gui.qt.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
                                 QVBoxLayout, QStackedWidget, QListView,
                                 QHBoxLayout, QDialogButtonBox, QCheckBox,
                                 QMessageBox, QLabel, QLineEdit, QSpinBox,
@@ -24,9 +24,9 @@ from src.gui.qt.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
                                 QComboBox, QColor, QGridLayout, QTabWidget,
                                 QRadioButton, QButtonGroup, QSplitter,
                                 QStyleFactory, QScrollArea, QDateEdit)
-from src.gui.qt.QtCore import Qt, QSize, SIGNAL, SLOT, Slot, QDate
-from src.gui.qt.compat import (to_qvariant, from_qvariant,
-                                 getexistingdirectory, getopenfilename)
+from ...gui.userconfig import NoDefault
+from ...gui.utils.qthelpers import get_std_icon
+from ...widgets.colors import ColorLayout
 
 
 class ConfigPage(QWidget):
@@ -264,7 +264,7 @@ class OpenfiscaConfigPage(ConfigPage):
                 data = from_qvariant(combobox.itemData(index), unicode)
                 # For PyQt API v2, it is necessary to convert `data` to 
                 # unicode in case the original type was not a string, like an 
-                # integer for example (see src.gui.qt.compat.from_qvariant):
+                # integer for example (see ...gui.qt.compat.from_qvariant):
                 if unicode(data) == unicode(value):
                     break
             combobox.setCurrentIndex(index)
@@ -747,7 +747,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                       "number":         _("Number:"),
                       "instance":       _("Instance:"),
                       }
-        from src.gui.spyder_widgets.sourcecode import syntaxhighlighters
+        from ...gui.spyder_widgets.sourcecode import syntaxhighlighters
         assert all([key in fieldnames
                     for key in syntaxhighlighters.COLOR_SCHEME_KEYS])
         for tabname in names:

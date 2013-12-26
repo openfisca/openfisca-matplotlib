@@ -5,7 +5,7 @@
 # (see spyderlib/__init__.py for details)
 
 """
-src.gui.qt.compat
+openfisca_qt.gui.qt.compat
 -------------------
 
 Transitional module providing compatibility functions intended to help 
@@ -20,7 +20,7 @@ This module should be fully compatible with:
 import os
 import sys
 
-from src.gui.qt.QtGui import QFileDialog
+from .QtGui import QFileDialog
 
 #===============================================================================
 # QVariant conversion utilities
@@ -108,7 +108,7 @@ def _qfiledialog_wrapper(attr, parent=None, caption='', basedir='',
         options = QFileDialog.Options(0)
     try:
         # PyQt <v4.6 (API #1)
-        from src.gui.qt.QtCore import QString
+        from .QtCore import QString
     except ImportError:
         # PySide or PyQt >=v4.6
         QString = None  # analysis:ignore
@@ -198,7 +198,7 @@ def getsavefilename(parent=None, caption='', basedir='', filters='',
                                 options=options)
 
 if __name__ == '__main__':
-    from src.gui.utils.qthelpers import qapplication
+    from ..utils.qthelpers import qapplication
     app = qapplication()
     print repr(getexistingdirectory())
     print repr(getopenfilename(filters='*.py;;*.txt'))

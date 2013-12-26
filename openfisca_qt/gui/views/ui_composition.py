@@ -7,7 +7,7 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from src.gui.qt import QtCore, QtGui
+from ..qt import QtCore, QtGui
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -262,4 +262,4 @@ class Ui_Menage(object):
 "</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
 "<p align=\"center\" style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:8pt;\">Position</span></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
 
-import src.gui.resources_rc
+import ..resources_rc

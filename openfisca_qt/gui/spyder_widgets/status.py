@@ -6,12 +6,12 @@
 
 """Status bar widgets"""
 
-from src.gui.qt.QtGui import QWidget, QHBoxLayout, QLabel
-from src.gui.qt.QtCore import QTimer, SIGNAL
+from ...gui.qt.QtGui import QWidget, QHBoxLayout, QLabel
+from ...gui.qt.QtCore import QTimer, SIGNAL
 
 # Local import
-from src.gui.baseconfig import _
-from src.gui.config import get_font
+from ...gui.baseconfig import _
+from ...gui.config import get_font
 
 
 class StatusBarWidget(QWidget):
@@ -84,11 +84,11 @@ class MemoryStatus(BaseTimerStatus):
             "requires the `psutil` (>=v0.3) library on non-Windows platforms")
     def import_test(self):
         """Raise ImportError if feature is not supported"""
-        from src.gui.utils.system import memory_usage  # analysis:ignore
+        from ...gui.utils.system import memory_usage  # analysis:ignore
 
     def get_value(self):
         """Return memory usage"""
-        from src.gui.utils.system import memory_usage
+        from ...gui.utils.system import memory_usage
         return memory_usage()
 
 class CPUStatus(BaseTimerStatus):
@@ -96,7 +96,7 @@ class CPUStatus(BaseTimerStatus):
     TIP = _("CPU usage status: requires the `psutil` (>=v0.3) library")
     def import_test(self):
         """Raise ImportError if feature is not supported"""
-        from src.gui.utils import programs
+        from ...gui.utils import programs
         if not programs.is_module_installed('psutil', '>=0.2.0'):
             # The `interval` argument in `psutil.cpu_percent` function
             # was introduced in v0.2.0
@@ -172,8 +172,8 @@ class CursorPositionStatus(StatusBarWidget):
 
 
 def test():
-    from src.gui.qt.QtGui import QMainWindow
-    from src.gui.utils.qthelpers import qapplication
+    from ...gui.qt.QtGui import QMainWindow
+    from ...gui.utils.qthelpers import qapplication
     app = qapplication()
     win = QMainWindow()
     win.setWindowTitle("Status widgets test")

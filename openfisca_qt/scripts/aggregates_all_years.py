@@ -9,8 +9,8 @@
 # Script to compute the aggregates for all the referenced years
 
 from openfisca_core.simulations import SurveySimulation 
-from src.plugins.survey.aggregates import Aggregates
-from src.plugins.survey.inequality import Inequality
+from openfisca_qt.plugins.survey.aggregates import Aggregates
+from openfisca_qt.plugins.survey.inequality import Inequality
 from pandas import ExcelWriter, ExcelFile
 import os
 from src.countries.france.data.sources.config import destination_dir

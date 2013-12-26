@@ -122,4 +122,4 @@ class Ui_Logement(object):
         self.label_6.setText(QtGui.QApplication.translate("Logement", "Zone allocation logement", None, QtGui.QApplication.UnicodeUTF8))
         self.label_7.setText(QtGui.QApplication.translate("Logement", "Taxe d\'habitation", None, QtGui.QApplication.UnicodeUTF8))
 
-import src.gui.resources_rc
+import ..resources_rc

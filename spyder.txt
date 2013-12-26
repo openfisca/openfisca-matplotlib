@@ -3,6 +3,6 @@ interactive development environment for the Python (http://code.google.com/p/spy
 licensed under the terms of the MIT License (http://opensource.org/licenses/mit-license.php).
 
 Complete reuse of spyder code can be found in:
- - src.qt
+ - openfisca_qt.qt
  - spyder_widgets
  

@@ -22,20 +22,19 @@ This file is part of openFisca.
 """
 
 from __future__ import division
+
 import os
 
-from src.gui.qt.QtCore import SIGNAL, Qt, QSize 
-from src.gui.qt.QtGui import (QLabel, QDialog, QHBoxLayout, QVBoxLayout, QPushButton, QComboBox, 
-                         QSpinBox, QDoubleSpinBox, QCheckBox, QInputDialog, QFileDialog, 
-                         QMessageBox, QApplication, QCursor, QSpacerItem, QSizePolicy,
-                         QDialogButtonBox)
 from numpy import logical_and, unique, NaN
+from openfisca_core import model
 from pandas import  DataFrame, concat, HDFStore
-from Config import CONF
-from src.gui.qthelpers import DataFrameViewWidget, get_icon, _fromUtf8
 
-from .. import model
-
+from ..Config import CONF
+from ..gui.qt.QtCore import SIGNAL, Qt, QSize 
+from ..gui.qt.QtGui import (QLabel, QDialog, QHBoxLayout, QVBoxLayout, QPushButton, QComboBox, QSpinBox, QDoubleSpinBox,
+    QCheckBox, QInputDialog, QFileDialog, QMessageBox, QApplication, QCursor, QSpacerItem, QSizePolicy,
+    QDialogButtonBox)
+from ..gui.qthelpers import DataFrameViewWidget, get_icon, _fromUtf8
 
 
 class InflationWidget(QDialog):

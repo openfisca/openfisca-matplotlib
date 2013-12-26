@@ -14,16 +14,16 @@
 import re
 import string
 
-from src.gui.qt.QtGui import (QTextCursor, QColor, QFont, QApplication,
+from ....gui.qt.QtGui import (QTextCursor, QColor, QFont, QApplication,
                                 QTextEdit, QTextCharFormat, QToolTip,
                                 QListWidget, QPlainTextEdit, QPalette,
                                 QMainWindow, QTextOption)
-from src.gui.qt.QtCore import QPoint, SIGNAL, Qt, QEventLoop
+from ....gui.qt.QtCore import QPoint, SIGNAL, Qt, QEventLoop
 
 
 # Local imports
-from src.gui.spyder_widgets.sourcecode.terminal import ANSIEscapeCodeHandler
-from src.gui.spyder_widgets.sourcecode import mixins
+from ....gui.spyder_widgets.sourcecode.terminal import ANSIEscapeCodeHandler
+from ....gui.spyder_widgets.sourcecode import mixins
 
 
 class CompletionWidget(QListWidget):

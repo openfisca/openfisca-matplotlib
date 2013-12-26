@@ -33,7 +33,7 @@ License: MIT open source license.
 
 """
 
-from src.gui.utils.external.path import path as Path
+from ....gui.utils.external.path import path as Path
 import os,stat,time
 import cPickle as pickle
 import UserDict

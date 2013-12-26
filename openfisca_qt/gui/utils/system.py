@@ -10,7 +10,7 @@
 import os
 
 # Local imports
-from src.gui.utils import programs
+from ...gui.utils import programs
 
 
 def windows_memory_usage():

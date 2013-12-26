@@ -5,15 +5,14 @@ Created on Oct 22, 2013
 """
 
 
+from datetime import datetime
+import os
+import sys
 
 from openfisca_core.simulations import ScenarioSimulation 
+from openfisca_qt.gui.qt.QtGui import QMainWindow, QApplication
+from openfisca_qt.widgets.matplotlibwidget import MatplotlibWidget
 
-import sys
-import os
-from src.gui.qt.QtGui import QMainWindow, QApplication
-
-from src.widgets.matplotlibwidget import MatplotlibWidget
-from datetime import datetime    
 
 class ApplicationWindow(QMainWindow):
     def __init__(self):

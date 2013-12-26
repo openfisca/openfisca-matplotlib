@@ -22,9 +22,9 @@ This file is part of openFisca.
 """
 
 
-from src.gui.qt.QtGui import QColor
-from src.gui.qt.QtCore import QAbstractItemModel, Qt, QModelIndex
-from src.gui.qt.compat import to_qvariant
+from ..gui.qt.QtGui import QColor
+from ..gui.qt.QtCore import QAbstractItemModel, Qt, QModelIndex
+from ..gui.qt.compat import to_qvariant
 
 
 class PrestationModel(QAbstractItemModel):

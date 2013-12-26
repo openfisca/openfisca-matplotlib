@@ -15,7 +15,7 @@ from subprocess import Popen, PIPE
 import tempfile
 
 # Local import
-from src.gui.utils import programs
+from ...gui.utils import programs
 
 
 #==============================================================================

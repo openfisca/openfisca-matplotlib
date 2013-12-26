@@ -17,29 +17,29 @@ Dictionary Editor Widget and Dialog based on Qt
 # pylint: disable=R0201
 
 import os, sys, datetime
-from src.gui.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
+from ...gui.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
                                 QLineEdit, QVBoxLayout, QWidget, QColor,
                                 QDialog, QDateEdit, QDialogButtonBox, QMenu,
                                 QInputDialog, QDateTimeEdit, QApplication,
                                 QKeySequence)
-from src.gui.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, SIGNAL,
+from ...gui.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, SIGNAL,
                                  SLOT, QDateTime, Signal)
-from src.gui.qt.compat import to_qvariant, from_qvariant, getsavefilename
+from ...gui.qt.compat import to_qvariant, from_qvariant, getsavefilename
 
 # Local import
-from src.gui.baseconfig import _
-from src.gui.config import get_icon, get_font
-from src.gui.utils.misc import fix_reference_name
-from src.gui.utils.qthelpers import add_actions, create_action, qapplication
-from src.gui.widgets.dicteditorutils import (sort_against, get_size,
+from ...gui.baseconfig import _
+from ...gui.config import get_icon, get_font
+from ...gui.utils.misc import fix_reference_name
+from ...gui.utils.qthelpers import add_actions, create_action, qapplication
+from ...gui.widgets.dicteditorutils import (sort_against, get_size,
                get_human_readable_type, value_to_display, get_color_name,
                is_known_type, FakeObject, Image, ndarray, array, MaskedArray,
                unsorted_unique, try_to_eval, datestr_to_datetime,
                get_numpy_dtype, is_editable_type)
 if ndarray is not FakeObject:
-    from src.gui.widgets.arrayeditor import ArrayEditor
-from src.gui.widgets.texteditor import TextEditor
-from src.gui.widgets.importwizard import ImportWizard
+    from ...gui.widgets.arrayeditor import ArrayEditor
+from ...gui.widgets.texteditor import TextEditor
+from ...gui.widgets.importwizard import ImportWizard
 
 
 def display_to_value(value, default_value, ignore_errors=True):
@@ -1040,13 +1040,13 @@ class DictEditorTableView(BaseTableView):
     def oedit(self, key):
         """Edit item"""
         data = self.model.get_data()
-        from src.gui.spyder_widgets.objecteditor import oedit
+        from ...gui.spyder_widgets.objecteditor import oedit
         oedit(data[key])
     
     def plot(self, key, funcname):
         """Plot item"""
         data = self.model.get_data()
-        import src.gui.pyplot as plt
+        import ...gui.pyplot as plt
         plt.figure()
         getattr(plt, funcname)(data[key])
         plt.show()
@@ -1054,7 +1054,7 @@ class DictEditorTableView(BaseTableView):
     def imshow(self, key):
         """Show item's image"""
         data = self.model.get_data()
-        import src.gui.pyplot as plt
+        import ...gui.pyplot as plt
         plt.figure()
         plt.imshow(data[key])
         plt.show()
@@ -1342,8 +1342,8 @@ def test():
     
 def remote_editor_test():
     """Remote dictionary editor test"""
-    from src.gui.plugins.variableexplorer import VariableExplorer
-    from src.gui.spyder_widgets.externalshell.monitor import make_remote_view
+    from ...gui.plugins.variableexplorer import VariableExplorer
+    from ...gui.spyder_widgets.externalshell.monitor import make_remote_view
     remote = make_remote_view(get_test_data(), VariableExplorer.get_settings())
     from pprint import pprint
     pprint(remote)

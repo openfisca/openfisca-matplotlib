@@ -31,12 +31,12 @@ from sphinx import __version__ as sphinx_version
 from sphinx.application import Sphinx
 
 # Local imports
-from src.gui.baseconfig import get_module_source_path, _
-from src.gui.utils import encoding
+from ....gui.baseconfig import get_module_source_path, _
+from ....gui.utils import encoding
 
 # Note: we do not use __file__ because it won't be working in the stand-alone
 # version of Spyder (i.e. the py2exe or cx_Freeze build)
-CONFDIR_PATH = get_module_source_path('src.gui.utils.inspector')
+CONFDIR_PATH = get_module_source_path('openfisca_qt.gui.utils.inspector')
 CSS_PATH = osp.join(CONFDIR_PATH, 'static', 'css')
 
 
@@ -155,7 +155,7 @@ def sphinxify(docstring, context, buildername='html'):
         confdir = encoding.to_unicode_from_fs(confdir)
         generate_configuration(confdir)
     else:
-        confdir = osp.join(get_module_source_path('src.gui.utils.inspector'))
+        confdir = osp.join(get_module_source_path('openfisca_qt.gui.utils.inspector'))
 
     confoverrides = {'html_context': context}
 
@@ -200,7 +200,7 @@ def generate_configuration(directory):
     """
     
     # conf.py file for Sphinx
-    conf = osp.join(get_module_source_path('src.gui.utils.inspector'),
+    conf = osp.join(get_module_source_path('openfisca_qt.gui.utils.inspector'),
                     'conf.py')
 
     # Docstring layout page (in Jinja):

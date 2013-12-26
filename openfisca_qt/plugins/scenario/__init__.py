@@ -1,10 +1,14 @@
 # -*- coding:utf-8 -*-
 # Copyright © 2011 Clément Schaff, Mahdi Ben Jelloul
 
-from src.gui.qt.QtGui import QGroupBox, QVBoxLayout
-from src.plugins import OpenfiscaPluginWidget, PluginConfigPage
-from src.gui.baseconfig import get_translation
-_ = get_translation('src')
+
+from ...gui.baseconfig import get_translation
+from ...gui.qt.QtGui import QGroupBox, QVBoxLayout
+from .. import OpenfiscaPluginWidget, PluginConfigPage
+
+
+_ = get_translation('openfisca_qt')
+
 
 class CompositionConfigPage(PluginConfigPage):
     def __init__(self, plugin, parent):

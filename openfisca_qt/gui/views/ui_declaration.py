@@ -255,4 +255,4 @@ class Ui_Declaration(object):
         self.next_btn.setText(QtGui.QApplication.translate("Declaration", "...", None, QtGui.QApplication.UnicodeUTF8))
         self.label_2.setText(QtGui.QApplication.translate("Declaration", "Suivant", None, QtGui.QApplication.UnicodeUTF8))
 
-import src.gui.resources_rc
+import ..resources_rc

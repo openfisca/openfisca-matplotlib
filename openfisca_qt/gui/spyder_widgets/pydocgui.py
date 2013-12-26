@@ -6,16 +6,16 @@
 
 """pydoc widget"""
 
-from src.gui.qt.QtGui import QApplication, QCursor
-from src.gui.qt.QtCore import QThread, QUrl, Qt
 
-import sys
 import os.path as osp
+import sys
 
 # Local imports
-from src.gui.baseconfig import _
-from src.gui.spyder_widgets.browser import WebBrowser
-from src.utils.misc import select_port
+from ...gui.baseconfig import _
+from ...gui.qt.QtGui import QApplication, QCursor
+from ...gui.qt.QtCore import QThread, QUrl, Qt
+from ...gui.spyder_widgets.browser import WebBrowser
+from ...utils.misc import select_port
 
 
 class PydocServer(QThread):
@@ -103,7 +103,7 @@ class PydocBrowser(WebBrowser):
 
 def main():
     """Run web browser"""
-    from src.gui.utils.qthelpers import qapplication
+    from ...gui.utils.qthelpers import qapplication
     app = qapplication()
     widget = PydocBrowser(None)
     widget.show()

@@ -15,15 +15,15 @@ import os
 import re
 import sre_constants
 
-from src.gui.qt.QtGui import (QTextCursor, QTextDocument, QApplication,
+from ....gui.qt.QtGui import (QTextCursor, QTextDocument, QApplication,
                                 QCursor)
-from src.gui.qt.QtCore import Qt, QRegExp, SIGNAL
+from ....gui.qt.QtCore import Qt, QRegExp, SIGNAL
 
 # Local imports
-from src.gui.baseconfig import _
-from src.gui.utils import encoding, sourcecode
-from src.gui.utils.misc import get_error_match
-from src.gui.utils.dochelpers import getobj
+from ....gui.baseconfig import _
+from ....gui.utils import encoding, sourcecode
+from ....gui.utils.misc import get_error_match
+from ....gui.utils.dochelpers import getobj
 
 
 HISTORY_FILENAMES = []

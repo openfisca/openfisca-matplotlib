@@ -42,7 +42,7 @@ def find_data_files(source,target,patterns):
      files you want to copy.
     """
     if glob.has_magic(source) or glob.has_magic(target):
-        raise ValueError("Magic not allowed in src, target")
+        raise ValueError("Magic not allowed in source, target")
     ret = {}
     for pattern in patterns:
         pattern = os.path.join(source,pattern)

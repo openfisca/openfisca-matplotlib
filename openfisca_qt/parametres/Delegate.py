@@ -10,15 +10,14 @@
 
 from openfisca_core import model
 
-from src.gui.qt.QtCore import QAbstractTableModel, Qt, QString, SIGNAL, QModelIndex
-from src.gui.qt.compat import to_qvariant, from_qvariant
+from ..gui.qt.QtCore import QAbstractTableModel, Qt, QString, SIGNAL, QModelIndex
+from ..gui.qt.compat import to_qvariant, from_qvariant
 
-from src.gui.qt.QtGui import (QStyle, QApplication, QDialog, QPalette, QColor, 
+from ..gui.qt.QtGui import (QStyle, QApplication, QDialog, QPalette, QColor, 
                          QStyledItemDelegate, QDoubleSpinBox, QSpinBox,
                          QPushButton, QStyleOptionButton, QSortFilterProxyModel,
                          QStyleOptionViewItemV4)
-from src.gui.views.ui_baremedialog import Ui_BaremeDialog
-
+from ..gui.views.ui_baremedialog import Ui_BaremeDialog
 
 
 class CustomDelegate(QStyledItemDelegate):
@@ -86,7 +85,7 @@ class ValueColumnDelegate(QStyledItemDelegate):
     def paint(self, painter, option, index):
         
         
-        from src.gui.config import CONF
+        from ..gui.config import CONF
         country = CONF.get('parameters', 'country')
         currency = model.CURRENCY
 
@@ -150,11 +149,8 @@ class ValueColumnDelegate(QStyledItemDelegate):
         painter.restore()
     
     def createEditor(self, parent, option, index):
-        
 
-        from src.countries.france import CURRENCY
-
-        currency = CURRENCY
+        currency = model.CURRENCY
         
         node = index.internalPointer()
         if node.typeInfo == 'CODE':

@@ -7,17 +7,18 @@
 # (see openfisca/__init__.py for details)
 
 
-from openfisca_core.simulations import SurveySimulation 
-from src.plugins.survey.aggregates import Aggregates
-from src.plugins.survey.aggregates3 import Aggregates3
-from pandas import ExcelWriter, ExcelFile
 import os
 
+from openfisca_core.simulations import SurveySimulation 
 from src.countries.france.data.sources.config import destination_dir
+from openfisca_qt.plugins.survey.aggregates import Aggregates
+from openfisca_qt.plugins.survey.aggregates3 import Aggregates3
+from pandas import ExcelWriter, ExcelFile
+
+
 country = 'france'
-
-
 num_output = 100
+
 
 def build_aggregates3():
 

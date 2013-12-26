@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from src.gui.qt.QtGui import (QLineEdit, QIcon, QHBoxLayout, QColor,
-                                QPushButton, QColorDialog, QPixmap)
-from src.gui.qt.QtCore import SIGNAL, QSize, Slot, Property
+
+from ..gui.qt.QtGui import QLineEdit, QIcon, QHBoxLayout, QColor, QPushButton, QColorDialog, QPixmap
+from ..gui.qt.QtCore import SIGNAL, QSize, Slot, Property
 
 
 class ColorButton(QPushButton):

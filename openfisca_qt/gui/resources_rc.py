@@ -9,7 +9,7 @@
 # WARNING! All changes made in this file will be lost!
 
 
-from src.gui.qt import QtCore
+from .qt import QtCore
 
 
 qt_resource_data = "\

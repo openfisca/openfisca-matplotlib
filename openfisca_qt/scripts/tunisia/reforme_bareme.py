@@ -23,15 +23,14 @@ This file is part of openFisca.
 """
 
 
-
-from openfisca_core.simulations import ScenarioSimulation 
-
-import sys
+from datetime import datetime
 import os
-from src.gui.qt.QtGui import QMainWindow, QApplication
+import sys
 
-from src.widgets.matplotlibwidget import MatplotlibWidget
-from datetime import datetime    
+from openfisca_core.simulations import ScenarioSimulation
+from openfisca_qt.gui.qt.QtGui import QMainWindow, QApplication
+from openfisca_qt.widgets.matplotlibwidget import MatplotlibWidget
+
 
 class ApplicationWindow(QMainWindow):
     def __init__(self):

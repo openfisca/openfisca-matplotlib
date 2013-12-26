@@ -13,5 +13,5 @@ Put here only untouched libraries, else put them in utils.
 """
 
 import sys
-from src.gui.baseconfig import get_module_source_path
+from ....gui.baseconfig import get_module_source_path
 sys.path.insert(0, get_module_source_path(__name__))

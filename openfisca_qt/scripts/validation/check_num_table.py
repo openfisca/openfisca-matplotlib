@@ -8,22 +8,21 @@
 
 # Script to compute the aggregates for all the referenced years
 
-from openfisca_core.simulations import SurveySimulation 
-from src.plugins.survey.aggregates import Aggregates
-from src.plugins.survey.inequality import Inequality
-from pandas import ExcelWriter, ExcelFile, HDFStore
+
+import pdb
 import os
 
+from openfisca_core.simulations import SurveySimulation 
+from src.countries.france.data.sources.config import destination_dir
+from openfisca_qt.plugins.survey.aggregates import Aggregates
+from openfisca_qt.plugins.survey.inequality import Inequality
+from pandas import ExcelWriter, ExcelFile, HDFStore
 import pandas.rpy.common as com
-import pdb
+
 
 country = 'france'
-
-from src.countries.france.data.sources.config import destination_dir
-
-
 fname_all = "aggregates_inflated_loyers.xlsx"
-fname_all = os.path.join(destination_dir, fname_all)              
+fname_all = os.path.join(destination_dir, fname_all)
 num_output = None
 
 

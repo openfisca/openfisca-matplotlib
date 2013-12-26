@@ -49,7 +49,7 @@ def check_qt():
     """
     qt_infos = dict(pyqt=("PyQt4", "4.04"), pyside=("PySide", "1.1.1"))
     try:
-        from src.gui import qt
+        from . import qt
         package_name, required_str = qt_infos[qt.API]
         actual_str = qt.__version__
         if check_version(actual_str, required_str):

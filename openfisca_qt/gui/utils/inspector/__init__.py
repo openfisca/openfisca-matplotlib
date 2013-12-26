@@ -5,12 +5,12 @@
 # (See every file for its license)
 
 """
-src.gui.utils.inspector
+openfisca_qt.gui.utils.inspector
 ========================
 
 Configuration files for the object inspector rich text mode
 """
 
 import sys
-from src.gui.baseconfig import get_module_source_path
+from ....gui.baseconfig import get_module_source_path
 sys.path.insert(0, get_module_source_path(__name__))

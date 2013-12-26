@@ -10,9 +10,9 @@
 from pandas import DataFrame
 from numpy import isnan, isinf
 
-from src.gui.qt.QtGui import (QTreeView, QTableView, QApplication, QWidget, QLabel, QHBoxLayout, QComboBox, QSpinBox, QDoubleSpinBox)
-from src.gui.qt.QtCore import Qt, SIGNAL, QString, QAbstractTableModel
-from src.gui.qt.compat import to_qvariant
+from .qt.QtGui import (QTreeView, QTableView, QApplication, QWidget, QLabel, QHBoxLayout, QComboBox, QSpinBox, QDoubleSpinBox)
+from .qt.QtCore import Qt, SIGNAL, QString, QAbstractTableModel
+from .qt.compat import to_qvariant
 
 
 try:
@@ -505,7 +505,7 @@ def testDf():
 
 from pandas.sandbox.qtpandas import DataFrameWidget
 
-from src.gui.qt.QtGui import (QDialog, QVBoxLayout)
+from .qt.QtGui import (QDialog, QVBoxLayout)
 
 
 

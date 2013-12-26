@@ -5,10 +5,13 @@ Created on 20 févr. 2013
 @author: benjello
 '''
 
-from openfisca_core.simulations import SurveySimulation 
-from src.plugins.survey.aggregates import Aggregates
-#from pandas import ExcelWriter, ExcelFile
+
 import os
+
+from openfisca_core.simulations import SurveySimulation 
+from openfisca_qt.plugins.survey.aggregates import Aggregates
+#from pandas import ExcelWriter, ExcelFile
+
 
 country = 'france'
 destination_dir = "c:/users/utilisateur/documents/"

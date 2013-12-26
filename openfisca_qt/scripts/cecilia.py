@@ -7,14 +7,15 @@
 # (see openfisca/__init__.py for details)
 
 
-from pandas import DataFrame
-import sys
 import os
-from src.gui.qt.QtGui import QMainWindow, QApplication
+import sys
+
 import matplotlib.pyplot as plt
-    
-from src.widgets.matplotlibwidget import MatplotlibWidget
 from openfisca_core.simulations import ScenarioSimulation 
+from openfisca_qt.gui.qt.QtGui import QMainWindow, QApplication
+from openfisca_qt.widgets.matplotlibwidget import MatplotlibWidget
+from pandas import DataFrame
+
 
 SHOW_OPENFISCA = True
 EXPORT = False

@@ -21,18 +21,17 @@ import numpy as np
 from openfisca_core import axestools
 from pandas import DataFrame, ExcelWriter
 
-from src.gui.qt.QtCore import QAbstractItemModel, QModelIndex, Qt
-from src.gui.qt.QtGui import  QFileDialog, QMessageBox, QWidget, QAbstractItemView
-from src.gui.qt.compat import to_qvariant
-from src.gui.qthelpers import OfTreeView
-from src.gui.utils.qthelpers import create_action
-from src.gui.qt.QtGui import  QVBoxLayout
-from src.gui.config import get_icon
-from src.plugins.__init__ import OpenfiscaPluginWidget
-from src.gui.baseconfig import get_translation
+from ...gui.config import get_icon
+from ...gui.baseconfig import get_translation
+from ...gui.qt.compat import to_qvariant
+from ...gui.qt.QtCore import QAbstractItemModel, QModelIndex, Qt
+from ...gui.qt.QtGui import  QFileDialog, QMessageBox, QWidget, QAbstractItemView, QVBoxLayout
+from ...gui.qthelpers import OfTreeView
+from ...gui.utils.qthelpers import create_action
+from .. import OpenfiscaPluginWidget
 
 
-_ = get_translation('src')
+_ = get_translation('openfisca_qt')
 locale.setlocale(locale.LC_ALL, '')
 
 

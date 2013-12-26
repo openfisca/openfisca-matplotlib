@@ -6,7 +6,7 @@
 
 """
 openfisca GUI-related configuration management
-(for non-GUI configuration, see src/baseconfig.py)
+(for non-GUI configuration, see openfisca_qt/baseconfig.py)
 
 Important note regarding shortcuts:
     For compatibility with QWERTZ keyboards, one must avoid using the following
@@ -18,11 +18,11 @@ import os
 import sys
 import os.path as osp
 
-from src.gui.qt.QtGui import QLabel, QIcon, QPixmap, QFont, QFontDatabase
+from .qt.QtGui import QLabel, QIcon, QPixmap, QFont, QFontDatabase
 
 # Local import
-from src.gui.userconfig import UserConfig, get_home_dir, NoDefault
-from src.gui.baseconfig import (SUBFOLDER, get_module_data_path, _)
+from .userconfig import UserConfig, get_home_dir, NoDefault
+from .baseconfig import (SUBFOLDER, get_module_data_path, _)
 
 SANS_SERIF = ['Sans Serif', 'DejaVu Sans', 'Bitstream Vera Sans',
               'Bitstream Charter', 'Times', 'Lucida Grande', 'Calibri',
@@ -217,7 +217,7 @@ def add_image_path(path):
         for directory in dirs:
             IMG_PATH.append(osp.join(path, directory))
 
-add_image_path(get_module_data_path('src.gui', relpath='images'))
+add_image_path(get_module_data_path('openfisca_qt.gui', relpath='images'))
 
 
 # TODO: from spyderlib.otherplugins import PLUGIN_PATH
@@ -321,7 +321,7 @@ def reset_shortcuts():
     CONF.remove_section('shortcuts')
 
 
-from src.gui.spyder_widgets.sourcecode.syntaxhighlighters import (
+from .spyder_widgets.sourcecode.syntaxhighlighters import (
                                 COLOR_SCHEME_KEYS, COLOR_SCHEME_NAMES, COLORS)
 def get_color_scheme(name):
     """Get syntax color scheme"""

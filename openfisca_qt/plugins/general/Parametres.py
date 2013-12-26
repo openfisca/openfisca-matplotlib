@@ -22,23 +22,22 @@ This file is part of openFisca.
 """
 
 
-from src.gui.qt.QtGui import QFileDialog, QMessageBox
-from src.gui.qt.QtCore import SIGNAL, QDate
-
-from src.gui.views.ui_parametres import Ui_Parametres
-from openfisca_core.parameters import XmlReader, Tree2Object
-from src.parametres.paramModel import PrestationModel
-from src.parametres.Delegate import CustomDelegate, ValueColumnDelegate
-
-from src.gui.baseconfig import get_translation
-from src.gui.utils.qthelpers import get_icon
 import os
-_ = get_translation('src')
-
-from src.gui.qt.QtGui import QGroupBox, QVBoxLayout
-from src.plugins.__init__ import OpenfiscaPluginWidget, PluginConfigPage
 
 from openfisca_core import model
+from openfisca_core.parameters import XmlReader, Tree2Object
+
+from ...gui.baseconfig import get_translation
+from ...gui.qt.QtCore import SIGNAL, QDate
+from ...gui.qt.QtGui import QFileDialog, QMessageBox, QGroupBox, QVBoxLayout
+from ...gui.utils.qthelpers import get_icon
+from ...gui.views.ui_parametres import Ui_Parametres
+from ...parametres.Delegate import CustomDelegate, ValueColumnDelegate
+from ...parametres.paramModel import PrestationModel
+from .. import OpenfiscaPluginWidget, PluginConfigPage
+
+
+_ = get_translation('openfisca_qt')
 
 
 class ParametersConfigPage(PluginConfigPage):
@@ -57,7 +56,7 @@ class ParametersConfigPage(PluginConfigPage):
                                         choices, 'country')
 
         # Date
-        from src.gui.config import CONF
+        from ...gui.config import CONF
         default = CONF.get('parameters', 'datesim')
         date_dateedit = self.create_dateedit(prefix=_("Legislation date"),
                                              option= 'datesim', 

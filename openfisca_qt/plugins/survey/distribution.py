@@ -21,27 +21,23 @@ This file is part of openFisca.
 """
 
 from __future__ import division
+
 import numpy as np
+from openfisca_core import model
+from openfisca_core.simulations import SurveySimulation
 from pandas import DataFrame, merge
 
-from src.gui.qt.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QSortFilterProxyModel,
+from ...gui.baseconfig import get_translation
+from ...gui.qt.compat import from_qvariant
+from ...gui.qt.QtCore import SIGNAL, QSize
+from ...gui.qt.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QComboBox, QSortFilterProxyModel,
                          QSpacerItem, QSizePolicy, QPushButton, QInputDialog, QGroupBox)
-from src.gui.qt.QtCore import SIGNAL, QSize
-from src.gui.qt.compat import from_qvariant
-
-from src.gui.qthelpers import OfSs, DataFrameViewWidget, MyComboBox
-from src.gui.utils.qthelpers import  get_icon
-from openfisca_core.simulations import SurveySimulation
+from ...gui.qthelpers import OfSs, DataFrameViewWidget, MyComboBox
+from ...gui.utils.qthelpers import  get_icon
+from .. import OpenfiscaPluginWidget, PluginConfigPage
 
 
-
-from src.plugins.__init__ import OpenfiscaPluginWidget, PluginConfigPage
-
-from src.gui.baseconfig import get_translation
-
-from ... import model
-
-_ = get_translation('src')
+_ = get_translation('openfisca_qt')
 
 
 class OpenfiscaPivotTable(object):

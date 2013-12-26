@@ -23,13 +23,13 @@ This file is part of openFisca.
 """
 
 
+from datetime import datetime
+import sys
 
 from openfisca_core.simulations import ScenarioSimulation 
+from openfisca_qt.gui.qt.QtGui import QMainWindow, QApplication
+from openfisca_qt.widgets.matplotlibwidget import MatplotlibWidget
 
-import sys
-from src.gui.qt.QtGui import QMainWindow, QApplication
-
-from src.widgets.matplotlibwidget import MatplotlibWidget
 
 class ApplicationWindow(QMainWindow):
     def __init__(self):
@@ -37,9 +37,7 @@ class ApplicationWindow(QMainWindow):
         self.mplwidget = MatplotlibWidget(self)
         self.mplwidget.setFocus()
         self.setCentralWidget(self.mplwidget)
-        
 
-from datetime import datetime    
 
 destination_dir = "c:/users/utilisateur/documents/test_enfant/"    
 

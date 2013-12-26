@@ -9,7 +9,7 @@
 import inspect, re
 
 # Local imports:
-from src.gui.utils import encoding
+from ...gui.utils import encoding
 
 SYMBOLS = r"[^\'\"a-zA-Z0-9_.]"
 

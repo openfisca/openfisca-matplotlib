@@ -6,19 +6,18 @@
 
 """Shortcut management"""
 
-from src.gui.qt.QtGui import (QVBoxLayout, QComboBox, QItemDelegate,
-                                QTableView, QMessageBox, QPushButton)
-from src.gui.qt.QtCore import (Qt, QSize, QAbstractTableModel, QModelIndex,
-                               SIGNAL)
-from src.gui.qt.compat import to_qvariant, from_qvariant
 
 import sys
 
-# Local imports
-from src.gui.baseconfig import _
-from src.gui.config import (get_icon, get_shortcut, set_shortcut,
+from ...gui.baseconfig import _
+from ...gui.qt.compat import to_qvariant, from_qvariant
+from ...gui.config import (get_icon, get_shortcut, set_shortcut,
                                  iter_shortcuts, reset_shortcuts)
-from src.plugins.general.configdialog import GeneralConfigPage
+from ...gui.qt.QtCore import (Qt, QSize, QAbstractTableModel, QModelIndex,
+                               SIGNAL)
+from ...gui.qt.QtGui import (QVBoxLayout, QComboBox, QItemDelegate,
+                                QTableView, QMessageBox, QPushButton)
+from .configdialog import GeneralConfigPage
 
 
 KEYSTRINGS = ["Escape", "Tab", "Backtab", "Backspace", "Return", "Enter",
@@ -361,7 +360,7 @@ class ShortcutsConfigPage(GeneralConfigPage):
 
 
 def test():
-    from src.gui.utils.qthelpers import qapplication
+    from ...gui.utils.qthelpers import qapplication
     app = qapplication()
     table = ShortcutsTable()
     table.show()

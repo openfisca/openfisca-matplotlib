@@ -24,7 +24,7 @@ import sys
 
 # Keeping a reference to the original sys.exit before patching it
 ORIGINAL_SYS_EXIT = sys.exit
-from src.gui.utils.programs import is_module_installed
+from openfisca_qt.gui.utils.programs import is_module_installed
 
 if is_module_installed('IPython.frontend.qt', '>=0.13'):
     # Importing IPython will eventually set the QT_API environment variable
@@ -43,7 +43,7 @@ if is_module_installed('IPython.frontend.qt', '>=0.13'):
             pass
         
 ## Check requirements
-from src.gui import requirements
+from openfisca_qt.gui import requirements
 requirements.check_path()
 requirements.check_qt()
 #
@@ -51,40 +51,40 @@ requirements.check_qt()
 set_attached_console_visible = None
 is_attached_console_visible = None
 if os.name == 'nt':
-    from src.gui.utils.windows import (set_attached_console_visible,
+    from openfisca_qt.gui.utils.windows import (set_attached_console_visible,
                                          is_attached_console_visible)
 
-from src.gui.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
+from openfisca_qt.gui.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
                                 QPixmap, QMessageBox, QMenu, QColor, QShortcut,
                                 QKeySequence, QDockWidget, QAction,
                                 QDesktopServices)
 
-from src.gui.qt.QtCore import SIGNAL, SLOT, QPoint, Qt, QSize, QByteArray, QUrl
-from src.gui.qt.compat import (from_qvariant, getopenfilename,
+from openfisca_qt.gui.qt.QtCore import SIGNAL, SLOT, QPoint, Qt, QSize, QByteArray, QUrl
+from openfisca_qt.gui.qt.compat import (from_qvariant, getopenfilename,
                                  getsavefilename)
 # Avoid a "Cannot mix incompatible Qt library" error on Windows platforms 
 # when PySide is selected by the QT_API environment variable and when PyQt4 
 # is also installed (or any other Qt-based application prepending a directory
 # containing incompatible Qt DLLs versions in PATH):
-from src.gui.qt import QtSvg  # analysis:ignore
+from openfisca_qt.gui.qt import QtSvg  # analysis:ignore
 
 # Local imports
-from src.gui.utils import encoding, vcs, programs
+from openfisca_qt.gui.utils import encoding, vcs, programs
 try:
-    from src.utils.environ import WinUserEnvDialog
+    from openfisca_qt.utils.environ import WinUserEnvDialog
 except ImportError:
     WinUserEnvDialog = None  # analysis:ignore
-#from src.widgets.pathmanager import PathManager #TODO
+#from openfisca_qt.widgets.pathmanager import PathManager #TODO
 
-from src.gui.spyder_widgets.status import MemoryStatus, CPUStatus
-from src.plugins.general.configdialog import (ConfigDialog, MainConfigPage,
+from openfisca_qt.gui.spyder_widgets.status import MemoryStatus, CPUStatus
+from openfisca_qt.plugins.general.configdialog import (ConfigDialog, MainConfigPage,
                                             ColorSchemeConfigPage)
-from src.plugins.general.shortcuts import ShortcutsConfigPage
+from openfisca_qt.plugins.general.shortcuts import ShortcutsConfigPage
 
 
 try:
     # Assuming Qt >= v4.4
-    from src.plugins.general.onlinehelp import OnlineHelp
+    from openfisca_qt.plugins.general.onlinehelp import OnlineHelp
 except ImportError:
     # Qt < v4.4
     OnlineHelp = None  # analysis:ignore
@@ -94,31 +94,31 @@ from openfisca_core import model
 from openfisca_core.simulations import SurveySimulation, ScenarioSimulation
 from openfisca_qt import __version__, __project_url__, __forum_url__, widgets
 
-from src.plugins.general.Parametres import ParamWidget
-from src.plugins.scenario.graph import ScenarioGraphWidget
-from src.plugins.scenario.table import ScenarioTableWidget
-from src.plugins.survey.survey_explorer import SurveyExplorerWidget
-from src.plugins.survey.aggregates import AggregatesWidget
-from src.plugins.survey.distribution import DistributionWidget
-from src.plugins.survey.inequality import InequalityWidget
-from src.plugins.survey.Calibration import CalibrationWidget
+from openfisca_qt.plugins.general.Parametres import ParamWidget
+from openfisca_qt.plugins.scenario.graph import ScenarioGraphWidget
+from openfisca_qt.plugins.scenario.table import ScenarioTableWidget
+from openfisca_qt.plugins.survey.survey_explorer import SurveyExplorerWidget
+from openfisca_qt.plugins.survey.aggregates import AggregatesWidget
+from openfisca_qt.plugins.survey.distribution import DistributionWidget
+from openfisca_qt.plugins.survey.inequality import InequalityWidget
+from openfisca_qt.plugins.survey.Calibration import CalibrationWidget
 
-from src.gui.utils.qthelpers import (create_action, add_actions, get_std_icon,
+from openfisca_qt.gui.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        create_module_bookmark_actions,
                                        create_bookmark_action,
                                        create_program_action, DialogManager,
                                        keybinding, qapplication,
                                        create_python_script_action, file_uri)
 
-from src.gui.baseconfig import (get_conf_path, _, get_module_data_path,
+from openfisca_qt.gui.baseconfig import (get_conf_path, _, get_module_data_path,
                                   get_module_source_path, STDOUT, STDERR)
 
-from src.gui.config import get_icon, get_image_path, get_shortcut
-from src.gui.config import CONF, EDIT_EXT
-from src.otherplugins import get_openfiscaplugins_mods
-from src.gui.utils.iofuncs import load_session, save_session, reset_session
-from src.gui.userconfig import NoDefault, NoOptionError
-from src.gui.utils import module_completion
+from openfisca_qt.gui.config import get_icon, get_image_path, get_shortcut
+from openfisca_qt.gui.config import CONF, EDIT_EXT
+from openfisca_qt.otherplugins import get_openfiscaplugins_mods
+from openfisca_qt.gui.utils.iofuncs import load_session, save_session, reset_session
+from openfisca_qt.gui.userconfig import NoDefault, NoOptionError
+from openfisca_qt.gui.utils import module_completion
 
 TEMP_SESSION_PATH = get_conf_path('.temp.session.tar')
 
@@ -562,7 +562,7 @@ class MainWindow(QMainWindow):
                                 )
         
         # Openfisca documentation
-        doc_path = get_module_data_path('src', relpath="doc",
+        doc_path = get_module_data_path('openfisca_qt', relpath="doc",
                                         attr_name='DOCPATH')
         # * Trying to find the chm doc
         openfisca_doc = osp.join(doc_path, "OpensiscaDoc.chm")
@@ -573,7 +573,7 @@ class MainWindow(QMainWindow):
         if not osp.isfile(openfisca_doc):
             openfisca_doc = osp.join(doc_path, "index.html")
             if not osp.isfile(openfisca_doc):  # development version
-                openfisca_doc = osp.join(get_module_source_path("src"),
+                openfisca_doc = osp.join(get_module_source_path("openfisca_qt"),
                                       "doc", "_build", "html", "index.html")
         openfisca_doc = file_uri(openfisca_doc)
         doc_action = create_bookmark_action(self, openfisca_doc,
@@ -1145,7 +1145,7 @@ class MainWindow(QMainWindow):
         """
         About openFisca
         """
-        import src.gui.qt.QtCore
+        import openfisca_qt.gui.qt.QtCore
         QMessageBox.about(self,
             _("About %s") % "openFisca",
             
@@ -1156,12 +1156,12 @@ class MainWindow(QMainWindow):
               <p> License GPL version 3 ou supérieure
               <p> Python %s - Qt %s - PyQt %s on %s'''
               % (__version__, __project_url__, platform.python_version(),
-                          src.gui.qt.QtCore.__version__, src.gui.qt.__version__, platform.system()))
+                          openfisca_qt.gui.qt.QtCore.__version__, openfisca_qt.gui.qt.__version__, platform.system()))
 #                 __project_url__, __forum_url__,
 #                 platform.python_version(),
-#                 src.gui.qt.QtCore.__version__,
-#                 src.gui.qt.API_NAME,
-#                 src.gui.qt.__version__,
+#                 openfisca_qt.gui.qt.QtCore.__version__,
+#                 openfisca_qt.gui.qt.API_NAME,
+#                 openfisca_qt.gui.qt.__version__,
 #                 platform.system()) )
             
 #            """<b>%s %s</b> %s
@@ -1194,9 +1194,9 @@ class MainWindow(QMainWindow):
 #""" % (__version__,
 #       revlink,
 #       platform.python_version(),
-#       src.gui.qt.QtCore.__version__,
-#       src.gui.qt.API_NAME,
-#       src.gui.qt.__version__,
+#       openfisca_qt.gui.qt.QtCore.__version__,
+#       openfisca_qt.gui.qt.API_NAME,
+#       openfisca_qt.gui.qt.__version__,
 #       platform.system())
 #       
 #        url = QUrl("http://code.google.com/p/spyderlib/issues/entry")
@@ -1210,8 +1210,8 @@ class MainWindow(QMainWindow):
 #        if self.light:
 #            return self.extconsole
 #        widget = QApplication.focusWidget()
-#        from src.gui.spyder_widgets.editor import TextEditBaseWidget
-#        from src.gui.spyder_widgets.shell import ShellBaseWidget
+#        from openfisca_qt.gui.spyder_widgets.editor import TextEditBaseWidget
+#        from openfisca_qt.gui.spyder_widgets.shell import ShellBaseWidget
 #        if not isinstance(widget, (TextEditBaseWidget, ShellBaseWidget)):
 #            return
 #        for plugin in self.widgetlist:
@@ -1220,7 +1220,7 @@ class MainWindow(QMainWindow):
 #        else:
 #            # External Editor window
 #            plugin = widget
-#            from src.gui.spyder_widgets.editor import EditorWidget
+#            from openfisca_qt.gui.spyder_widgets.editor import EditorWidget
 #            while not isinstance(plugin, EditorWidget):
 #                plugin = plugin.parent()
 #            return plugin
@@ -1258,7 +1258,7 @@ class MainWindow(QMainWindow):
 #        widget = QApplication.focusWidget()
 #        action = self.sender()
 #        callback = from_qvariant(action.data(), unicode)
-##        from src.gui.spyder_widgets.editor import TextEditBaseWidget
+##        from openfisca_qt.gui.spyder_widgets.editor import TextEditBaseWidget
 ##        if isinstance(widget, TextEditBaseWidget):
 #        getattr(widget, callback)()
 #        
@@ -1467,7 +1467,7 @@ def initialize():
         def exec_():
             """Do nothing because the Qt mainloop is already running"""
             pass
-    from src.gui.qt import QtGui
+    from openfisca_qt.gui.qt import QtGui
     QtGui.QApplication = FakeQApplication
     
     

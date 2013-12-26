@@ -21,28 +21,32 @@ This file is part of openFisca.
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+
 from __future__ import division
 
 import os
-from numpy import logical_not, unique
-from pandas import read_csv, DataFrame, concat
 
+from numpy import logical_not, unique
+from openfisca_core import model
+from openfisca_core.calmar import calmar
+from openfisca_core.columns import EnumCol, BoolCol, AgesCol, DateCol, BoolPresta, IntPresta
+from pandas import read_csv, DataFrame, concat
 from PyQt4.QtCore import SIGNAL, Qt, QSize 
 from PyQt4.QtGui import (QLabel, QHBoxLayout, QVBoxLayout, QPushButton, QComboBox, 
                          QSpinBox, QDoubleSpinBox, QCheckBox, QInputDialog, QFileDialog, 
                          QMessageBox, QApplication, QCursor, QSpacerItem, QSizePolicy,
                          QDialogButtonBox)
-from src.gui.qthelpers import MyComboBox, MySpinBox, MyDoubleSpinBox, DataFrameViewWidget, _fromUtf8
-from src.widgets.matplotlibwidget import MatplotlibWidget
-from src.gui.config import CONF
-from src.gui.config import get_icon
-from src.gui.qt.compat import to_qvariant
 
-from openfisca_core import model
-from openfisca_core.columns import EnumCol, BoolCol, AgesCol, DateCol, BoolPresta, IntPresta
-from openfisca_core.calmar import calmar
+from ...gui.baseconfig import get_translation
+from ...gui.config import CONF, get_icon
+from ...gui.qt.compat import to_qvariant
+from ...gui.qt.QtGui import (QGroupBox, QButtonGroup)
+from ...gui.qthelpers import MyComboBox, MySpinBox, MyDoubleSpinBox, DataFrameViewWidget, _fromUtf8
+from ...widgets.matplotlibwidget import MatplotlibWidget
+from .. import OpenfiscaPluginWidget, PluginConfigPage
 
 
+_ = get_translation('openfisca_qt')
 MODCOLS = [EnumCol, BoolCol, BoolPresta, IntPresta, AgesCol, DateCol]
 
 
@@ -392,11 +396,6 @@ class Calibration(object):
         self.simulation.survey.propagate_to_members( entity=self.entity, col=WEIGHT)        
 
 
-from src.gui.qt.QtGui import (QGroupBox, QButtonGroup)
-from src.plugins import OpenfiscaPluginWidget, PluginConfigPage
-from src.gui.baseconfig import get_translation
-_ = get_translation("src")
-    
 class CalibrationConfigPage(PluginConfigPage):
     def __init__(self, plugin, parent):
         PluginConfigPage.__init__(self, plugin, parent)
@@ -1027,6 +1026,8 @@ class CalibrationWidget(OpenfiscaPluginWidget):
 
 def test():
     from openfisca_core.simulations import SurveySimulation
+    from .aggregates import Aggregates
+
     yr = 2006
     country = 'france'
     simulation = SurveySimulation()
@@ -1044,9 +1045,6 @@ def test():
     calibration.set_param('up', 3)
     calibration.set_param('method', 'logit')
 
-    
-    
-    from src.plugins.survey.aggregates import Aggregates
     aggregates = Aggregates()
     aggregates.set_simulation(simulation)
     simulation.compute()

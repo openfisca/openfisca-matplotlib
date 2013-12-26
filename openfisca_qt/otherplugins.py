@@ -15,7 +15,7 @@ import traceback
 
 # Local imports
 # TODO: FIX THIS BIT OF CODE. Check the original spyderlib file to do so.
-from src.gui.utils import programs
+from openfisca_qt.gui.utils import programs
 
 
 # Calculate path to `openfiscaplugins` package, where openfisca looks for all 3rd

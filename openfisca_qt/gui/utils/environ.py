@@ -8,13 +8,13 @@
 Environment variable utilities
 """
 
-from src.gui.qt.QtGui import QDialog, QMessageBox
+from ...gui.qt.QtGui import QDialog, QMessageBox
 
 import os
 
 # Local imports
-from src.gui.baseconfig import _
-from src.gui.spyder_widgets.dicteditor import DictEditor
+from ...gui.baseconfig import _
+from ...gui.spyder_widgets.dicteditor import DictEditor
 
 def envdict2listdict(envdict):
     """Dict --> Dict of lists"""
@@ -128,7 +128,7 @@ except ImportError:
 
 def main():
     """Run Windows environment variable editor"""
-    from src.gui.utils.qthelpers import qapplication
+    from ...gui.utils.qthelpers import qapplication
     app = qapplication()
     dialog = WinUserEnvDialog()
     dialog.show()

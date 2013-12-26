@@ -8,27 +8,25 @@
 # (see openfisca/__init__.py for details)
 
 
+from datetime import datetime
 from os import path
-from pandas import DataFrame
-
-from src.gui.qt.QtGui import (QWidget, QLabel, QVBoxLayout, QHBoxLayout, QPushButton,
-                         QSpacerItem, QSizePolicy, QInputDialog, 
-                         QGroupBox, QButtonGroup, QDockWidget)
-from src.gui.qt.QtCore import SIGNAL, Signal,Qt
-from src.gui.qt.compat import to_qvariant
-
-from src.gui.utils.qthelpers import create_action
-from src.gui.qthelpers import OfSs, DataFrameViewWidget, MyComboBox
 
 from openfisca_core.columns import EnumCol
+from pandas import DataFrame
 
-from src.gui.config import CONF, get_icon
-from src.plugins.__init__ import OpenfiscaPluginWidget, PluginConfigPage
-from src.gui.baseconfig import get_translation
-_ = get_translation('src')
+from ...gui.config import CONF, get_icon
+from ...gui.baseconfig import get_translation
+from ...gui.qt.compat import from_qvariant, to_qvariant
+from ...gui.qt.QtGui import (QWidget, QLabel, QVBoxLayout, QHBoxLayout, QPushButton, QSpacerItem, QSizePolicy,
+    QInputDialog, QGroupBox, QButtonGroup, QDockWidget)
+from ...gui.qt.QtCore import SIGNAL, Signal,Qt
+from ...gui.qthelpers import OfSs, DataFrameViewWidget, MyComboBox
+from ...gui.utils.qthelpers import create_action
+from .. import OpenfiscaPluginWidget, PluginConfigPage
 
-from datetime import datetime
-from src.gui.qt.compat import from_qvariant
+
+_ = get_translation('openfisca_qt')
+
 
 
 class SurveyExplorerConfigPage(PluginConfigPage):

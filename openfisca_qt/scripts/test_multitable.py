@@ -14,15 +14,15 @@ Created on 9 juil. 2013
 
 from openfisca_core.simulations import ScenarioSimulation
 from openfisca_core.simulations import SurveySimulation
-from src.plugins.survey.aggregates import Aggregates
+from openfisca_qt.plugins.survey.aggregates import Aggregates
 from pandas import HDFStore
 import os
 import numpy as np
-from src.scripts.data_management.separate_tables_generator import convert_to_3_tables
+from openfisca_qt.scripts.data_management.separate_tables_generator import convert_to_3_tables
 import pandas as pd
 from openfisca_core import model
-from src.countries.france.data.erf.build_survey.utilitaries import check_structure, control
-from src.countries.france.data.erf.datatable import DataCollection
+from openfisca_qt.countries.france.data.erf.build_survey.utilitaries import check_structure, control
+from openfisca_qt.countries.france.data.erf.datatable import DataCollection
 
 
 country = 'france'
@@ -156,7 +156,7 @@ def survey_case_3_tables():
  
  
 # Displaying a pivot table    
-    from src.plugins.survey.distribution import OpenfiscaPivotTable
+    from openfisca_qt.plugins.survey.distribution import OpenfiscaPivotTable
     pivot_table = OpenfiscaPivotTable()
     pivot_table.set_simulation(simulation)
     df2 = pivot_table.get_table(by ='so', vars=['nivvie']) 

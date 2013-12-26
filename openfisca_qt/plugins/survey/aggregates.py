@@ -31,17 +31,16 @@ from openfisca_core import model
 from openfisca_core.simulations import SurveySimulation
 from pandas import DataFrame, ExcelWriter
 
-from src.gui.qt.QtGui import (QWidget, QVBoxLayout, QSizePolicy, QMenu,
-                         QGroupBox, QFileDialog, QMessageBox)
-from src.gui.qt.QtCore import SIGNAL, Qt
-from src.gui.config import get_icon
-from src.gui.qthelpers import OfSs, DataFrameViewWidget
-from src.gui.utils.qthelpers import create_action, add_actions
-from src.plugins import OpenfiscaPluginWidget, PluginConfigPage
-from src.gui.baseconfig import get_translation
+from ...gui.qt.QtGui import QWidget, QVBoxLayout, QSizePolicy, QMenu, QGroupBox, QFileDialog, QMessageBox
+from ...gui.qt.QtCore import SIGNAL, Qt
+from ...gui.config import get_icon
+from ...gui.qthelpers import OfSs, DataFrameViewWidget
+from ...gui.utils.qthelpers import create_action, add_actions
+from ...gui.baseconfig import get_translation
+from ..plugins import OpenfiscaPluginWidget, PluginConfigPage
 
 
-_ = get_translation("src")
+_ = get_translation('openfisca_qt')
 
 
 class Aggregates(object):

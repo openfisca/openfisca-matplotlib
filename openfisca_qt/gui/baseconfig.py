@@ -42,7 +42,7 @@ def get_conf_path(filename=None):
     """
     Return absolute path for configuration file with specified filename
     """
-    from src.gui import userconfig
+    from . import userconfig
     conf_dir = osp.join(userconfig.get_home_dir(), SUBFOLDER)
     if not osp.isdir(conf_dir):
         os.mkdir(conf_dir)
@@ -146,6 +146,6 @@ def get_translation(modname, dirname=None):
         return translate_dumb
 
 # Translation callback
-_ = get_translation("src")
+_ = get_translation('openfisca_qt')
 
 

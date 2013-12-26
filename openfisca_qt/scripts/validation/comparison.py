@@ -7,10 +7,9 @@
 # (see openfisca/__init__.py for details)
 
 from __future__ import division
+
 from openfisca_core.simulations import SurveySimulation 
 from src.countries.france.data.erf.datatable import ErfsDataTable
-
-
 
 
     #def test_demography():

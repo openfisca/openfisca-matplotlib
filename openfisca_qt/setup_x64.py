@@ -22,11 +22,12 @@ This file is part of OpenFisca.
     along with OpenFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+
 from distutils.core import setup
+
 from openfisca_core import __version__ as VERSION
 
-from src.setup import build_datafiles
-
+from .setup import build_datafiles
 
 
 dist_dir = "c:/users/utilisateur/documents/OpenFisca-%s-x64" % VERSION

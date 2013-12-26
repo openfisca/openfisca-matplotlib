@@ -10,7 +10,7 @@
 from sphinx import __version__ as sphinx_version
 
 # Local imports
-from src.gui.config import CONF
+from ....gui.config import CONF
 
 #==============================================================================
 # General configuration

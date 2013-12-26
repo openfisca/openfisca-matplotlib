@@ -10,9 +10,9 @@ import os.path as osp
 import subprocess
 
 # Local imports
-from src.gui.baseconfig import _
-from src.gui.utils import programs
-from src.gui.utils.misc import abspardir
+from ...gui.baseconfig import _
+from ...gui.utils import programs
+from ...gui.utils.misc import abspardir
 
 VCS_INFOS = {
              '.hg':  dict(name="Mercurial",

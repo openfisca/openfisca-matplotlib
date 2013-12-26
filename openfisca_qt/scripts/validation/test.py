@@ -6,9 +6,12 @@
 # Licensed under the terms of the GVPLv3 or later license
 # (see openfisca/__init__.py for details)
 
-from openfisca_core.simulations import SurveySimulation
 
 import nose
+
+from openfisca_core.simulations import SurveySimulation
+from openfisca_qt.scripts.validation.check_consistency_tests import check_inputs_enumcols, check_entities, check_weights
+
 
 # Validation
 # Should ideally produce a log file 
@@ -23,12 +26,10 @@ simulation.set_config(year = year, country = country)
 simulation.set_param()
 simulation.set_survey()
 
+
 # Pre-computation validation
-# 
-   
-from src.scripts.validation.check_consistency_tests import ( check_inputs_enumcols,
-                                                              check_entities,
-                                                              check_weights)
+#
+
 
 def test_inputs_consistency():
     """ 

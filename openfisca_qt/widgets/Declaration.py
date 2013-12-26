@@ -21,10 +21,13 @@ This file is part of openFisca.
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from src.gui.views import ui_declaration, ui_page01, ui_page02, ui_page03, ui_page04, ui_page05, ui_page06, ui_page07, ui_page08, ui_page_isf
-from src.gui.qt.QtCore import Qt, SIGNAL, QSize
-from src.gui.qt.QtGui import QWidget, QDialog, QCheckBox, QSpinBox, QLabel, QStackedWidget, QListWidgetItem
-from src.gui.qthelpers import OfSs    
+
+from ..gui.qt.QtCore import Qt, SIGNAL, QSize
+from ..gui.qt.QtGui import QWidget, QDialog, QCheckBox, QSpinBox, QLabel, QStackedWidget, QListWidgetItem
+from ..gui.qthelpers import OfSs
+from ..gui.views import (ui_declaration, ui_page01, ui_page02, ui_page03, ui_page04, ui_page05, ui_page06, ui_page07,
+    ui_page08, ui_page_isf)
+
 
 class Declaration(QDialog, ui_declaration.Ui_Declaration):
     def __init__(self, parent, noi):

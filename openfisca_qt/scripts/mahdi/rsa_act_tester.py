@@ -4,12 +4,14 @@ Created on 9 juil. 2013
 @author: benjello
 '''
 
+
+from datetime import datetime
+import os
+
 from openfisca_core.simulations import ScenarioSimulation
 from openfisca_core.simulations import SurveySimulation
-from src.plugins.survey.aggregates import Aggregates
-from datetime import datetime
+from openfisca_qt.plugins.survey.aggregates import Aggregates
 from pandas import ExcelWriter
-import os
 
 
 country = 'france'
@@ -72,7 +74,7 @@ def survey_case(year):
 
 
 # Displaying a pivot table    
-    from src.plugins.survey.distribution import OpenfiscaPivotTable
+    from openfisca_qt.plugins.survey.distribution import OpenfiscaPivotTable
     pivot_table = OpenfiscaPivotTable()
     pivot_table.set_simulation(simulation)
     df2 = pivot_table.get_table(by ='so', vars=['nivvie']) 
@@ -81,14 +83,3 @@ def survey_case(year):
 
 if __name__ == '__main__':
     test_case(2010)
-    
-        
-
-
-
-
-
-
-
-if __name__ == '__main__':
-    pass

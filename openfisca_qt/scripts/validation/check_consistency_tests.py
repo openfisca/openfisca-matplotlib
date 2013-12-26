@@ -6,10 +6,11 @@
 # Licensed under the terms of the GVPLv3 or later license
 # (see openfisca/__init__.py for details)
 
+
+from openfisca_core import model
+from openfisca_core.columns import EnumCol
 from openfisca_core.simulations import SurveySimulation 
 from pandas import concat
-
-from ... import model
 
 
 def check_entities(simulation):
@@ -39,10 +40,6 @@ def check_entities(simulation):
 
     return is_ok, message
 
-
-
-
-from openfisca_core.columns import EnumCol
 
 def check_inputs_enumcols(simulation):
     """

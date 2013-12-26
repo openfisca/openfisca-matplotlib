@@ -8,24 +8,23 @@
 
 # Author: Victor Le Breton
 
+
 from __future__ import division
-import pandas as pd
-from pandas import merge
+
+import gc
 import os
+
 import numpy as np
 from numpy import logical_and as and_
-import gc
-
-from openfisca_core.utils import mark_weighted_percentiles as mwp
-from openfisca_core.simulations import SurveySimulation
-from src.plugins.survey.aggregates import Aggregates
-from src.countries.france.data.erf.datatable import DataCollection
+from openfisca_core import model
 from openfisca_core.columns import Prestation
 from openfisca_core.simulations import load_content
-
-from openfisca_core import model
-
-
+from openfisca_core.utils import mark_weighted_percentiles as mwp
+from openfisca_core.simulations import SurveySimulation
+from src.countries.france.data.erf.datatable import DataCollection
+from openfisca_qt.plugins.survey.aggregates import Aggregates
+import pandas as pd
+from pandas import merge
 
 
 class Debugger(object):

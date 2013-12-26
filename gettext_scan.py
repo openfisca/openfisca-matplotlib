@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-# Generates the pot files in the src.locale directory
+# Generates the pot files in the openfisca_qt.locale directory
 # Translation are to be in the languages directories by updating the .po files
 
 try:
@@ -14,7 +14,7 @@ except ImportError:
 
 
 if __name__ == "__main__":    
-    do_rescan("src")
+    do_rescan("openfisca_qt")
 #    do_rescan_files(["spyderplugins/p_pylint.py",
 #                     "spyderplugins/widgets/pylintgui.py"],
 #                     "p_pylint", "spyderplugins")

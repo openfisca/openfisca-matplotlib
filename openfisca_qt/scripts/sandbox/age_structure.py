@@ -11,9 +11,8 @@ import os
 
 from openfisca_core import model
 from openfisca_core.simulations import SurveySimulation
+from openfisca_qt.plugins.survey.distribution import OpenfiscaPivotTable
 from pandas import ExcelFile, HDFStore
-
-from src.plugins.survey.distribution import OpenfiscaPivotTable
 
 
 H5_FILENAME = "age_structure.h5"

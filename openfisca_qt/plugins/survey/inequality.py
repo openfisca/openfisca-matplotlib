@@ -21,6 +21,7 @@ This file is part of openFisca.
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+
 from datetime import datetime
 
 from openfisca_core import model
@@ -28,18 +29,16 @@ from openfisca_core.simulations import SurveySimulation
 from openfisca_core.utils import gini, lorenz, mark_weighted_percentiles
 from pandas import DataFrame
 
-from src.gui.qt.QtGui import (QWidget, QApplication, QCursor, QDockWidget)
-from src.gui.qt.QtCore import SIGNAL, Qt
-from src.gui.qthelpers import OfSs
-from src.widgets.matplotlibwidget import MatplotlibWidget
-from src.gui.qthelpers import DataFrameViewWidget
-from src.gui.qt.QtGui import QGroupBox, QVBoxLayout
-from src.plugins.__init__ import OpenfiscaPluginWidget, PluginConfigPage
-from src.gui.config import get_icon
-from src.gui.baseconfig import get_translation
+from ...gui.baseconfig import get_translation
+from ...gui.config import get_icon
+from ...gui.qt.QtCore import SIGNAL, Qt
+from ...gui.qt.QtGui import (QWidget, QApplication, QCursor, QDockWidget, QGroupBox, QVBoxLayout)
+from ...gui.qthelpers import DataFrameViewWidget, OfSs
+from ...widgets.matplotlibwidget import MatplotlibWidget
+from .. import OpenfiscaPluginWidget, PluginConfigPage
 
 
-_ = get_translation('inequality', 'src.plugins.survey')
+_ = get_translation('inequality', 'openfisca_qt.plugins.survey')
 
 
 class Inequality(object):

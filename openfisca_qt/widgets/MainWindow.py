@@ -21,6 +21,7 @@ This file is part of openFisca.
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+
 import gc
 from os import path
 import platform
@@ -32,18 +33,18 @@ from PyQt4.QtGui import (QMainWindow, QWidget, QGridLayout, QMessageBox, QKeySeq
                          QApplication, QCursor, QPixmap, QSplashScreen, QColor,
                          QActionGroup, QStatusBar)
 
-from src.Config import CONF, VERSION, ConfigDialog, SimConfigPage, PathConfigPage, CalConfigPage
-from src.gui.qthelpers import create_action, add_actions, get_icon
-from src.plugins.scenario.table import OutTable
-from src.plugins.scenario.graph import Graph
-from src.plugins.survey.aggregates import Aggregates, AggregateOutputWidget
-from src.plugins.survey.distribution import OFPivotTable, DistributionWidget
+from ..Config import CONF, VERSION, ConfigDialog, SimConfigPage, PathConfigPage, CalConfigPage
+from ..gui.qthelpers import create_action, add_actions, get_icon
+from ..plugins.scenario.table import OutTable
+from ..plugins.scenario.graph import Graph
+from ..plugins.survey.aggregates import Aggregates, AggregateOutputWidget
+from ..plugins.survey.distribution import OFPivotTable, DistributionWidget
 from .. import widgets
-from src.widgets.Parametres import ParamWidget
-from src.widgets.Calibration import CalibrationWidget
-from src.widgets.Inflation import InflationWidget
-from src.widgets.ExploreData import ExploreDataWidget
-from src.widgets.Inequality import InequalityWidget
+from ..widgets.Parametres import ParamWidget
+from ..widgets.Calibration import CalibrationWidget
+from ..widgets.Inflation import InflationWidget
+from ..widgets.ExploreData import ExploreDataWidget
+from ..widgets.Inequality import InequalityWidget
 
 
 class MainWindow(QMainWindow):

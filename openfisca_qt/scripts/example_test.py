@@ -9,32 +9,30 @@
 
 # Exemple of a simple simulation
 
-from openfisca_core.simulations import ScenarioSimulation, SurveySimulation, Simulation
-from src.plugins.survey.aggregates import Aggregates
+
 from datetime import datetime
-from pandas import ExcelWriter, HDFStore
+import gc
 import os
+import random
+
+import numpy as np
+from openfisca_core.simulations import ScenarioSimulation, SurveySimulation, Simulation
 from src.countries.france.data.erf.aggregates import build_erf_aggregates
+from openfisca_qt.plugins.survey.aggregates import Aggregates
+# from openfisca_qt.scripts.validation.check_consistency_tests import (check_inputs_enumcols, check_entities,
+#    check_weights)
+from pandas import ExcelWriter, HDFStore
 import pandas as pd
 from pandas import DataFrame
 # DataFrame.groupby(self, by, axis, level, as_index, sort, group_keys)
 # DataFrame.unstack(self, level)
 from pandas.core.index import Index
-import numpy as np
-import gc
-import random
-
 try:
     import xlwt
     from src.countries.france.XL import XLtable
 except:
     pass
 
-
-
-# from src.scripts.validation.check_consistency_tests import ( check_inputs_enumcols,
-#                                                               check_entities,
-#                                                               check_weights)
 
 country = 'france'
 # destination_dir = "c:/users/utilisateur/documents/"
@@ -85,7 +83,7 @@ def survey_case(year = 2006):
 
 
 # Displaying a pivot table    
-    from src.plugins.survey.distribution import OpenfiscaPivotTable
+    from openfisca_qt.plugins.survey.distribution import OpenfiscaPivotTable
     pivot_table = OpenfiscaPivotTable()
     pivot_table.set_simulation(simulation)
     df2 = pivot_table.get_table(by ='so', vars=['nivvie']) 

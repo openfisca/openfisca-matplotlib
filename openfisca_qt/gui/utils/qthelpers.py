@@ -9,16 +9,16 @@
 import os, re
 import os.path as osp
 
-from src.gui.qt.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
+from ...gui.qt.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
                                 QLabel, QVBoxLayout, QHBoxLayout, QLineEdit,
                                 QKeyEvent, QMenu, QKeySequence, QToolButton)
-from src.gui.qt.QtCore import (SIGNAL, QObject, Qt, QLocale, QTranslator,
+from ...gui.qt.QtCore import (SIGNAL, QObject, Qt, QLocale, QTranslator,
                                  QLibraryInfo)
-from src.gui.qt.compat import to_qvariant, from_qvariant
+from ...gui.qt.compat import to_qvariant, from_qvariant
 
 # Local import
-from src.gui.config import get_icon
-from src.gui.utils import programs
+from ...gui.config import get_icon
+from ...gui.utils import programs
 
 # Note: How to redirect a signal from widget *a* to widget *b* ?
 # ----

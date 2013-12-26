@@ -75,7 +75,7 @@ except ImportError:
 
 
 try:
-    from src.gui.pil_patch import Image
+    from ...gui.pil_patch import Image
     if sys.byteorder == 'little':
         _ENDIAN = '<'
     else:
@@ -198,7 +198,7 @@ def load_dictionary(filename):
     return data, error_message
 
 
-from src.gui.baseconfig import get_conf_path, STDERR
+from ...gui.baseconfig import get_conf_path, STDERR
 
 SAVED_CONFIG_FILES = ('.inspector', '.onlinehelp', '.path', '.pylint.results',
                       '.openfisca.ini', '.temp.py', '.temp.spydata', 'template.py',
@@ -287,7 +287,7 @@ def load_session(filename):
     return error_message
 
 
-from src.gui.baseconfig import _
+from ...gui.baseconfig import _
 
 class IOFunctions(object):
     def __init__(self):

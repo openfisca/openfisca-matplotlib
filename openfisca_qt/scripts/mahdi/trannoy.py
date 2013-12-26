@@ -4,10 +4,13 @@ Created on 9 juil. 2013
 @author: benjello
 '''
 
+
+from datetime import datetime
+
 from openfisca_core.simulations import ScenarioSimulation
 from openfisca_core.simulations import SurveySimulation
-from src.plugins.survey.aggregates import Aggregates
-from datetime import datetime
+from openfisca_qt.plugins.survey.aggregates import Aggregates
+
 
 country = 'france'
 # destination_dir = "c:/users/utilisateur/documents/"

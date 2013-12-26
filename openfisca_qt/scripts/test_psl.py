@@ -17,13 +17,16 @@
 
 # Script to compute the aggregates for all the referenced years
 
+
+import os
+
 from openfisca_core.simulations import SurveySimulation 
 from openfisca_core import model
-import os
+from openfisca_qt.plugins.survey.distribution import OpenfiscaPivotTable
+
+
 country = 'france'
 
-
-from src.plugins.survey.distribution import OpenfiscaPivotTable
 
 def get_age_structure(simulation):
     

@@ -9,6 +9,6 @@ from guidata.gettext_helpers import do_compile
 # Compile .po file into .mo files 
 
 if __name__ == "__main__":
-    do_compile("src")
+    do_compile("openfisca_qt")
 #    do_compile("p_pylint", "spyderplugins")
 #    do_compile("p_profiler", "spyderplugins")

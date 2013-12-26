@@ -10,27 +10,27 @@
 
 
 """
-src.plugins
-=================
+openfisca_qt.plugins
+====================
 
 Here, 'plugins' are widgets designed specifically for Openfisca
 These plugins inherit the following classes
 (OpenfiscaPluginMixin & OpenfiscaPluginWidget)
 """
 
-from src.gui.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
+from ..gui.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
                                 QKeySequence, QMainWindow, QApplication)
-from src.gui.qt.QtCore import SIGNAL, Qt, QObject
-from src.gui.qt.QtCore import pyqtSignal as Signal
+from ..gui.qt.QtCore import SIGNAL, Qt, QObject
+from ..gui.qt.QtCore import pyqtSignal as Signal
 
 # Local imports
 
-from src.gui.utils.qthelpers import toggle_actions
-from src.gui.config import CONF
-from src.gui.userconfig import NoDefault
+from ..gui.utils.qthelpers import toggle_actions
+from ..gui.config import CONF
+from ..gui.userconfig import NoDefault
 
-from src.gui.config import get_font, set_font, get_icon
-from src.plugins.general.configdialog import OpenfiscaConfigPage
+from ..gui.config import get_font, set_font, get_icon
+from ..plugins.general.configdialog import OpenfiscaConfigPage
   
 get_font = None
 set_font = None

@@ -7,31 +7,27 @@
 # (see openfisca/__init__.py for details)
 
 
-# Exemple of a simple simulation
+"""Example of a simple simulation"""
 
-from openfisca_core.simulations import SurveySimulation
-from src.plugins.survey.aggregates import Aggregates
-from pandas import ExcelWriter
-import os
-from src.countries.france.data.erf.aggregates import build_erf_aggregates
-import pandas as pd
 
 import gc
+import os
 import random
 
+from openfisca_core import model
+from openfisca_core.simulations import SurveySimulation
+from openfisca_qt.plugins.survey.aggregates import Aggregates
+# from openfisca_qt.scripts.validation.check_consistency_tests import (check_inputs_enumcols, check_entities,
+#    check_weights)
+from pandas import ExcelWriter
+from src.countries.france.data.erf.aggregates import build_erf_aggregates
+import pandas as pd
 try:
     import xlwt
     from src.countries.france.XL import XLtable
 except:
     pass
 
-from openfisca_core import model
-
-
-
-# from src.scripts.validation.check_consistency_tests import ( check_inputs_enumcols,
-#                                                               check_entities,
-#                                                               check_weights)
 
 country = 'france'
 

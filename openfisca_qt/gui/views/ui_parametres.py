@@ -83,4 +83,4 @@ class Ui_Parametres(object):
         self.reset_btn.setToolTip(QtGui.QApplication.translate("Parametres", "Reset", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setToolTip(QtGui.QApplication.translate("Parametres", "datesim", None, QtGui.QApplication.UnicodeUTF8))
 
-import src.gui.resources_rc
+import ..resources_rc
