@@ -5,7 +5,7 @@ Created on 20 févr. 2013
 @author: benjello
 '''
 
-from src.lib.simulation import SurveySimulation 
+from openfisca_core.simulations import SurveySimulation 
 from src.plugins.survey.aggregates import Aggregates
 #from pandas import ExcelWriter, ExcelFile
 import os

@@ -3,17 +3,21 @@ Export survey<hh in a Pytables format from which ViTables can be used to visuali
 
 @author: Alexis Eidelman
 '''
-from src.lib.simulation import SurveySimulation 
+
+
 from src.countries.france.data.sources.config import destination_dir
 import tables
 import pdb
 import os
-from src import SRC_PATH
 from pandas import HDFStore
-filename = os.path.join(SRC_PATH, 'countries', 'france', 'data', 'survey3.h5')
+
+from openfisca_core import model
+from openfisca_core.simulations import SurveySimulation 
+
+
+filename = os.path.join(model.DATA_DIR, 'survey3.h5')
 
 num_table = 3
-
 
 
 input = HDFStore(filename)

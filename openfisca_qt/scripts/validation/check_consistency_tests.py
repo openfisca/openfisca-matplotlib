@@ -6,9 +6,11 @@
 # Licensed under the terms of the GVPLv3 or later license
 # (see openfisca/__init__.py for details)
 
-from src.lib.simulation import SurveySimulation 
-from src.lib.utils import of_import
+from openfisca_core.simulations import SurveySimulation 
 from pandas import concat
+
+from ... import model
+
 
 def check_entities(simulation):
 
@@ -16,9 +18,7 @@ def check_entities(simulation):
     message = None
     survey = simulation.survey
 
-    ENTITIES_INDEX = of_import(None, "ENTITIES_INDEX", country = simulation.country)
-
-    for entity in ENTITIES_INDEX:
+    for entity in model.ENTITIES_INDEX:
                 
         id = survey.table['id' + entity]
         head = survey.table['qui' + entity]
@@ -42,7 +42,7 @@ def check_entities(simulation):
 
 
 
-from src.lib.columns import EnumCol
+from openfisca_core.columns import EnumCol
 
 def check_inputs_enumcols(simulation):
     """
@@ -113,7 +113,7 @@ def check_weights(simulation):
     is_ok = True
     message = None
     survey = simulation.survey
-    WEIGHT = of_import(classname="WEIGHT", country=simulation.country)
+    WEIGHT = model.WEIGHT
     weight = survey.get_value(WEIGHT)
     nb = sum(weight<=0)
     if nb != 0:

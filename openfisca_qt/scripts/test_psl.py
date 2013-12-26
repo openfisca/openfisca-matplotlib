@@ -17,8 +17,8 @@
 
 # Script to compute the aggregates for all the referenced years
 
-from src.lib.simulation import SurveySimulation 
-from src import SRC_PATH
+from openfisca_core.simulations import SurveySimulation 
+from openfisca_core import model
 import os
 country = 'france'
 
@@ -46,7 +46,7 @@ def test():
     simu = SurveySimulation()
     simu.set_config(year = yr, country = country)
     simu.set_param()
-    filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'survey_psl.h5')
+    filename = os.path.join(model.DATA_DIR, 'survey_psl.h5')
     simu.set_survey(filename = filename)
     simu.compute()
     

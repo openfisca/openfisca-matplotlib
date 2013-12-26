@@ -12,15 +12,15 @@ Created on 9 juil. 2013
 @author: Jérôme SANTOUL
 '''
 
-from src.lib.simulation import ScenarioSimulation
-from src.lib.simulation import SurveySimulation
+from openfisca_core.simulations import ScenarioSimulation
+from openfisca_core.simulations import SurveySimulation
 from src.plugins.survey.aggregates import Aggregates
 from pandas import HDFStore
 import os
 import numpy as np
 from src.scripts.data_management.separate_tables_generator import convert_to_3_tables
 import pandas as pd
-from src import SRC_PATH
+from openfisca_core import model
 from src.countries.france.data.erf.build_survey.utilitaries import check_structure, control
 from src.countries.france.data.erf.datatable import DataCollection
 
@@ -28,11 +28,11 @@ from src.countries.france.data.erf.datatable import DataCollection
 country = 'france'
 
 #Setting the files path:
-survey_test = os.path.join(SRC_PATH, 'countries', country, 'data', 'sources', 'test.h5')
-survey_bis = os.path.join(SRC_PATH, 'countries', country, 'data', 'sources', 'test_bis.h5')
-survey3_test = os.path.join(SRC_PATH, 'countries', country, 'data', 'sources', 'test3.h5')
-survey_file = os.path.join(SRC_PATH, 'countries', country, 'data', 'survey.h5')
-survey3_file = os.path.join(SRC_PATH, 'countries', country, 'data', 'survey3.h5')
+survey_test = os.path.join(model.DATA_DIR, 'sources', 'test.h5')
+survey_bis = os.path.join(model.DATA_DIR, 'sources', 'test_bis.h5')
+survey3_test = os.path.join(model.DATA_DIR, 'sources', 'test3.h5')
+survey_file = os.path.join(model.DATA_DIR, 'survey.h5')
+survey3_file = os.path.join(model.DATA_DIR, 'survey3.h5')
 
 
 def test_convert_to_3_tables(year=2006):

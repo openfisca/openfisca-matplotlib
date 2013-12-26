@@ -21,9 +21,12 @@ This file is part of openFisca.
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+
+import gc
+from os import path
 import platform
 
-from os import path
+from openfisca_core import model
 from PyQt4.QtCore import (SIGNAL, SLOT, Qt, QSettings, QVariant, QSize, QPoint, 
                           PYQT_VERSION_STR, QT_VERSION_STR, QLocale)
 from PyQt4.QtGui import (QMainWindow, QWidget, QGridLayout, QMessageBox, QKeySequence,
@@ -31,6 +34,7 @@ from PyQt4.QtGui import (QMainWindow, QWidget, QGridLayout, QMessageBox, QKeySeq
                          QActionGroup, QStatusBar)
 
 from Config import CONF, VERSION, ConfigDialog, SimConfigPage, PathConfigPage, CalConfigPage
+import widgets
 from widgets.Parametres import ParamWidget
 from widgets.Output import Graph, OutTable
 from widgets.AggregateOuput import AggregateOutputWidget
@@ -40,9 +44,8 @@ from widgets.Inflation import InflationWidget
 from widgets.ExploreData import ExploreDataWidget
 from widgets.Inequality import InequalityWidget
 from core.datatable import DataTable, SystemSf
-from core.utils import gen_output_data, gen_aggregate_output, of_import
+from core.utils import gen_output_data, gen_aggregate_output
 from core.qthelpers import create_action, add_actions, get_icon
-import gc
 
 
 
@@ -99,14 +102,13 @@ class MainWindow(QMainWindow):
         if self.InputDescription is not None:
             del self.InputDescription
         
-        self.InputDescription = of_import('model.data', 'InputDescription')
-        
+        self.InputDescription = model.InputDescription
+
         if self.OutputDescription is not None:
             del self.OutputDescription
         
-        self.OutputDescription = of_import('model.model', 'OutputDescription')        
-        Scenario = of_import('utils', 'Scenario')
-
+        self.OutputDescription = model.OutputDescription
+        Scenario = model.Scenario
 
         if restart is True:
 #            del InputDescription, OutputDescription, Scenario, ScenarioWidget 
@@ -245,7 +247,7 @@ class MainWindow(QMainWindow):
     def create_dockwidgets(self):
         # Création des dockwidgets
         self._parametres = ParamWidget(self)
-        ScenarioWidget = of_import('widgets.Composition', 'ScenarioWidget')
+        ScenarioWidget = widgets.ScenarioWidget
         self._menage = ScenarioWidget(scenario = self.scenario, parent = self)
         self._graph = Graph(self)
         self._table = OutTable(self)

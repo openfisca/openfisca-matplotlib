@@ -8,7 +8,7 @@
 
 # Script to compute the aggregates for all the referenced years
 
-from src.lib.simulation import SurveySimulation 
+from openfisca_core.simulations import SurveySimulation 
 from src.plugins.survey.aggregates import Aggregates
 from src.plugins.survey.inequality import Inequality
 from pandas import ExcelWriter, ExcelFile, HDFStore

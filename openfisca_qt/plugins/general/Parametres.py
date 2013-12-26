@@ -26,7 +26,7 @@ from src.gui.qt.QtGui import QFileDialog, QMessageBox
 from src.gui.qt.QtCore import SIGNAL, QDate
 
 from src.gui.views.ui_parametres import Ui_Parametres
-from src.parametres.paramData import XmlReader, Tree2Object
+from openfisca_core.parameters import XmlReader, Tree2Object
 from src.parametres.paramModel import PrestationModel
 from src.parametres.Delegate import CustomDelegate, ValueColumnDelegate
 
@@ -37,6 +37,8 @@ _ = get_translation('src')
 
 from src.gui.qt.QtGui import QGroupBox, QVBoxLayout
 from src.plugins.__init__ import OpenfiscaPluginWidget, PluginConfigPage
+
+from openfisca_core import model
 
 
 class ParametersConfigPage(PluginConfigPage):
@@ -140,8 +142,7 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
         reformes_dir = self.get_option('reformes_dir', default = None)
         if reformes_dir is None:
             country = self.get_option('country')
-            from src import SRC_PATH
-            reformes_dir = os.path.join(SRC_PATH,"countries",country,"reformes")
+            reformes_dir = model.REFORMS_DIR
         default_fileName = os.path.join(reformes_dir, 'sans-titre')
         fileName = QFileDialog.getSaveFileName(self,
                                                _("Save a reform"), default_fileName, u"Paramètres OpenFisca (*.ofp)")
@@ -158,8 +159,7 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
         reformes_dir = self.get_option('reformes_dir', default=None)
         if reformes_dir is None:
             country = self.get_option('country')
-            from src import SRC_PATH
-            reformes_dir = os.path.join(SRC_PATH,"countries",country,"reformes")
+            reformes_dir = model.REFORMS_DIR
         fileName = QFileDialog.getOpenFileName(self,
                                                _("Open a reform"), reformes_dir, u"Paramètres OpenFisca (*.ofp)")
         if not fileName == '':

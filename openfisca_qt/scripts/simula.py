@@ -6,7 +6,7 @@ Created on Oct 22, 2013
 
 
 
-from src.lib.simulation import ScenarioSimulation 
+from openfisca_core.simulations import ScenarioSimulation 
 
 import sys
 import os

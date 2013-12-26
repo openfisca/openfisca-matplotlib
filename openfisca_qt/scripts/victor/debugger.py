@@ -16,14 +16,14 @@ import numpy as np
 from numpy import logical_and as and_
 import gc
 
-from src.lib.utils import mark_weighted_percentiles as mwp
-from src.lib.simulation import SurveySimulation
+from openfisca_core.utils import mark_weighted_percentiles as mwp
+from openfisca_core.simulations import SurveySimulation
 from src.plugins.survey.aggregates import Aggregates
 from src.countries.france.data.erf.datatable import DataCollection
-from src.lib.columns import Prestation
-from src.lib.simulation import load_content
+from openfisca_core.columns import Prestation
+from openfisca_core.simulations import load_content
 
-from src import SRC_PATH
+from openfisca_core import model
 
 
 
@@ -468,7 +468,7 @@ def test(year=2006, variables = ['af']):
     '''
     country= "france"
     simulation = SurveySimulation()
-    survey_filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'sources', 'test.h5')
+    survey_filename = os.path.join(model.DATA_DIR, 'sources', 'test.h5')
     simulation.set_config(year=year, country=country, 
                           survey_filename=survey_filename)
     simulation.set_param()
@@ -838,16 +838,16 @@ if __name__ == '__main__':
     restart = True
     survey = 'survey.h5'
     country= "france"
-    save_path = os.path.join(SRC_PATH, 'countries', country, 'data', 'erf')
+    save_path = os.path.join(model.DATA_DIR, 'erf')
     saved_simulation_filename = os.path.join(save_path, 'debugger_' + survey[:-3])
 
     if restart:
         year = 2006
         simulation = SurveySimulation()
         if survey == 'survey.h5':
-            survey_filename = os.path.join(SRC_PATH, 'countries', country, 'data', survey)
+            survey_filename = os.path.join(model.DATA_DIR, survey)
         else:
-            survey_filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'sources', survey)
+            survey_filename = os.path.join(model.DATA_DIR, 'sources', survey)
 
         simulation.set_config(year=year, country=country, 
                               survey_filename=survey_filename)

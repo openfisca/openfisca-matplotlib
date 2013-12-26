@@ -21,7 +21,17 @@ This file is part of openFisca.
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+
 from __future__ import division
+
+import locale
+import os
+
+from matplotlib.lines import Line2D
+from matplotlib.patches import Rectangle, FancyArrow
+from matplotlib.ticker import FuncFormatter
+import numpy as np
+from openfisca_core import axestools
 
 from src.gui.qt.QtCore import (QAbstractItemModel, QModelIndex, Qt, 
                           SIGNAL, QSize, QString)
@@ -32,20 +42,11 @@ from src.gui.qt.compat import (to_qvariant, getsavefilename)
 from src.gui.views.ui_graph import Ui_Graph
 from src.gui.config import get_icon
 from src.gui.utils.qthelpers import create_action
-
-from matplotlib.lines import Line2D
-from matplotlib.patches import Rectangle, FancyArrow
-from matplotlib.ticker import FuncFormatter
-
-import os
-import locale
-import numpy as np
-from src.lib.utils import of_import
 from src.gui.baseconfig import get_translation
 from src.plugins.__init__ import OpenfiscaPluginWidget
+
+
 _ = get_translation('src')
-
-
 locale.setlocale(locale.LC_ALL, '')
 
 
@@ -273,8 +274,7 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
         
         self.populate_absBox(xaxis, mode)
         
-        build_axes = of_import('utils','build_axes', country = self.simulation.country)
-        axes = build_axes(self.simulation.country)
+        axes = axestools.build_axes()
         
         for axe in axes:
             if axe.name == xaxis:
@@ -314,8 +314,7 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
         self.absBox.setEnabled(True)
         self.hidelegend_btn.setEnabled(True)
             
-        build_axes = of_import('utils','build_axes', country = self.simulation.country)
-        axes = build_axes(self.simulation.country)
+        axes = axestools.build_axes()
         for axe in axes:
             if axe.name == xaxis:
                 typ_revs_labels = axe.typ_tot.values()
@@ -329,8 +328,7 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
     def xaxis_changed(self):
         
         country = self.simulation.country                
-        build_axes = of_import('utils', 'build_axes', country = country)        
-        axes = build_axes(country = country)
+        axes = axestools.build_axes()
         mode = self.simulation.mode
         
         if mode == "bareme":
@@ -521,7 +519,7 @@ def drawBareme(data, ax, xaxis, reforme = False, dataDefault = None, legend = Tr
     NMEN = len(xdata.vals)
     xlabel = xdata.desc
     ax.set_xlabel(xlabel)
-    currency = of_import(None, 'CURRENCY', country = country)
+    currency = model.CURRENCY
     ax.set_ylabel(prefix + u"Revenu disponible (" + currency + " par an)")
     ax.set_xlim(np.amin(xdata.vals), np.amax(xdata.vals))
     if not reforme:
@@ -622,8 +620,7 @@ def drawBaremeCompareHouseholds2(data, ax, xaxis, dataDefault = None, legend = T
     NMEN = len(xdata.vals)
     xlabel = xdata.desc
     ax.set_xlabel(xlabel)
-    currency = of_import('utils', 'currency', country = country)
-    ax.set_ylabel(prefix + u"Revenu disponible (" + currency + " par an)")
+    ax.set_ylabel(prefix + u"Revenu disponible (" + model.CURRENCY + " par an)")
     ax.set_xlim(np.amin(xdata.vals), np.amax(xdata.vals))
     ax.plot(xdata.vals, np.zeros(NMEN), color = 'black', label = 'xaxis')
 
@@ -659,9 +656,6 @@ def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None, legend = True
     if country is None:
         raise Exception('drawTaux: country must be defined')
 
-
-    REVENUES_CATEGORIES = of_import(None,"REVENUES_CATEGORIES",country)
-        
     if dataDefault is None: 
         dataDefault = data
         
@@ -674,7 +668,7 @@ def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None, legend = True
     elif xaxis == "fon":
         typ_rev = 'brut'
     else:
-        for typrev, vars in REVENUES_CATEGORIES.iteritems():
+        for typrev, vars in model.REVENUES_CATEGORIES.iteritems():
             if xaxis in vars:
                 typ_rev = typrev
         
@@ -722,10 +716,8 @@ def RevTot(data, typrev, country = None):
     
     if country is None:
         raise Exception('RevTot: country must be set')
-    
-    REVENUES_CATEGORIES = of_import('',"REVENUES_CATEGORIES",country)
-    
-    dct = REVENUES_CATEGORIES
+
+    dct = model.REVENUES_CATEGORIES
     first = True
     try:
         for var in dct[typrev]:

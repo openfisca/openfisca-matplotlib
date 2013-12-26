@@ -20,7 +20,7 @@ from src.gui.qt.compat import to_qvariant
 from src.gui.utils.qthelpers import create_action
 from src.gui.qthelpers import OfSs, DataFrameViewWidget, MyComboBox
 
-from src.lib.columns import EnumCol
+from openfisca_core.columns import EnumCol
 
 from src.gui.config import CONF, get_icon
 from src.plugins.__init__ import OpenfiscaPluginWidget, PluginConfigPage

@@ -27,7 +27,7 @@ import py2exe
 import matplotlib
 import os
 import glob
-from src import __version__ as VERSION
+from openfisca_core import __version__ as VERSION
 
 def find_data_files(source,target,patterns):
     """

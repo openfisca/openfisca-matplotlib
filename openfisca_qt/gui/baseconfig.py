@@ -23,7 +23,7 @@ import os
 import sys
 
 # Local imports
-from src import __version__
+from openfisca_core import __version__
 
 #==============================================================================
 # Debug helpers

@@ -6,20 +6,23 @@ Convert a OF individual survey in a three (in fact four)-level survey
 @author: alexis Eidelman
 
 """
-from pandas import HDFStore # DataFrame
-import numpy as np
+
+
+import gc
 import os
 import pdb
-import src.countries.france.model.data
-from src import SRC_PATH
-import gc
+
+import numpy as np
+from pandas import HDFStore # DataFrame
+from openfisca_core import model
+
 
 country = 'france'
 filename = None
 if filename is None:
     if country is not None:
-        filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'survey.h5')
-filename3 = os.path.join(SRC_PATH, 'countries', country, 'data', 'survey3.h5')
+        filename = os.path.join(model.DATA_DIR, 'survey.h5')
+filename3 = os.path.join(model.DATA_DIR, 'survey3.h5')
 
 store = HDFStore(filename)
 output = HDFStore(filename3)
@@ -33,8 +36,7 @@ def getattr_deep(obj, attr):
     return reduce(getattr, attr.split('.'), obj)
 
 def from_one_to_three(table,entity):
-    from src.lib.utils import of_import
-    InputDescription = of_import('model.data', 'InputDescription', country)    
+    InputDescription = model.InputDescription
     vars = [x for x in dir(InputDescription()) if x[0] !="_" and x not in ['columns','get_comment','get_title','to_string']]
     vars_entity = []
     for var in vars:  

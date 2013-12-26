@@ -23,7 +23,7 @@ This file is part of OpenFisca.
 """
 
 from distutils.core import setup
-from src import __version__ as VERSION
+from openfisca_core import __version__ as VERSION
 
 from src.setup import build_datafiles
 

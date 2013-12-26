@@ -9,7 +9,7 @@
 
 # Exemple of a simple simulation
 
-from src.lib.simulation import SurveySimulation
+from openfisca_core.simulations import SurveySimulation
 from src.plugins.survey.aggregates import Aggregates
 from pandas import ExcelWriter
 import os
@@ -25,6 +25,8 @@ try:
 except:
     pass
 
+from openfisca_core import model
+
 
 
 # from src.scripts.validation.check_consistency_tests import ( check_inputs_enumcols,
@@ -32,8 +34,6 @@ except:
 #                                                               check_weights)
 
 country = 'france'
-
-from src import SRC_PATH
 
 
 class Recap(object):
@@ -280,7 +280,7 @@ def test_recap(source_file_name=None, export_file_name = "myrecap.xls"):
     recap.set_country(country)
     
     if source_file_name is not None:
-        survey_filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'sources', source_file_name + '.h5')
+        survey_filename = os.path.join(model.DATA_DIR, 'sources', source_file_name + '.h5')
         recap.set_survey_filename(survey_filename)
     
     recap.set_years(years)

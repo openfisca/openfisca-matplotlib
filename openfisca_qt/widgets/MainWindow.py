@@ -21,9 +21,11 @@ This file is part of openFisca.
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import gc
+from os import path
 import platform
 
-from os import path
+from openfisca_core.simulations import SurveySimulation, ScenarioSimulation
 from PyQt4.QtCore import (SIGNAL, SLOT, Qt, QSettings, QVariant, QSize, QPoint, 
                           PYQT_VERSION_STR, QT_VERSION_STR, QLocale)
 from PyQt4.QtGui import (QMainWindow, QWidget, QGridLayout, QMessageBox, QKeySequence,
@@ -31,19 +33,17 @@ from PyQt4.QtGui import (QMainWindow, QWidget, QGridLayout, QMessageBox, QKeySeq
                          QActionGroup, QStatusBar)
 
 from src.Config import CONF, VERSION, ConfigDialog, SimConfigPage, PathConfigPage, CalConfigPage
-from src.widgets.Parametres import ParamWidget
+from src.gui.qthelpers import create_action, add_actions, get_icon
 from src.plugins.scenario.table import OutTable
 from src.plugins.scenario.graph import Graph
 from src.plugins.survey.aggregates import Aggregates, AggregateOutputWidget
 from src.plugins.survey.distribution import OFPivotTable, DistributionWidget
+from .. import widgets
+from src.widgets.Parametres import ParamWidget
 from src.widgets.Calibration import CalibrationWidget
 from src.widgets.Inflation import InflationWidget
 from src.widgets.ExploreData import ExploreDataWidget
 from src.widgets.Inequality import InequalityWidget
-from src.gui.utils import of_import
-from src.gui.qthelpers import create_action, add_actions, get_icon
-from src.lib.simulation import SurveySimulation, ScenarioSimulation
-import gc
 
 
 class MainWindow(QMainWindow):
@@ -217,7 +217,7 @@ class MainWindow(QMainWindow):
     def create_dockwidgets(self):
         # Création des dockwidgets
         self._parametres = ParamWidget(self)
-        ScenarioWidget = of_import('widgets.Composition', 'ScenarioWidget')
+        ScenarioWidget = widgets.ScenarioWidget
         self._menage = ScenarioWidget(scenario = self.scenario_simulation.scenario, parent = self)
         self._graph = Graph(self)
         self._table = OutTable(self)

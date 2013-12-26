@@ -3,7 +3,7 @@ Created on 11 juin 2013
 
 @author: Utilisateur
 '''
-from src.lib.simulation import SurveySimulation
+from openfisca_core.simulations import SurveySimulation
 
 def toto():
     country = "france"

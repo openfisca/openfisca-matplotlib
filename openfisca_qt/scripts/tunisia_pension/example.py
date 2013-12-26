@@ -9,7 +9,7 @@
 
 # Exemple of a simple simulation
 
-from src.lib.simulation import ScenarioSimulation
+from openfisca_core.simulations import ScenarioSimulation
 
 from datetime import datetime
 country = 'tunisia_pension'

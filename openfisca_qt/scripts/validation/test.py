@@ -6,7 +6,7 @@
 # Licensed under the terms of the GVPLv3 or later license
 # (see openfisca/__init__.py for details)
 
-from src.lib.simulation import SurveySimulation
+from openfisca_core.simulations import SurveySimulation
 
 import nose
 

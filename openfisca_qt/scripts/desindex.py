@@ -8,7 +8,7 @@
 
 from pandas import DataFrame, ExcelWriter
 from numpy import arange
-from src.lib.utils import mark_weighted_percentiles
+from openfisca_core.utils import mark_weighted_percentiles
 from src.countries.france.data.erf.datatable import ErfsDataTable
 from src.countries.france.data.sources.config import destination_dir
 

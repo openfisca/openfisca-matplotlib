@@ -20,33 +20,30 @@ This file is part of openFisca.
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from __future__ import division
-from pandas import DataFrame
-import os 
-from numpy import nan         
-from datetime import datetime
-from pandas import ExcelWriter
 
+from __future__ import division
+
+from datetime import datetime
+import os
+
+from numpy import nan
+from openfisca_core import model
+from openfisca_core.simulations import SurveySimulation
+from pandas import DataFrame, ExcelWriter
 
 from src.gui.qt.QtGui import (QWidget, QVBoxLayout, QSizePolicy, QMenu,
                          QGroupBox, QFileDialog, QMessageBox)
 from src.gui.qt.QtCore import SIGNAL, Qt
-
 from src.gui.config import get_icon
-
 from src.gui.qthelpers import OfSs, DataFrameViewWidget
 from src.gui.utils.qthelpers import create_action, add_actions
-
-from src.lib.utils import of_import
-
-from src import SRC_PATH
-from src.lib.simulation import SurveySimulation
-
 from src.plugins import OpenfiscaPluginWidget, PluginConfigPage
 from src.gui.baseconfig import get_translation
+
+
 _ = get_translation("src")
 
-    
+
 class Aggregates(object):
     def __init__(self):
         super(Aggregates, self).__init__()
@@ -79,17 +76,13 @@ class Aggregates(object):
         """
         Set list of variables to be aggregated
         """
-        country = self.simulation.country
-        AGGREGATES_DEFAULT_VARS = of_import("","AGGREGATES_DEFAULT_VARS", country)
-        self.varlist = AGGREGATES_DEFAULT_VARS
+        self.varlist = model.AGGREGATES_DEFAULT_VARS
         
     def set_default_filter_by_list(self):
         """
         Import country specific default filter by variables list
         """
-        country = self.simulation.country
-        FILTERING_VARS = of_import("","FILTERING_VARS", country)
-        self.filter_by_var_list = FILTERING_VARS
+        self.filter_by_var_list = model.FILTERING_VARS
     
     def set_default_filter_by(self):
         """
@@ -213,7 +206,7 @@ class Aggregates(object):
         """
         
         country = self.simulation.country
-        WEIGHT = of_import("","WEIGHT", country)
+        WEIGHT = model.WEIGHT
         simulation = self.simulation
 
         
@@ -309,7 +302,7 @@ class Aggregates(object):
         if filename is None:
             country = self.simulation.country
 
-            data_dir = os.path.join(SRC_PATH, 'countries', country, 'data')
+            data_dir = model.DATA_DIR
 
 
         try:

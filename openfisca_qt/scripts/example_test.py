@@ -9,14 +9,13 @@
 
 # Exemple of a simple simulation
 
-from src.lib.simulation import ScenarioSimulation, SurveySimulation, Simulation
+from openfisca_core.simulations import ScenarioSimulation, SurveySimulation, Simulation
 from src.plugins.survey.aggregates import Aggregates
 from datetime import datetime
 from pandas import ExcelWriter, HDFStore
 import os
 from src.countries.france.data.erf.aggregates import build_erf_aggregates
 import pandas as pd
-from src.lib.utils import of_import
 from pandas import DataFrame
 # DataFrame.groupby(self, by, axis, level, as_index, sort, group_keys)
 # DataFrame.unstack(self, level)
@@ -42,14 +41,14 @@ country = 'france'
 # fname_all = "aggregates_inflated_loyers.xlsx"
 # fname_all = os.path.join(destination_dir, fname_all)              
 
-from src import SRC_PATH
+from openfisca_core import model
 
 
 def survey_case(year = 2006): 
     yr = str(year)
 #        fname = "Agg_%s.%s" %(str(yr), "xls")
     simulation = SurveySimulation()
-    survey_filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'sources', 'test.h5')
+    survey_filename = os.path.join(model.DATA_DIR, 'sources', 'test.h5')
     simulation.set_config(year=yr, country=country, 
                           survey_filename=survey_filename)
     simulation.set_param()
@@ -269,7 +268,7 @@ def test_laurence():
         yr = str(i)
         # Running a standard SurveySim to get aggregates
         simulation = SurveySimulation()
-        survey_filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'sources', 'test.h5')
+        survey_filename = os.path.join(model.DATA_DIR, 'sources', 'test.h5')
         simulation.set_config(year=yr, country=country, 
                               survey_filename=survey_filename)
         simulation.set_param()

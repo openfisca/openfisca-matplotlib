@@ -34,6 +34,8 @@ from pandas import  DataFrame, concat, HDFStore
 from Config import CONF
 from src.gui.qthelpers import DataFrameViewWidget, get_icon, _fromUtf8
 
+from .. import model
+
 
 
 class InflationWidget(QDialog):
@@ -136,13 +138,9 @@ class InflationWidget(QDialog):
         '''
         Sets inputs datatable
         '''
-        from src.lib.utils import of_import
-
-        WEIGHT = of_import("","WEIGHT", self.simulation.country)
-
         self.inputs = inputs
         self.unit = 'ind' # TODO: COUNTRY SPECIFIC
-        self.weights = 1*self.inputs.get_value(WEIGHT, inputs.index[self.unit]) # 1* to deal with pointer nature
+        self.weights = 1*self.inputs.get_value(model.WEIGHT, inputs.index[self.unit]) # 1* to deal with pointer nature
 
     def set_targets_from_file(self, filename = None, year = None):
         '''

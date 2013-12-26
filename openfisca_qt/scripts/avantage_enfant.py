@@ -24,7 +24,7 @@ This file is part of openFisca.
 
 
 
-from src.lib.simulation import ScenarioSimulation 
+from openfisca_core.simulations import ScenarioSimulation 
 
 import sys
 from src.gui.qt.QtGui import QMainWindow, QApplication

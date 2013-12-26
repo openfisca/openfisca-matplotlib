@@ -17,10 +17,10 @@ Developed and maintained by Mahdi Ben Jelloul and Clément Schaff
 """
 
 import os
-import sys
 import os.path as osp
 import platform
 import re
+import sys
 
 # Keeping a reference to the original sys.exit before patching it
 ORIGINAL_SYS_EXIT = sys.exit
@@ -69,7 +69,6 @@ from src.gui.qt.compat import (from_qvariant, getopenfilename,
 from src.gui.qt import QtSvg  # analysis:ignore
 
 # Local imports
-from src import __version__, __project_url__, __forum_url__
 from src.gui.utils import encoding, vcs, programs
 try:
     from src.utils.environ import WinUserEnvDialog
@@ -91,8 +90,9 @@ except ImportError:
     OnlineHelp = None  # analysis:ignore
 
 
-from src.lib.utils import of_import
-from src.lib.simulation import SurveySimulation, ScenarioSimulation
+from openfisca_core import model
+from openfisca_core.simulations import SurveySimulation, ScenarioSimulation
+from openfisca_qt import __version__, __project_url__, __forum_url__, widgets
 
 from src.plugins.general.Parametres import ParamWidget
 from src.plugins.scenario.graph import ScenarioGraphWidget
@@ -681,8 +681,7 @@ class MainWindow(QMainWindow):
         self.scenario_simulation = ScenarioSimulation()
         datesim = CONF.get('parameters', 'datesim')
         self.scenario_simulation.set_config(country=country, datesim=datesim)
-        CompositionWidget = of_import('widgets.Composition', 'CompositionWidget', country)
-        self.composition = CompositionWidget(self.scenario_simulation, parent=self)
+        self.composition = widgets.CompositionWidget(self.scenario_simulation, parent=self)
         self.composition.register_plugin()
 
         # Scenario Graph widget

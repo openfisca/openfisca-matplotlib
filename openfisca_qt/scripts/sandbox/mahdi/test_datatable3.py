@@ -7,7 +7,7 @@
 # (see openfisca/__init__.py for details)
 
 
-from src.lib.simulation import SurveySimulation 
+from openfisca_core.simulations import SurveySimulation 
 from src.plugins.survey.aggregates import Aggregates
 from src.plugins.survey.aggregates3 import Aggregates3
 from pandas import ExcelWriter, ExcelFile

@@ -31,14 +31,16 @@ from src.gui.qt.compat import from_qvariant
 
 from src.gui.qthelpers import OfSs, DataFrameViewWidget, MyComboBox
 from src.gui.utils.qthelpers import  get_icon
-from src.lib.simulation import SurveySimulation
+from openfisca_core.simulations import SurveySimulation
 
 
 
 from src.plugins.__init__ import OpenfiscaPluginWidget, PluginConfigPage
 
-from src.lib.utils import of_import
 from src.gui.baseconfig import get_translation
+
+from ... import model
+
 _ = get_translation('src')
 
 
@@ -82,8 +84,7 @@ class OpenfiscaPivotTable(object):
         if default is not None:
             self.data_default = default
 
-        WEIGHT = of_import(None, 'WEIGHT', self.simulation.country)
-        self.wght = self.data[WEIGHT]
+        self.wght = self.data[model.WEIGHT]
 
     def get_table(self, by = None, vars = None, entity = None, champm = True, do_not_use_weights = False):
         """
@@ -116,11 +117,10 @@ class OpenfiscaPivotTable(object):
             initial_set = set([by_var] + list(vars))
         
         country = self.simulation.country
-        WEIGHT = of_import(None, 'WEIGHT', country) # import WEIGHT from country.__init__.py
+        WEIGHT = model.WEIGHT
         
         if entity is None:
-            ENTITIES_INDEX = of_import(None, 'ENTITIES_INDEX', country) # import ENTITIES_INDEX from country.__init__.py
-            entity = ENTITIES_INDEX[0]
+            entity = model.ENTITIES_INDEX[0]
 
         try:
             data, data_default = self.simulation.aggregated_by_entity(entity, initial_set)
@@ -174,7 +174,7 @@ class OpenfiscaPivotTable(object):
         if self.data_default is not None:
             datasets['default'] = self.data_default
 
-        WEIGHT = of_import(None, 'WEIGHT', self.simulation.country) # import WEIGHT from country.__init__.py
+        WEIGHT = model.WEIGHT
         for name, data in datasets.iteritems():
             # Computes aggregates by category
             if champm:

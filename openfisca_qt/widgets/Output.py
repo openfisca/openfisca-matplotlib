@@ -41,7 +41,8 @@ import locale
 import numpy as np
 from pandas import DataFrame, ExcelWriter
 
-from core.utils import of_import
+from openfisca_core import axestools, model
+
 
 locale.setlocale(locale.LC_ALL, '')
 
@@ -236,8 +237,7 @@ class Graph(QDockWidget, Ui_Graph):
         self.populate_absBox(xaxis, self.mode)
         # TODO really dirty because we should change name of self.xaxis
         
-        build_axes = of_import('utils','build_axes')
-        axes = build_axes()
+        axes = axestools.build_axes()
         for axe in axes:
             if axe.name == xaxis:
                 axis = axe.typ_tot_default
@@ -270,9 +270,7 @@ class Graph(QDockWidget, Ui_Graph):
         self.absBox.setEnabled(True)
         self.hidelegend_btn.setEnabled(True)
         
-        
-        build_axes = of_import('utils','build_axes')
-        axes = build_axes()
+        axes = axestools.build_axes()
         for axe in axes:
             if axe.name == xaxis:
                 typ_revs_labels = axe.typ_tot.values()
@@ -285,8 +283,7 @@ class Graph(QDockWidget, Ui_Graph):
 
     def xaxis_changed(self):
                         
-        build_axes = of_import('utils', 'build_axes')        
-        axes = build_axes()
+        axes = axestools.build_axes()
 
         if self.mode == "bareme":
             text =  self.absBox.currentText()
@@ -416,8 +413,7 @@ def drawBareme(data, ax, xaxis, reforme = False, dataDefault = None, legend = Tr
     xlabel = xdata.desc
 
     ax.set_xlabel(xlabel)
-    currency = of_import('utils', 'currency')
-    ax.set_ylabel(prefix + u"Revenu disponible (" + currency + " par an)")
+    ax.set_ylabel(prefix + u"Revenu disponible (" + model.CURRENCY + " par an)")
     ax.set_xlim(np.amin(xdata.vals), np.amax(xdata.vals))
     if not reforme:
         ax.set_ylim(np.amin(xdata.vals), np.amax(xdata.vals))
@@ -456,13 +452,12 @@ def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None):
     if dataDefault is None: 
         dataDefault = data
 
-    REV_TYPE = of_import('utils', 'REV_TYPE')
     if xaxis == "rev_cap_brut":
         typ_rev = 'superbrut'
     elif xaxis == "rev_cap_net":
         typ_rev = 'net'
     else:
-        for typrev, vars in REV_TYPE.iteritems():
+        for typrev, vars in model.REV_TYPE.iteritems():
             if xaxis in vars:
                 typ_rev = typrev
         
@@ -502,13 +497,12 @@ def createLegend(ax):
             l.insert(0, line._label)
     ax.legend(p,l, loc= 2, prop = {'size':'medium'})
 
+
 def RevTot(data, typrev):
     '''
     Computes total revenues by type with definition is country specific
     '''
-    REV_TYPE = of_import('utils', 'REV_TYPE')
-    dct = REV_TYPE
-
+    dct = model.REV_TYPE
     first = True
     try:
         for var in dct[typrev]:
@@ -519,10 +513,7 @@ def RevTot(data, typrev):
                 out += data[var].vals
         return out 
     except:
-        raise Exception("typrev is %s but typrev should be one of the following: %s" %(str(typrev), str(REV_TYPE.keys())) )
- 
-
-
+        raise Exception("typrev is %s but typrev should be one of the following: %s" %(str(typrev), str(dct.keys())))
 
 
 class OutTable(QDockWidget):
@@ -556,8 +547,7 @@ class OutTable(QDockWidget):
             dataDefault = data
 
         xaxis = CONF.get('simulation', 'xaxis')            
-        build_axes = of_import('utils','build_axes')
-        axes = build_axes()
+        axes = axestools.build_axes()
         for axe in axes:
             if axe.name == xaxis:
                 xaxis_typ_tot = axe.typ_tot_default

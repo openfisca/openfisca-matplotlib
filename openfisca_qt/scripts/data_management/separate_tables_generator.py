@@ -4,10 +4,13 @@ Created on 9 juil. 2013
 
 @author: Utilisateur
 '''
-from src import SRC_PATH
+
+
 import os
+
+from openfisca_core.simulations import SurveySimulation
 from pandas import HDFStore
-from src.lib.simulation import SurveySimulation
+
 
 country = "france"
 

@@ -8,9 +8,9 @@
 
 # Author: Victor Le Breton
 
-from src.lib.simulation import SurveySimulation, load_content, Simulation, ScenarioSimulation
+from openfisca_core.simulations import SurveySimulation, load_content, Simulation, ScenarioSimulation
 import os
-from src import SRC_PATH
+from openfisca_core import model
 
 if __name__ == "__main__":    
     
@@ -18,7 +18,7 @@ if __name__ == "__main__":
     yr = 2006
     country = 'france'
     simulation = SurveySimulation()
-    survey_filename = os.path.join(SRC_PATH, 'countries', country, 'data', 'sources', 'test.h5')
+    survey_filename = os.path.join(model.DATA_DIR, 'sources', 'test.h5')
     simulation.set_config(year=yr, country=country, 
                           survey_filename=survey_filename)
     simulation.set_param()

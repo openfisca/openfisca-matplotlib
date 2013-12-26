@@ -36,8 +36,8 @@ from src.gui.qthelpers import MyComboBox, MySpinBox, MyDoubleSpinBox, DataFrameV
 from src.widgets.matplotlibwidget import MatplotlibWidget
 from src.gui.config import CONF
 from src.gui.config import get_icon
-from src.lib.columns import EnumCol, BoolCol, AgesCol, DateCol, BoolPresta, IntPresta
-from src.lib.calmar import calmar
+from openfisca_core.columns import EnumCol, BoolCol, AgesCol, DateCol, BoolPresta, IntPresta
+from openfisca_core.calmar import calmar
 
 MODCOLS = [EnumCol, BoolCol, BoolPresta, IntPresta, AgesCol, DateCol]
 
@@ -366,7 +366,7 @@ class Calibration(object):
         
 
 def test():
-    from src.lib.simulation import SurveySimulation
+    from openfisca_core.simulations import SurveySimulation
     yr = 2006
     country = 'france'
     simu = SurveySimulation()

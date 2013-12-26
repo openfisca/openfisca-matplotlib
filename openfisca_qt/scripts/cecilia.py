@@ -14,7 +14,7 @@ from src.gui.qt.QtGui import QMainWindow, QApplication
 import matplotlib.pyplot as plt
     
 from src.widgets.matplotlibwidget import MatplotlibWidget
-from src.lib.simulation import ScenarioSimulation 
+from openfisca_core.simulations import ScenarioSimulation 
 
 SHOW_OPENFISCA = True
 EXPORT = False

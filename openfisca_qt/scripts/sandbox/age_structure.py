@@ -7,12 +7,14 @@
 # (see openfisca/__init__.py for details)
 
 
-
-from pandas import ExcelFile, HDFStore
-from src.lib.simulation import SurveySimulation
-from src.plugins.survey.distribution import OpenfiscaPivotTable
-from src.lib.utils import of_import
 import os
+
+from openfisca_core import model
+from openfisca_core.simulations import SurveySimulation
+from pandas import ExcelFile, HDFStore
+
+from src.plugins.survey.distribution import OpenfiscaPivotTable
+
 
 H5_FILENAME = "age_structure.h5"
 
@@ -74,8 +76,7 @@ def build_from_insee( directory = None, verbose=False):
 
     fname = os.path.join(directory, H5_FILENAME)
     store = HDFStore(fname)
-    DATA_SOURCES_DIR = of_import("","DATA_SOURCES_DIR","france")
-    xls = ExcelFile(os.path.join(DATA_SOURCES_DIR, "sd2010_t6_fm.xls"))
+    xls = ExcelFile(os.path.join(model.DATA_SOURCES_DIR, "sd2010_t6_fm.xls"))
     
     df_age_final = None
     

@@ -21,29 +21,25 @@ This file is part of openFisca.
     along with openFisca.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from pandas import DataFrame
 from datetime import datetime
+
+from openfisca_core import model
+from openfisca_core.simulations import SurveySimulation
+from openfisca_core.utils import gini, lorenz, mark_weighted_percentiles
+from pandas import DataFrame
 
 from src.gui.qt.QtGui import (QWidget, QApplication, QCursor, QDockWidget)
 from src.gui.qt.QtCore import SIGNAL, Qt
-
 from src.gui.qthelpers import OfSs
-from src.lib.utils import lorenz, gini
-
 from src.widgets.matplotlibwidget import MatplotlibWidget
-
 from src.gui.qthelpers import DataFrameViewWidget
-
 from src.gui.qt.QtGui import QGroupBox, QVBoxLayout
 from src.plugins.__init__ import OpenfiscaPluginWidget, PluginConfigPage
 from src.gui.config import get_icon
 from src.gui.baseconfig import get_translation
-from src.lib.utils import mark_weighted_percentiles
+
+
 _ = get_translation('inequality', 'src.plugins.survey')
-
-from src.lib.utils import of_import
-from src.lib.simulation import SurveySimulation
-
 
 
 class Inequality(object):
@@ -89,9 +85,9 @@ class Inequality(object):
         """
         output = self.simulation.output_table
         final_df = None
-        
-        WEIGHT = of_import(None, 'WEIGHT', self.simulation.country)
-        FILTERING_VARS = of_import(None, 'FILTERING_VARS', self.simulation.country) 
+
+        WEIGHT = model.WEIGHT
+        FILTERING_VARS = model.FILTERING_VARS
         for varname, entities in self.vars.iteritems():
             for entity in entities:
                 #idx =  output.index[entity]
@@ -232,7 +228,7 @@ class InequalityWidget(OpenfiscaPluginWidget):
             
         output = self.inequality.simulation.output_table
         simulation = self.inequality.simulation
-        WEIGHT = of_import(None, 'WEIGHT', simulation.country)
+        WEIGHT = model.WEIGHT
 
         entities = ['ind', 'men']
         weights = {}

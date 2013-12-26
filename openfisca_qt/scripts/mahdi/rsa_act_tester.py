@@ -4,8 +4,8 @@ Created on 9 juil. 2013
 @author: benjello
 '''
 
-from src.lib.simulation import ScenarioSimulation
-from src.lib.simulation import SurveySimulation
+from openfisca_core.simulations import ScenarioSimulation
+from openfisca_core.simulations import SurveySimulation
 from src.plugins.survey.aggregates import Aggregates
 from datetime import datetime
 from pandas import ExcelWriter

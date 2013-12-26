@@ -36,17 +36,14 @@ from src.gui.qthelpers import MyComboBox, MySpinBox, MyDoubleSpinBox, DataFrameV
 from src.widgets.matplotlibwidget import MatplotlibWidget
 from src.gui.config import CONF
 from src.gui.config import get_icon
-from src.lib.columns import EnumCol, BoolCol, AgesCol, DateCol, BoolPresta, IntPresta
-from src.lib.calmar import calmar
 from src.gui.qt.compat import to_qvariant
 
+from openfisca_core import model
+from openfisca_core.columns import EnumCol, BoolCol, AgesCol, DateCol, BoolPresta, IntPresta
+from openfisca_core.calmar import calmar
 
 
 MODCOLS = [EnumCol, BoolCol, BoolPresta, IntPresta, AgesCol, DateCol]
-
-
-from src import SRC_PATH
-from src.lib.utils import of_import
 
 
 
@@ -85,7 +82,7 @@ class Calibration(object):
         Reset the calibration to it initial state
         """
         self.frame = None
-        WEIGHT = of_import("","WEIGHT", self.simulation.country)
+        WEIGHT = model.WEIGHT
         self.simulation.survey.set_value(WEIGHT, self.weights_init, self.simulation.survey.index[self.entity])
         self.simulation.survey.propagate_to_members( entity=self.entity, col=WEIGHT)
         
@@ -100,8 +97,8 @@ class Calibration(object):
         if inputs is None:
             return
         self.entity = 'men' # TODO: shoud not be france specific
-        WEIGHT = of_import("","WEIGHT", self.simulation.country)
-        WEIGHT_INI = of_import("","WEIGHT_INI", self.simulation.country)
+        WEIGHT = model.WEIGHT
+        WEIGHT_INI = model.WEIGHT_INI
         
         self.weights = 1*inputs.get_value(WEIGHT, self.entity)
         self.weights_init = inputs.get_value(WEIGHT_INI, self.entity)
@@ -259,7 +256,7 @@ class Calibration(object):
         p['lo']     = 1/self.param['invlo']
         p['up']     = self.param['up']
         p['use_proportions'] = True
-        WEIGHT = of_import("","WEIGHT", self.simulation.country)
+        WEIGHT = model.WEIGHT
         p['pondini']  = WEIGHT + ""
         return p
 
@@ -317,7 +314,7 @@ class Calibration(object):
                     computed values of the margins             
         """
         if weights_in is None:
-            WEIGHT = of_import("","WEIGHT", self.simulation.country)
+            WEIGHT = model.WEIGHT
             weights_in = WEIGHT + "_ini" 
             
         data = self.build_calmar_data(marges, weights_in)
@@ -390,7 +387,7 @@ class Calibration(object):
         """
         Modify the weights to use the calibrated weight
         """
-        WEIGHT = of_import("","WEIGHT", self.simulation.country)
+        WEIGHT = model.WEIGHT
         self.simulation.survey.set_value(WEIGHT, self.weights, self.simulation.survey.index[self.entity])
         self.simulation.survey.propagate_to_members( entity=self.entity, col=WEIGHT)        
 
@@ -620,8 +617,8 @@ class CalibrationWidget(OpenfiscaPluginWidget):
         if filename is None:
             fname    = self.get_option('inputs_filename')
 #            country = self.calibration.simulation.country
-#            data_dir = os.path.join(SRC_PATH, 'countries', country, 'calibrations')
-            filename = os.path.join(SRC_PATH, fname)
+#            data_dir = os.path.join(model.CALIBRATIONS_DIR)
+            filename = os.path.join(model.TODO_DIR, fname)
         self.calibration.set_margins_from_file(filename, year, source="input")
         self.init_totalpop()
     
@@ -1029,7 +1026,7 @@ class CalibrationWidget(OpenfiscaPluginWidget):
 
 
 def test():
-    from src.lib.simulation import SurveySimulation
+    from openfisca_core.simulations import SurveySimulation
     yr = 2006
     country = 'france'
     simulation = SurveySimulation()

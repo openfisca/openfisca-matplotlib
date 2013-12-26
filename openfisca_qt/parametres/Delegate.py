@@ -8,6 +8,8 @@
 # (see openfisca/__init__.py for details)
 
 
+from openfisca_core import model
+
 from src.gui.qt.QtCore import QAbstractTableModel, Qt, QString, SIGNAL, QModelIndex
 from src.gui.qt.compat import to_qvariant, from_qvariant
 
@@ -85,9 +87,8 @@ class ValueColumnDelegate(QStyledItemDelegate):
         
         
         from src.gui.config import CONF
-        from src.lib.utils import of_import
         country = CONF.get('parameters', 'country')
-        currency = of_import('', 'CURRENCY', country)
+        currency = model.CURRENCY
 
         year = "an"  # TODO: localization
         years = "ans"
