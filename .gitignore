@@ -1,6 +1,6 @@
 .project
 .pydevproject
-.settings
+.settings/
 build/
 dist/
 openfisca_crash.log
