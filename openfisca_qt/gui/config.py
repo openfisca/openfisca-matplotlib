@@ -144,8 +144,8 @@ DEFAULTS = [
             ('survey', 
              {
               'enable': True,
-              'bareme_only': False,
-              'data_file': "countries/france/data/survey.h5",
+              'bareme_only': True,
+              'data_file': None,
               'reform': False,
               }),            
             ('calibration', 
