@@ -8,9 +8,12 @@
 
 # Author: Victor Le Breton
 
-from openfisca_core.simulations import SurveySimulation, load_content, Simulation, ScenarioSimulation
+from openfisca_core.simulations import SurveySimulation, Simulation, ScenarioSimulation
 import os
 from openfisca_core import model
+
+from .common import load_content
+
 
 if __name__ == "__main__":    
     
