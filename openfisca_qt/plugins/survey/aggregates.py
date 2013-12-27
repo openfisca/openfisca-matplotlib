@@ -37,7 +37,7 @@ from ...gui.config import get_icon
 from ...gui.qthelpers import OfSs, DataFrameViewWidget
 from ...gui.utils.qthelpers import create_action, add_actions
 from ...gui.baseconfig import get_translation
-from ..plugins import OpenfiscaPluginWidget, PluginConfigPage
+from .. import OpenfiscaPluginWidget, PluginConfigPage
 
 
 _ = get_translation('openfisca_qt')

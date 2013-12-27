@@ -63,4 +63,4 @@ class Ui_Graph(object):
         self.option_btn.setText(QtGui.QApplication.translate("Graph", "Options", None, QtGui.QApplication.UnicodeUTF8))
 
 from ...widgets.matplotlibwidget import MatplotlibWidget
-#import ..resources_rc
+#from .. import resources_rc
