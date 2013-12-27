@@ -718,7 +718,7 @@ class MainWindow(QMainWindow):
         self.set_splash(_("Loading SurveyExplorer..."))
         self.survey_explorer.register_plugin()
         self.survey_plugins =  [ self.survey_explorer]
-        
+
         if CONF.get('survey', 'bareme_only') is False:
             self.debug_print("Register survey widgets")
             self.survey_simulation = SurveySimulation()
