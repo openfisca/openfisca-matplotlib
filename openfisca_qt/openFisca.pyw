@@ -22,6 +22,9 @@ import platform
 import re
 import sys
 
+import openfisca_france
+openfisca_france.init_country(qt = True)
+
 # Keeping a reference to the original sys.exit before patching it
 ORIGINAL_SYS_EXIT = sys.exit
 from openfisca_qt.gui.utils.programs import is_module_installed
