@@ -107,7 +107,7 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
     
     def initialize(self):
         country = self.get_option('country')
-        self._file = 'countries/' + country + '/param/param.xml'
+        self._file = model.PARAM_FILE
         
         value = self.get_option('datesim')
         from datetime import datetime
