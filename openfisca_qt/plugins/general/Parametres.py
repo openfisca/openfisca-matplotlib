@@ -147,7 +147,9 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
                                                _("Save a reform"), default_fileName, u"Paramètres OpenFisca (*.ofp)")
         if fileName:
 #            try:
-                self._rootNode.asXml(fileName)
+                from ...gui.config import CONF
+                datesim = str(CONF.get('simulation', 'datesim'))
+                self._rootNode.asXml(fileName, datesim)
 #            except Exception, e:
 #                QMessageBox.critical(
 #                    self, "Erreur", u"Impossible d'enregistrer le fichier : " + str(e),
