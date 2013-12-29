@@ -24,6 +24,7 @@ import sys
 
 import openfisca_france
 openfisca_france.init_country(qt = True)
+import pkg_resources
 
 # Keeping a reference to the original sys.exit before patching it
 ORIGINAL_SYS_EXIT = sys.exit
@@ -101,7 +102,7 @@ from openfisca_qt.plugins.general.Parametres import ParamWidget
 from openfisca_qt.plugins.scenario.graph import ScenarioGraphWidget
 from openfisca_qt.plugins.scenario.table import ScenarioTableWidget
 from openfisca_qt.plugins.survey.survey_explorer import SurveyExplorerWidget
-from openfisca_qt.plugins.survey.aggregates import AggregatesWidget
+#from openfisca_qt.plugins.survey.aggregates import AggregatesWidget
 from openfisca_qt.plugins.survey.distribution import DistributionWidget
 from openfisca_qt.plugins.survey.inequality import InequalityWidget
 from openfisca_qt.plugins.survey.Calibration import CalibrationWidget
@@ -399,6 +400,7 @@ class MainWindow(QMainWindow):
         
 #        self.main.register_test_case_widgets(country)
 #        self.main.register_survey_widgets(country)
+#        self.register_plugins()
         
     def refresh_test_case_plugins(self):
         """
@@ -552,7 +554,9 @@ class MainWindow(QMainWindow):
        
         # Survey Widgets
         self.register_survey_widgets(country)
-                           
+
+        self.register_plugins()
+
         # ? menu
         about_action = create_action(self,
                                 _("About %s...") % "openFisca",
@@ -665,8 +669,12 @@ class MainWindow(QMainWindow):
         
         self.debug_print("*** End of MainWindow setup ***")
         self.is_starting_up = False
- 
- 
+
+    def register_plugins(self):
+        for entry_point in pkg_resources.iter_entry_points('openfisca.plugins'):
+            plugin_registration = entry_point.load()
+            plugin_registration(qt_main_window = self)
+
     def register_test_case_widgets(self, country):
         """
         Register test case widget for country *country*
@@ -738,13 +746,13 @@ class MainWindow(QMainWindow):
                 self.calibration.register_plugin()
                 self.survey_plugins  += [ self.calibration]
 
-            # Aggregates widget
-            if CONF.get('aggregates', 'enable'):
-                self.set_splash(_("Loading aggregates widget ..."))
-                self.aggregates = AggregatesWidget(self)
-                self.aggregates.register_plugin()
-                self.survey_plugins  += [ self.aggregates]
-                
+#            # Aggregates widget
+#            if CONF.get('aggregates', 'enable'):
+#                self.set_splash(_("Loading aggregates widget ..."))
+#                self.aggregates = AggregatesWidget(self)
+#                self.aggregates.register_plugin()
+#                self.survey_plugins  += [ self.aggregates]
+
             # Distribution widget
             if CONF.get('distribution', 'enable'):
                 self.set_splash(_("Loading distribution widget ..."))
