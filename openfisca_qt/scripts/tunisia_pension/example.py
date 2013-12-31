@@ -18,7 +18,7 @@ def test_case(year):
 
     simulation = ScenarioSimulation()
     simulation.set_config(year = year, reforme=False,
-                    nmen = 4, maxrev = 25*9*12*3, xaxis = 'sal0')
+                    nmen = 4, maxrev = 25*9*12*3, x_axis = 'sal0')
     # Adding a husband/wife on the same tax sheet (foyer)
 
     

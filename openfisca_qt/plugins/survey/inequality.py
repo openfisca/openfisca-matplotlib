@@ -164,7 +164,7 @@ class InequalityConfigPage(PluginConfigPage):
 
         group = QGroupBox(_("Lorenz curve"))
         
-        #xaxis  
+        #x_axis  
         
         vlayout = QVBoxLayout()
         vlayout.addWidget(group)

@@ -144,7 +144,7 @@ def test_case(year):
 
     
     
-def test_bareme(xaxis="sali"):
+def test_bareme(x_axis="sali"):
     """
     Use to test and debug bareme mode test-case
     """
@@ -169,7 +169,7 @@ def test_bareme(xaxis="sali"):
     # dividendes: f2da divplf; f2dc divb
     # foncier  f4ba fon (micro foncier f4be)   
     
-    simulation.set_config(year = yr, nmen = 101, xaxis = xaxis, maxrev=maxrev,
+    simulation.set_config(year = yr, nmen = 101, x_axis = x_axis, maxrev=maxrev,
                           reforme = False, mode ='bareme', decomp_file="decomp_contrib.xml")
     simulation.set_param()
     # Hack to get rid of missing parameters in 2012    
@@ -185,8 +185,8 @@ def test_bareme(xaxis="sali"):
         ax = win.mplwidget.axes
         title ="Barème openfisca"
         ax.set_title(title)
-        graph_xaxis = simulation.get_varying_revenues(xaxis) 
-        simulation.draw_bareme(ax, graph_xaxis = graph_xaxis, legend = True, position = 4)
+        graph_x_axis = simulation.get_varying_revenues(x_axis) 
+        simulation.draw_bareme(ax, graph_x_axis = graph_x_axis, legend = True, position = 4)
         win.resize(1400,700)
         win.mplwidget.draw()
         win.show()
@@ -200,14 +200,14 @@ def test_bareme(xaxis="sali"):
     sys.exit(app.exec_())
     
 
-def get_avg_tax_rate_dataframe(xaxis = "sali", maxrev = 50000, year = 2006):
+def get_avg_tax_rate_dataframe(x_axis = "sali", maxrev = 50000, year = 2006):
     """
     Returns avgerage tax rate dataframe
     
     Parameters
     ----------
     
-    xaxis : string
+    x_axis : string
             sali choi etc 
     maxrev : float
              Maximal revenu
@@ -223,7 +223,7 @@ def get_avg_tax_rate_dataframe(xaxis = "sali", maxrev = 50000, year = 2006):
     # dividendes: f2da divplf; f2dc divb
     # foncier  f4ba fon (micro foncier f4be)   
     
-    simulation.set_config(year = year, nmen = 101, xaxis = xaxis, maxrev=maxrev,
+    simulation.set_config(year = year, nmen = 101, x_axis = x_axis, maxrev=maxrev,
                           reforme = False, mode ='bareme', decomp_file="decomp_contrib.xml")
     simulation.set_param()
     
@@ -253,7 +253,7 @@ def get_avg_tax_rate_dataframe(xaxis = "sali", maxrev = 50000, year = 2006):
     avg_rate = -prelev/rev
     
     # Adding IS
-    if xaxis in ["f2dc","f2tr"]:
+    if x_axis in ["f2dc","f2tr"]:
         rate_is = .3443 
         rev_before_is = rev/(1-rate_is)
         prelev = prelev - rate_is*rev_before_is
@@ -264,25 +264,25 @@ def get_avg_tax_rate_dataframe(xaxis = "sali", maxrev = 50000, year = 2006):
     output_df = DataFrame( {"Revenus" : rev, "Prélèvements": prelev, "Taux moyen d'imposition": avg_rate}) 
     output_df.set_index(keys=["Revenus"], inplace=True)
 
-    xaxis_long_name = simulation.var2label[xaxis]
-    return output_df, xaxis_long_name
+    x_axis_long_name = simulation.var2label[x_axis]
+    return output_df, x_axis_long_name
 
 
-def plot_avg_tax_rate(xaxis="sali", maxrev=350000, year=2009):
+def plot_avg_tax_rate(x_axis="sali", maxrev=350000, year=2009):
     """
     Plot averge tax rate
     
     Parameters
     ----------
     
-    xaxis : string, default "sali"
+    x_axis : string, default "sali"
             revenu type
     maxrev : integer, default 50000
              upper bound of the revenu interval
     year : int, default 2006
            year of the legislation
     """
-    output_df, xaxis_long_name = get_avg_tax_rate_dataframe(xaxis=xaxis, maxrev=maxrev, year=year)
+    output_df, x_axis_long_name = get_avg_tax_rate_dataframe(x_axis=x_axis, maxrev=maxrev, year=year)
     title ="Taux moyens"
     # ax.set_title(title)
     output_df["Taux moyen d'imposition"].plot()
@@ -290,14 +290,14 @@ def plot_avg_tax_rate(xaxis="sali", maxrev=350000, year=2009):
     plt.show()
 
 
-def loop_over_year(xaxis="sali", maxrev=350000, filename=None, show=True):
+def loop_over_year(x_axis="sali", maxrev=350000, filename=None, show=True):
     """
     Plot the average tax rate for a revenue type for every year
     
     Parameters
     ----------
     
-    xaxis : string, default "sali"
+    x_axis : string, default "sali"
             revenu type
     maxrev : integer, default 300000
              upper bound of the revenu interval
@@ -306,14 +306,14 @@ def loop_over_year(xaxis="sali", maxrev=350000, filename=None, show=True):
     """
     fig = plt.figure()
     for year in range(2009,2013):
-        output_df, xaxis_long_name = get_avg_tax_rate_dataframe(xaxis=xaxis, maxrev=maxrev, year=year)
+        output_df, x_axis_long_name = get_avg_tax_rate_dataframe(x_axis=x_axis, maxrev=maxrev, year=year)
         output_df.rename(columns={"Taux moyen d'imposition" : str(year)}, inplace = True) 
         ax = output_df.plot( y=str(year), label=str(year))
         ax.set_xlabel("Revenus")
         ax.set_ylabel("Taux moyen d'imposition")
         
     plt.legend([str(yr) for yr in range(2009,2013)],fancybox=True,loc=2)
-    plt.title(xaxis_long_name ,color="blue") 
+    plt.title(x_axis_long_name ,color="blue") 
     if filename is not None:
         plt.savefig(filename, format="pdf")
     if show is False:
@@ -342,28 +342,28 @@ def loop_over_revenue_type(revenues_dict = None, filename = None, show=True):
         
     
     
-    for xaxis, maxrev in revenues_dict.iteritems():
-        print xaxis
+    for x_axis, maxrev in revenues_dict.iteritems():
+        print x_axis
         if filename is None:
-            filename_effective = os.path.join(DESTINATION_DIR,"figure_%s.pdf" %(xaxis))
+            filename_effective = os.path.join(DESTINATION_DIR,"figure_%s.pdf" %(x_axis))
         else:
             filename_effective = filename
             
-        loop_over_year(xaxis=xaxis, maxrev=maxrev, filename=filename_effective, show=show)
+        loop_over_year(x_axis=x_axis, maxrev=maxrev, filename=filename_effective, show=show)
 
 
-def get_target(xaxis = "sali", target = 100000, year = 2010):
+def get_target(x_axis = "sali", target = 100000, year = 2010):
     
     def superbrut_rev(maxrev):
-        output_df, xaxis_long_name = get_avg_tax_rate_dataframe(xaxis=xaxis, maxrev=maxrev, year = 2010)
+        output_df, x_axis_long_name = get_avg_tax_rate_dataframe(x_axis=x_axis, maxrev=maxrev, year = 2010)
         output_df.reset_index(inplace=True)
         return output_df.iloc[100]["Revenus"] - target
     from scipy.optimize import fsolve
 
     res  = fsolve(superbrut_rev, target*.6, xtol = 1e-6)
     
-    output_df, xaxis_long_name = get_avg_tax_rate_dataframe(xaxis=xaxis, maxrev=res, year = 2010 )
-    return output_df.iloc[100], xaxis_long_name
+    output_df, x_axis_long_name = get_avg_tax_rate_dataframe(x_axis=x_axis, maxrev=res, year = 2010 )
+    return output_df.iloc[100], x_axis_long_name
 
 def loop_over_targets(revenues_dict=None, year=2012):
     if revenues_dict is None:
@@ -373,10 +373,10 @@ def loop_over_targets(revenues_dict=None, year=2012):
                          "f2tr" : 100000,
                          "f4ba" : 100000,
                          }
-    for xaxis, target in revenues_dict.iteritems():
-        print xaxis    
-        output_df, xaxis_long_name = get_target(xaxis=xaxis, target=target, year=year)
-        print xaxis_long_name 
+    for x_axis, target in revenues_dict.iteritems():
+        print x_axis    
+        output_df, x_axis_long_name = get_target(x_axis=x_axis, target=target, year=year)
+        print x_axis_long_name 
         print output_df.reset_index().to_string()
     
 def all_in_one_graph(revenues_dict=None, year=2012, filename=None, show=True):
@@ -389,16 +389,16 @@ def all_in_one_graph(revenues_dict=None, year=2012, filename=None, show=True):
                          }
 
     fig = plt.figure()
-    for xaxis, maxrev in revenues_dict.iteritems():
-        output_df, xaxis_long_name = get_avg_tax_rate_dataframe(xaxis=xaxis, maxrev=maxrev, year=year)
+    for x_axis, maxrev in revenues_dict.iteritems():
+        output_df, x_axis_long_name = get_avg_tax_rate_dataframe(x_axis=x_axis, maxrev=maxrev, year=year)
 
-        ax = output_df.plot( y="Taux moyen d'imposition", label=xaxis_long_name)
+        ax = output_df.plot( y="Taux moyen d'imposition", label=x_axis_long_name)
         ax.set_xlabel("Revenus")
         ax.set_ylabel("Taux moyen d'imposition")
         
     plt.legend(fancybox=True,loc=4)
     plt.xlim(xmax=300000)
-#    plt.title(xaxis_long_name ,color="blue") 
+#    plt.title(x_axis_long_name ,color="blue") 
     if filename is not None:
         plt.savefig(filename, format="pdf")
     if show is False:

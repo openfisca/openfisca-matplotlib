@@ -128,7 +128,7 @@ DEFAULTS = [
              {
               'year': '2006',
               'nmen': 101,
-              'xaxis':  'sal',
+              'x_axis':  'sal',
               'minrev': 0,
               'maxrev': 50000,
               'import_dir': 'france/castypes',

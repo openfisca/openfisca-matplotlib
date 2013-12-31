@@ -233,12 +233,12 @@ class Graph(QDockWidget, Ui_Graph):
             if reforme:
                 data.hideAll()
 
-        xaxis = CONF.get('simulation', 'xaxis')
-        self.populate_absBox(xaxis, self.mode)
-        # TODO really dirty because we should change name of self.xaxis
+        x_axis = CONF.get('simulation', 'x_axis')
+        self.populate_absBox(x_axis, self.mode)
+        # TODO really dirty because we should change name of self.x_axis
         for axe in model.x_axes.itervalues():
-            if axe.name == xaxis:
-                self.xaxis = axe.typ_tot_default
+            if axe.name == x_axis:
+                self.x_axis = axe.typ_tot_default
                 break
         self.updateGraph2()
 
@@ -248,14 +248,14 @@ class Graph(QDockWidget, Ui_Graph):
         if self.mode == 'castype': drawWaterfall(self.data, ax)
         else:
             if self.taux:
-                drawTaux(self.data, ax, self.xaxis, self.reforme, self.dataDefault)
+                drawTaux(self.data, ax, self.x_axis, self.reforme, self.dataDefault)
             else:
-                drawBareme(self.data, ax, self.xaxis, self.reforme, self.dataDefault, self.legend)
+                drawBareme(self.data, ax, self.x_axis, self.reforme, self.dataDefault, self.legend)
 
         self.mplwidget.draw()
     
-    def populate_absBox(self, xaxis, mode):
-        self.disconnect(self.absBox, SIGNAL('currentIndexChanged(int)'), self.xaxis_changed)
+    def populate_absBox(self, x_axis, mode):
+        self.disconnect(self.absBox, SIGNAL('currentIndexChanged(int)'), self.x_axis_changed)
         self.absBox.clear()
         if mode == 'castype':
             self.absBox.setEnabled(False)
@@ -268,21 +268,21 @@ class Graph(QDockWidget, Ui_Graph):
         self.hidelegend_btn.setEnabled(True)
 
         for axe in model.x_axes.itervalues():
-            if axe.name == xaxis:
+            if axe.name == x_axis:
                 typ_revs_labels = axe.typ_tot.values()
                 typ_revs = axe.typ_tot.keys()
                 self.absBox.addItems(typ_revs_labels) # TODO get label from description
                 self.absBox.setCurrentIndex(typ_revs.index(axe.typ_tot_default))            
-                self.connect(self.absBox, SIGNAL('currentIndexChanged(int)'), self.xaxis_changed)
+                self.connect(self.absBox, SIGNAL('currentIndexChanged(int)'), self.x_axis_changed)
                 return
 
-    def xaxis_changed(self):
+    def x_axis_changed(self):
         if self.mode == "bareme":
             text =  self.absBox.currentText()
             for axe in model.x_axes.itervalues():
                 for key, label in axe.typ_tot.iteritems():
                     if text == label:
-                        self.xaxis = key
+                        self.x_axis = key
                         self.updateGraph2()
                         return
             
@@ -383,7 +383,7 @@ def drawWaterfall(data, ax):
     m, M = ax.get_ylim()
     ax.set_ylim((m, 1.05*M))
     
-def drawBareme(data, ax, xaxis, reforme = False, dataDefault = None, legend = True):
+def drawBareme(data, ax, x_axis, reforme = False, dataDefault = None, legend = True):
     '''
     Draws bareme
     '''
@@ -399,7 +399,7 @@ def drawBareme(data, ax, xaxis, reforme = False, dataDefault = None, legend = Tr
         prefix = ''
 
     ax.hold(True)
-    xdata = dataDefault[xaxis]
+    xdata = dataDefault[x_axis]
     
     NMEN = len(xdata.vals)
     xlabel = xdata.desc
@@ -410,7 +410,7 @@ def drawBareme(data, ax, xaxis, reforme = False, dataDefault = None, legend = Tr
     if not reforme:
         ax.set_ylim(np.amin(xdata.vals), np.amax(xdata.vals))
     
-    ax.plot(xdata.vals, np.zeros(NMEN), color = 'black', label = 'xaxis')
+    ax.plot(xdata.vals, np.zeros(NMEN), color = 'black', label = 'x_axis')
     
     def drawNode(node, prv):
         prev = prv + 0
@@ -436,7 +436,7 @@ def drawBareme(data, ax, xaxis, reforme = False, dataDefault = None, legend = Tr
 def percentFormatter(x, pos=0):
     return '%1.0f%%' %(x)
 
-def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None):
+def drawTaux(data, ax, x_axis, reforme = False, dataDefault = None):
     '''
     Draws marginal and average tax rates
     '''
@@ -444,17 +444,17 @@ def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None):
     if dataDefault is None: 
         dataDefault = data
 
-    if xaxis == "rev_cap_brut":
+    if x_axis == "rev_cap_brut":
         typ_rev = 'superbrut'
-    elif xaxis == "rev_cap_net":
+    elif x_axis == "rev_cap_net":
         typ_rev = 'net'
     else:
         for typrev, vars in model.REV_TYPE.iteritems():
-            if xaxis in vars:
+            if x_axis in vars:
                 typ_rev = typrev
         
     RB = RevTot(dataDefault, typ_rev)
-    xdata = dataDefault[xaxis]
+    xdata = dataDefault[x_axis]
     
     RD = dataDefault['revdisp'].vals
     div = RB*(RB != 0) + (RB == 0)
@@ -484,7 +484,7 @@ def createLegend(ax):
             p.insert(0, Rectangle((0, 0), 1, 1, fc = collec._facecolors[0], linewidth = 0.5, edgecolor = 'black' ))
             l.insert(0, collec._label)
     for line in ax.lines:
-        if line._visible and (line._label != 'xaxis'):
+        if line._visible and (line._label != 'x_axis'):
             p.insert(0, Line2D([0,1],[.5,.5],color = line._color))
             l.insert(0, line._label)
     ax.legend(p,l, loc= 2, prop = {'size':'medium'})
@@ -538,13 +538,13 @@ class OutTable(QDockWidget):
         if dataDefault is None:
             dataDefault = data
 
-        xaxis = CONF.get('simulation', 'xaxis')
+        x_axis = CONF.get('simulation', 'x_axis')
         for axe in model.x_axes.itervalues():
-            if axe.name == xaxis:
-                xaxis_typ_tot = axe.typ_tot_default
+            if axe.name == x_axis:
+                x_axis_typ_tot = axe.typ_tot_default
                 break
 
-        headers = dataDefault[xaxis_typ_tot]
+        headers = dataDefault[x_axis_typ_tot]
         n = len(headers.vals)
         self.data = data
         self.outputModel = OutputModel(data, headers, n , self)

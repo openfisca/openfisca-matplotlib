@@ -257,7 +257,7 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
         dataDefault = simulation.data_default
         reforme = simulation.reforme
         mode = simulation.mode
-        xaxis = simulation.scenario.xaxis
+        x_axis = simulation.scenario.x_axis
         self.data = data
         self.dataDefault = dataDefault
         self.data.setLeavesVisible()
@@ -272,11 +272,11 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
             if reforme:
                 data.hideAll()
         
-        self.populate_absBox(xaxis, mode)
+        self.populate_absBox(x_axis, mode)
 
         for axe in model.x_axes.itervalues():
-            if axe.name == xaxis:
-                self.graph_xaxis = axe.typ_tot_default
+            if axe.name == x_axis:
+                self.graph_x_axis = axe.typ_tot_default
                 break
         self.updateGraph2()
 
@@ -292,14 +292,14 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
             drawWaterfall(self.data, ax)
         else:
             if self.taux:
-                drawTaux(self.data, ax, self.graph_xaxis, reforme, self.dataDefault)
+                drawTaux(self.data, ax, self.graph_x_axis, reforme, self.dataDefault)
             else:
-                drawBareme(self.data, ax, self.graph_xaxis, reforme, self.dataDefault, self.legend)
+                drawBareme(self.data, ax, self.graph_x_axis, reforme, self.dataDefault, self.legend)
 
         self.mplwidget.draw()
     
-    def populate_absBox(self, xaxis, mode):
-        self.disconnect(self.absBox, SIGNAL('currentIndexChanged(int)'), self.xaxis_changed)
+    def populate_absBox(self, x_axis, mode):
+        self.disconnect(self.absBox, SIGNAL('currentIndexChanged(int)'), self.x_axis_changed)
         self.absBox.clear()
         if mode == 'castype':
             self.absBox.setEnabled(False)
@@ -312,22 +312,22 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
         self.hidelegend_btn.setEnabled(True)
 
         for axe in model.x_axes.itervalues():
-            if axe.name == xaxis:
+            if axe.name == x_axis:
                 typ_revs_labels = axe.typ_tot.values()
                 typ_revs = axe.typ_tot.keys()
                 self.absBox.addItems(typ_revs_labels) # TODO: get label from description
                 self.absBox.setCurrentIndex(typ_revs.index(axe.typ_tot_default))            
-                self.connect(self.absBox, SIGNAL('currentIndexChanged(int)'), self.xaxis_changed)
+                self.connect(self.absBox, SIGNAL('currentIndexChanged(int)'), self.x_axis_changed)
                 return
 
-    def xaxis_changed(self):
+    def x_axis_changed(self):
         mode = self.simulation.mode
         if mode == "bareme":
             text =  self.absBox.currentText()
             for axe in model.x_axes.itervalues():
                 for key, label in axe.typ_tot.iteritems():
                     if text == label:
-                        self.graph_xaxis = key
+                        self.graph_x_axis = key
                         self.updateGraph2()
                         return
             
@@ -491,7 +491,7 @@ def drawWaterfall(data, ax):
     ax.set_ylim((m, 1.05*M))
     
     
-def drawBareme(data, ax, xaxis, reforme = False, dataDefault = None, legend = True ):
+def drawBareme(data, ax, x_axis, reforme = False, dataDefault = None, legend = True ):
     '''
     Draws bareme
     '''
@@ -503,7 +503,7 @@ def drawBareme(data, ax, xaxis, reforme = False, dataDefault = None, legend = Tr
     else: 
         prefix = ''
     ax.hold(True)
-    xdata = dataDefault[xaxis]
+    xdata = dataDefault[x_axis]
     NMEN = len(xdata.vals)
     xlabel = xdata.desc
     ax.set_xlabel(xlabel)
@@ -512,7 +512,7 @@ def drawBareme(data, ax, xaxis, reforme = False, dataDefault = None, legend = Tr
     ax.set_xlim(np.amin(xdata.vals), np.amax(xdata.vals))
     if not reforme:
         ax.set_ylim(np.amin(xdata.vals), np.amax(xdata.vals))
-    ax.plot(xdata.vals, np.zeros(NMEN), color = 'black', label = 'xaxis')
+    ax.plot(xdata.vals, np.zeros(NMEN), color = 'black', label = 'x_axis')
     
     def drawNode(node, prv):
         prev = prv + 0
@@ -534,7 +534,7 @@ def drawBareme(data, ax, xaxis, reforme = False, dataDefault = None, legend = Tr
         createLegend(ax)
 
 
-def drawBaremeCompareHouseholds(data, ax, xaxis, dataDefault = None, legend = True , position = 2):
+def drawBaremeCompareHouseholds(data, ax, x_axis, dataDefault = None, legend = True , position = 2):
     '''
     Draws bareme
     '''
@@ -544,13 +544,13 @@ def drawBaremeCompareHouseholds(data, ax, xaxis, dataDefault = None, legend = Tr
     ax.figure.subplots_adjust(bottom = 0.09, top = 0.95, left = 0.11, right = 0.95)
     prefix = 'Variation '
     ax.hold(True)
-    xdata = dataDefault[xaxis]
+    xdata = dataDefault[x_axis]
     NMEN = len(xdata.vals)
     xlabel = xdata.desc
     ax.set_xlabel(xlabel)
     ax.set_ylabel(prefix + u"Revenu disponible (" + model.CURRENCY + " par an)")
     ax.set_xlim(np.amin(xdata.vals), np.amax(xdata.vals))
-    ax.plot(xdata.vals, np.zeros(NMEN), color = 'black', label = 'xaxis')
+    ax.plot(xdata.vals, np.zeros(NMEN), color = 'black', label = 'x_axis')
     
     code_list =  ['af', 'cf', 'ars', 'rsa', 'aefa', 'psa', 'logt', 'irpp', 'ppe', 'revdisp']
     
@@ -585,7 +585,7 @@ def drawBaremeCompareHouseholds(data, ax, xaxis, dataDefault = None, legend = Tr
         createLegend(ax, position = position)
 
 
-def drawBaremeCompareHouseholds2(data, ax, xaxis, dataDefault = None, legend = True , position = 2):
+def drawBaremeCompareHouseholds2(data, ax, x_axis, dataDefault = None, legend = True , position = 2):
     '''
     Draws bareme
     '''
@@ -595,13 +595,13 @@ def drawBaremeCompareHouseholds2(data, ax, xaxis, dataDefault = None, legend = T
     ax.figure.subplots_adjust(bottom = 0.09, top = 0.95, left = 0.11, right = 0.95)
     prefix = 'Variation '
     ax.hold(True)
-    xdata = dataDefault[xaxis]
+    xdata = dataDefault[x_axis]
     NMEN = len(xdata.vals)
     xlabel = xdata.desc
     ax.set_xlabel(xlabel)
     ax.set_ylabel(prefix + u"Revenu disponible (" + model.CURRENCY + " par an)")
     ax.set_xlim(np.amin(xdata.vals), np.amax(xdata.vals))
-    ax.plot(xdata.vals, np.zeros(NMEN), color = 'black', label = 'xaxis')
+    ax.plot(xdata.vals, np.zeros(NMEN), color = 'black', label = 'x_axis')
 
     node_list =  ['af', 'cf', 'ars', 'rsa', 'aefa', 'psa', 'logt', 'irpp', 'ppe', 'revdisp']
 
@@ -627,28 +627,28 @@ def percentFormatter(x, pos=0):
     return '%1.0f%%' %(x)
 
 
-def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None, legend = True):
+def drawTaux(data, ax, x_axis, reforme = False, dataDefault = None, legend = True):
     '''
     Draws marginal and average tax rates
     '''
     if dataDefault is None: 
         dataDefault = data
         
-    print "xaxis :", xaxis 
+    print "x_axis :", x_axis 
     # TODO: the following is an ugly fix which is not general enough
-    if xaxis == "rev_cap_brut":
+    if x_axis == "rev_cap_brut":
         typ_rev = 'superbrut'
-    elif xaxis == "rev_cap_net":
+    elif x_axis == "rev_cap_net":
         typ_rev = 'net'
-    elif xaxis == "fon":
+    elif x_axis == "fon":
         typ_rev = 'brut'
     else:
         for typrev, vars in model.REVENUES_CATEGORIES.iteritems():
-            if xaxis in vars:
+            if x_axis in vars:
                 typ_rev = typrev
         
     RB = RevTot(dataDefault, typ_rev)
-    xdata = dataDefault[xaxis]
+    xdata = dataDefault[x_axis]
     
     RD = dataDefault['revdisp'].vals
     div = RB*(RB != 0) + (RB == 0)
@@ -679,7 +679,7 @@ def createLegend(ax, position = 2):
             p.insert(0, Rectangle((0, 0), 1, 1, fc = collec._facecolors[0], linewidth = 0.5, edgecolor = 'black' ))
             l.insert(0, collec._label)
     for line in ax.lines:
-        if line._visible and (line._label != 'xaxis'):
+        if line._visible and (line._label != 'x_axis'):
             p.insert(0, Line2D([0,1],[.5,.5],color = line._color))
             l.insert(0, line._label)
     ax.legend(p,l, loc= position, prop = {'size':'medium'})

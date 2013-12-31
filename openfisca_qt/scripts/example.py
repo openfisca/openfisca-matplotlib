@@ -25,7 +25,7 @@ from openfisca_qt.plugins.survey.aggregates import Aggregates
 def test_case(year):
     simulation = ScenarioSimulation()
     simulation.set_config(year = year, reforme=False,
-                    nmen = 3, maxrev = 100000, xaxis = 'sali')
+                    nmen = 3, maxrev = 100000, x_axis = 'sali')
     # Adding a husband/wife on the same tax sheet (foyer)
     simulation.scenario.addIndiv(1, datetime(1975,1,1).date(), 'conj', 'part') 
     simulation.set_param()

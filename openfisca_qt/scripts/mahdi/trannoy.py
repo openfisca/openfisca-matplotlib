@@ -22,7 +22,7 @@ def test_case(year):
     simulation = ScenarioSimulation()
     salaires_nets = 1120.43*12
     simulation.set_config(year = year, reforme=True,
-                    nmen = 4, maxrev = salaires_nets*3, xaxis = 'sali')
+                    nmen = 4, maxrev = salaires_nets*3, x_axis = 'sali')
     
     # Adding a husband/wife on the same tax sheet (foyer)
     simulation.scenario.addIndiv(1, datetime(1975,1,1).date(), 'conj', 'part') 

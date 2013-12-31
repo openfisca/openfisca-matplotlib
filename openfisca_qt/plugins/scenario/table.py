@@ -78,13 +78,13 @@ class ScenarioTableWidget(OpenfiscaPluginWidget):
             dataDefault = data
 
         mode = simulation.mode
-        xaxis = simulation.xaxis
+        x_axis = simulation.x_axis
         for axe in model.x_axes.itervalues():
-            if axe.name == xaxis:
-                xaxis_typ_tot = axe.typ_tot_default
+            if axe.name == x_axis:
+                x_axis_typ_tot = axe.typ_tot_default
                 break
 
-        headers = dataDefault[xaxis_typ_tot]
+        headers = dataDefault[x_axis_typ_tot]
         n = len(headers.vals)
         self.data = data
         self.outputModel = OutputModel(data, headers, n , self)

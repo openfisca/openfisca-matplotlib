@@ -24,7 +24,7 @@ from openfisca_qt.plugins.survey.aggregates import Aggregates
 
 def test_case(year):
     simulation = ScenarioSimulation()
-    simulation.set_config(year = year, reforme=False, nmen = 2, maxrev = 19296, xaxis = 'sali')
+    simulation.set_config(year = year, reforme=False, nmen = 2, maxrev = 19296, x_axis = 'sali')
  
     simulation.scenario.addIndiv(1, datetime(2000,1,1).date(), 'pac', 'enf') 
     simulation.scenario.addIndiv(2, datetime(2000,1,1).date(), 'pac', 'enf') 

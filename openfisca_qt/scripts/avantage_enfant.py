@@ -65,7 +65,7 @@ if __name__ == '__main__':
         ax = win.mplwidget.axes    
             
         simu = ScenarioSimulation()        
-        simu.set_config(year = yr, nmen = 201, xaxis = 'sali', maxrev = 130000, reforme = False, mode ='bareme',
+        simu.set_config(year = yr, nmen = 201, x_axis = 'sali', maxrev = 130000, reforme = False, mode ='bareme',
             same_rev_couple = True)
         simu.set_param()
         simu.scenario.addIndiv(1, datetime(1975,1,1).date(), 'conj', 'part') 
