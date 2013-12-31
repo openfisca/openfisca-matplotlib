@@ -295,9 +295,9 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
             drawWaterfall(self.data, ax)
         else:
             if self.taux:
-                drawTaux(self.data, ax, self.graph_xaxis, reforme, self.dataDefault, country = self.simulation.country)
+                drawTaux(self.data, ax, self.graph_xaxis, reforme, self.dataDefault)
             else:
-                drawBareme(self.data, ax, self.graph_xaxis, reforme, self.dataDefault, self.legend, country = self.simulation.country)
+                drawBareme(self.data, ax, self.graph_xaxis, reforme, self.dataDefault, self.legend)
 
         self.mplwidget.draw()
     
@@ -324,10 +324,7 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
                 self.connect(self.absBox, SIGNAL('currentIndexChanged(int)'), self.xaxis_changed)
                 return
 
-
     def xaxis_changed(self):
-        
-        country = self.simulation.country                
         axes = axestools.build_axes()
         mode = self.simulation.mode
         
@@ -500,13 +497,10 @@ def drawWaterfall(data, ax):
     ax.set_ylim((m, 1.05*M))
     
     
-def drawBareme(data, ax, xaxis, reforme = False, dataDefault = None, legend = True , country = None):
+def drawBareme(data, ax, xaxis, reforme = False, dataDefault = None, legend = True ):
     '''
     Draws bareme
     '''
-    if country == None:
-        raise Exception('drawBareme: country must be defined')
-        
     if dataDefault == None: 
         dataDefault = data
     ax.figure.subplots_adjust(bottom = 0.09, top = 0.95, left = 0.11, right = 0.95)
@@ -546,16 +540,12 @@ def drawBareme(data, ax, xaxis, reforme = False, dataDefault = None, legend = Tr
         createLegend(ax)
 
 
-def drawBaremeCompareHouseholds(data, ax, xaxis, dataDefault = None, legend = True , country = None, position = 2):
+def drawBaremeCompareHouseholds(data, ax, xaxis, dataDefault = None, legend = True , position = 2):
     '''
     Draws bareme
     '''
-    
-    if country == None:
-        raise Exception('drawBaremeCompareHouseHolds: country must be defined')
-        
-    if dataDefault == None: 
-        raise Exception('drawBaremeCompareHouseHolds: country must be defined')
+    if dataDefault is None: 
+        raise Exception('drawBaremeCompareHouseHolds: dataDefault must be defined')
 
     ax.figure.subplots_adjust(bottom = 0.09, top = 0.95, left = 0.11, right = 0.95)
     prefix = 'Variation '
@@ -601,16 +591,12 @@ def drawBaremeCompareHouseholds(data, ax, xaxis, dataDefault = None, legend = Tr
         createLegend(ax, position = position)
 
 
-def drawBaremeCompareHouseholds2(data, ax, xaxis, dataDefault = None, legend = True , country = None, position = 2):
+def drawBaremeCompareHouseholds2(data, ax, xaxis, dataDefault = None, legend = True , position = 2):
     '''
     Draws bareme
     '''
-    
-    if country == None:
-        raise Exception('drawBaremeCompareHouseHolds: country must be defined')
-        
-    if dataDefault == None: 
-        raise Exception('drawBaremeCompareHouseHolds: country must be defined')
+    if dataDefault is None: 
+        raise Exception('drawBaremeCompareHouseHolds: dataDefault must be defined')
 
     ax.figure.subplots_adjust(bottom = 0.09, top = 0.95, left = 0.11, right = 0.95)
     prefix = 'Variation '
@@ -647,14 +633,10 @@ def percentFormatter(x, pos=0):
     return '%1.0f%%' %(x)
 
 
-def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None, legend = True, country = None):
+def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None, legend = True):
     '''
     Draws marginal and average tax rates
     '''
-    
-    if country is None:
-        raise Exception('drawTaux: country must be defined')
-
     if dataDefault is None: 
         dataDefault = data
         
@@ -671,7 +653,7 @@ def drawTaux(data, ax, xaxis, reforme = False, dataDefault = None, legend = True
             if xaxis in vars:
                 typ_rev = typrev
         
-    RB = RevTot(dataDefault, typ_rev, country = country)
+    RB = RevTot(dataDefault, typ_rev)
     xdata = dataDefault[xaxis]
     
     RD = dataDefault['revdisp'].vals
@@ -708,14 +690,10 @@ def createLegend(ax, position = 2):
             l.insert(0, line._label)
     ax.legend(p,l, loc= position, prop = {'size':'medium'})
 
-def RevTot(data, typrev, country = None):
+def RevTot(data, typrev):
     '''
     Computes total revenues by type with definition is country specific
     '''
-    
-    if country is None:
-        raise Exception('RevTot: country must be set')
-
     dct = model.REVENUES_CATEGORIES
     first = True
     try:

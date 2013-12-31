@@ -111,8 +111,7 @@ class OpenfiscaPivotTable(object):
             initial_set = set([by_var, 'champm'] + list(vars))
         else:
             initial_set = set([by_var] + list(vars))
-        
-        country = self.simulation.country
+
         WEIGHT = model.WEIGHT
         
         if entity is None:
