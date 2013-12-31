@@ -41,7 +41,7 @@ import locale
 import numpy as np
 from pandas import DataFrame, ExcelWriter
 
-from openfisca_core import axestools, model
+from openfisca_core import model
 
 
 locale.setlocale(locale.LC_ALL, '')
@@ -232,19 +232,16 @@ class Graph(QDockWidget, Ui_Graph):
             
             if reforme:
                 data.hideAll()
-        
+
         xaxis = CONF.get('simulation', 'xaxis')
         self.populate_absBox(xaxis, self.mode)
         # TODO really dirty because we should change name of self.xaxis
-        
-        axes = axestools.build_axes()
-        for axe in axes:
+        for axe in model.x_axes.itervalues():
             if axe.name == xaxis:
-                axis = axe.typ_tot_default
-                break            
-        self.xaxis = axis
+                self.xaxis = axe.typ_tot_default
+                break
         self.updateGraph2()
-        
+
     def updateGraph2(self):
         ax = self.mplwidget.axes
         ax.clear()
@@ -269,9 +266,8 @@ class Graph(QDockWidget, Ui_Graph):
         self.taux_btn.setEnabled(True)
         self.absBox.setEnabled(True)
         self.hidelegend_btn.setEnabled(True)
-        
-        axes = axestools.build_axes()
-        for axe in axes:
+
+        for axe in model.x_axes.itervalues():
             if axe.name == xaxis:
                 typ_revs_labels = axe.typ_tot.values()
                 typ_revs = axe.typ_tot.keys()
@@ -280,14 +276,10 @@ class Graph(QDockWidget, Ui_Graph):
                 self.connect(self.absBox, SIGNAL('currentIndexChanged(int)'), self.xaxis_changed)
                 return
 
-
     def xaxis_changed(self):
-                        
-        axes = axestools.build_axes()
-
         if self.mode == "bareme":
             text =  self.absBox.currentText()
-            for axe in axes:
+            for axe in model.x_axes.itervalues():
                 for key, label in axe.typ_tot.iteritems():
                     if text == label:
                         self.xaxis = key
@@ -546,13 +538,12 @@ class OutTable(QDockWidget):
         if dataDefault is None:
             dataDefault = data
 
-        xaxis = CONF.get('simulation', 'xaxis')            
-        axes = axestools.build_axes()
-        for axe in axes:
+        xaxis = CONF.get('simulation', 'xaxis')
+        for axe in model.x_axes.itervalues():
             if axe.name == xaxis:
                 xaxis_typ_tot = axe.typ_tot_default
                 break
-            
+
         headers = dataDefault[xaxis_typ_tot]
         n = len(headers.vals)
         self.data = data

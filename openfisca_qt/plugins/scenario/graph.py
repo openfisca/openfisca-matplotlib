@@ -31,7 +31,7 @@ from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle, FancyArrow
 from matplotlib.ticker import FuncFormatter
 import numpy as np
-from openfisca_core import axestools, model
+from openfisca_core import model
 
 from ...gui.baseconfig import get_translation
 from ...gui.config import get_icon
@@ -273,16 +273,13 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
                 data.hideAll()
         
         self.populate_absBox(xaxis, mode)
-        
-        axes = axestools.build_axes()
-        
-        for axe in axes:
+
+        for axe in model.x_axes.itervalues():
             if axe.name == xaxis:
-                axis = axe.typ_tot_default
-                break            
-        self.graph_xaxis = axis
+                self.graph_xaxis = axe.typ_tot_default
+                break
         self.updateGraph2()
-        
+
     def updateGraph2(self):
 
         ax = self.mplwidget.axes
@@ -313,9 +310,8 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
         self.taux_btn.setEnabled(True)
         self.absBox.setEnabled(True)
         self.hidelegend_btn.setEnabled(True)
-            
-        axes = axestools.build_axes()
-        for axe in axes:
+
+        for axe in model.x_axes.itervalues():
             if axe.name == xaxis:
                 typ_revs_labels = axe.typ_tot.values()
                 typ_revs = axe.typ_tot.keys()
@@ -325,12 +321,10 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
                 return
 
     def xaxis_changed(self):
-        axes = axestools.build_axes()
         mode = self.simulation.mode
-        
         if mode == "bareme":
             text =  self.absBox.currentText()
-            for axe in axes:
+            for axe in model.x_axes.itervalues():
                 for key, label in axe.typ_tot.iteritems():
                     if text == label:
                         self.graph_xaxis = key

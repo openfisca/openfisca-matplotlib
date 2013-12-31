@@ -18,7 +18,7 @@ import locale
 import os
 
 import numpy as np
-from openfisca_core import axestools
+from openfisca_core import model
 from pandas import DataFrame, ExcelWriter
 
 from ...gui.config import get_icon
@@ -79,12 +79,11 @@ class ScenarioTableWidget(OpenfiscaPluginWidget):
 
         mode = simulation.mode
         xaxis = simulation.xaxis
-        axes = axestools.build_axes()
-        for axe in axes:
+        for axe in model.x_axes.itervalues():
             if axe.name == xaxis:
                 xaxis_typ_tot = axe.typ_tot_default
                 break
-            
+
         headers = dataDefault[xaxis_typ_tot]
         n = len(headers.vals)
         self.data = data
