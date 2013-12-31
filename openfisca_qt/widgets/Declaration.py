@@ -42,13 +42,13 @@ class Declaration(QDialog, ui_declaration.Ui_Declaration):
         self.pages_widget = QStackedWidget(self)
         self.connect(self.pages_widget, SIGNAL("currentChanged(int)"), self.current_page_changed)
         self.connect(self.contents_widget, SIGNAL("currentRowChanged(int)"), self.pages_widget.setCurrentIndex)
-                
+
         self.scrollArea.setWidget(self.pages_widget)
 
         self.connect(self.next_btn, SIGNAL('clicked()'), self.next_page)
         self.connect(self.prev_btn, SIGNAL('clicked()'), self.prev_page)
 
-        self.pages = [Page01(self),  Page02(self), Page03(self), Page04(self), 
+        self.pages = [Page01(self),  Page02(self), Page03(self), Page04(self),
                       Page05(self), Page06(self), Page07(self), PageIsf(self)]
 
         for widget in self.pages:
@@ -65,7 +65,7 @@ class Declaration(QDialog, ui_declaration.Ui_Declaration):
         if index == nb:
             self.next_btn.setEnabled(False)
         if index == 0:
-            self.prev_btn.setEnabled(False)            
+            self.prev_btn.setEnabled(False)
 
     def next_page(self):
         idx = self.pages_widget.currentIndex()
@@ -78,7 +78,7 @@ class Declaration(QDialog, ui_declaration.Ui_Declaration):
     def get_current_index(self):
         """Return current page index"""
         return self.contents_widget.currentRow()
-        
+
     def set_current_index(self, index):
         """Set current page index"""
         self.contents_widget.setCurrentRow(index)
@@ -110,11 +110,11 @@ class Page(QWidget):
         self.setupUi(self)
         self.parent = parent
         self.scenario = parent.scenario
-        self.noidec = parent.noidec            
+        self.noidec = parent.noidec
         self._type = u'Page non spécifiée'
-        
+
         self.restore_values()
-        
+
     def get_name(self):
         return self._type
 
@@ -127,7 +127,7 @@ class Page(QWidget):
                 widget = getattr(self, key)
                 if  isinstance(widget, QCheckBox): widget.setChecked(val)
                 elif isinstance(widget, QSpinBox):  widget.setValue(val)
-        
+
     def updateFoyer(self, key, val):
         if key[0] =='_':
             qui = int(key[1])
@@ -150,7 +150,7 @@ class Page01(ui_page01.Ui_Page01, Page):
                 (self.D, self.codeD, self.nomD),
                 (self.V, self.codeV, self.nomV),
                 (self.O, self.codeO, self.nomO))
-        
+
         [widget.setEnabled(True)  for widget in listw[0] if statmarit in (1,5)]
         [widget.setEnabled(False) for widget in listw[1] if statmarit in (1,5)]
         [widget.setEnabled(False) for widget in listw[2] if statmarit in (1,5)]
@@ -173,7 +173,7 @@ class Page01(ui_page01.Ui_Page01, Page):
         self.connect(self.D, SIGNAL('clicked()'), self.setStatmarit)
         self.connect(self.V, SIGNAL('clicked()'), self.setStatmarit)
         self.connect(self.O, SIGNAL('clicked()'), self.setStatmarit)
-        
+
     def setStatmarit(self):
         sender = self.sender()
         statut = str(sender.objectName()[:])
@@ -211,16 +211,16 @@ class Page03(ui_page03.Ui_Page03, Page):
                         widget.setChecked(val)
                     elif isinstance(widget,QSpinBox):
                         widget.setValue(val)
-            
+
         self._type = u'Revenus, salaires, pensions et rentes'
-                
+
     def addColumn(self, noi, quifoy):
-        codes = [['sali',1], 
-                 ['choi',2], 
-                 ['fra',3], 
-                 ['cho_ld',4], 
+        codes = [['sali',1],
+                 ['choi',2],
+                 ['fra',3],
+                 ['cho_ld',4],
                  ['hsup',5],
-                 ['ppe_tp_sa',7], 
+                 ['ppe_tp_sa',7],
                  ['ppe_du_sa',8],
                  ['rsti', 10],
                  ['alr',11]]
@@ -228,7 +228,7 @@ class Page03(ui_page03.Ui_Page03, Page):
         elif quifoy == 'conj': pos = 4
         elif quifoy[:3] == 'pac': pos = 4+2*int(quifoy[3])
         self.gridLayout.addWidget(QLabel(quifoy, self), 0, pos, 1, 2)
-        
+
         for code, row in codes:
             name = '_%d%s' % (noi, code)
             if code in ('cho_ld', 'ppe_tp_sa'):
@@ -236,11 +236,11 @@ class Page03(ui_page03.Ui_Page03, Page):
                 setattr(self, name, widget)
                 self.gridLayout.addWidget(widget, row, pos+1, 1, 1)
                 self.gridLayout.addWidget(QLabel('cochez', self), row, pos, 1, 1)
-            else:    
+            else:
                 widget = self.addSpinBox(name)
                 setattr(self, name, widget)
                 self.gridLayout.addWidget(widget, row, pos, 1, 2)
-        
+
     def addSpinBox(self, name):
         sb = QSpinBox(self)
         sb.setEnabled(True)
@@ -285,7 +285,7 @@ class Page07(ui_page07.Ui_Page07, Page):
     def __init__(self, parent):
         Page.__init__(self, parent)
         self._type = u"Réduction et crédit d'impôt"
-         
+
 class Page08(ui_page08.Ui_Page08, Page):
     def __init__(self, parent):
         Page.__init__(self, parent)

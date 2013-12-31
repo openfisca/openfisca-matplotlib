@@ -19,7 +19,7 @@ H5_FILENAME = "age_structure.h5"
 
 
 def get_age_structure(simulation):
-    
+
     pivot_table = OpenfiscaPivotTable()
     pivot_table.set_simulation(simulation)
     df = pivot_table.get_table(entity = 'ind', by = "age", vars = [])
@@ -27,30 +27,30 @@ def get_age_structure(simulation):
 
 
 def get_agem_structure(simulation):
-    
+
     pivot_table = OpenfiscaPivotTable()
     pivot_table.set_simulation(simulation)
     df = pivot_table.get_table(entity = 'ind', by = "agem", vars = [])
     return df
 
 def build_from_openfisca( directory = None):
-    
+
     df_age_final = None
     for yr in range(2006,2010):
         simulation = SurveySimulation()
         simulation.set_config(year = yr)
         simulation.set_param()
         simulation.set_survey()
-        
-        
+
+
         df_age = get_age_structure(simulation)
         df_age[yr] = df_age['wprm']
         del df_age['wprm']
         if df_age_final is None:
             df_age_final = df_age
-        else:  
+        else:
             df_age_final = df_age_final.merge(df_age)
-        
+
     if directory is None:
         directory = os.path.dirname(__file__)
 
@@ -67,48 +67,48 @@ def build_from_openfisca( directory = None):
 #    writer.save()
 
 def build_from_insee( directory = None, verbose=False):
-    
+
     if directory is None:
         directory = os.path.dirname(__file__)
 
     fname = os.path.join(directory, H5_FILENAME)
     store = HDFStore(fname)
     xls = ExcelFile(os.path.join(model.DATA_SOURCES_DIR, "sd2010_t6_fm.xls"))
-    
+
     df_age_final = None
-    
+
     for year in range(2006,2010):
         sheet_name = str(year)
-    
+
         df = xls.parse(sheet_name, header=0, index_col=0, skiprows=8, parse_cols=[1,2], na_values=['NA'])
-    
+
         df.index.name = u"âge"
-        df.rename(columns = {"Unnamed: 1" : year}, inplace = True)     
-        
+        df.rename(columns = {"Unnamed: 1" : year}, inplace = True)
+
         # Dealing with te 90 et plus and 105 et plus
         df = df.reset_index()
-        df = df.dropna(axis=0)    
+        df = df.dropna(axis=0)
         df.set_value(106,u"âge", 105)
         df = df.set_index(u"âge")
         df = df.drop(df.index[90], axis=0)
         df.index.name = u"âge"
         df = df.reset_index()
         if verbose:
-            print "year : " + str(year) 
+            print "year : " + str(year)
             print df.to_string()
-    
-    
+
+
         if df_age_final is None:
             df_age_final = df
-        else:  
+        else:
             df_age_final = df_age_final.merge(df)
-        
+
     if verbose:
         print df_age_final.to_string()
         print df_age_final.dtypes
-    
-    from numpy import dtype 
-    df_age_final[u"âge"] = df_age_final[u"âge"].astype(dtype("int64"))    
+
+    from numpy import dtype
+    df_age_final[u"âge"] = df_age_final[u"âge"].astype(dtype("int64"))
     store.put("insee", df_age_final)
 
 
@@ -118,7 +118,7 @@ def build_all():
 
 
 def build_comparison():
-    directory = os.path.dirname(__file__)    
+    directory = os.path.dirname(__file__)
     fname = os.path.join(directory, H5_FILENAME)
     store = HDFStore(fname)
 
@@ -136,16 +136,16 @@ def build_comparison():
     df = (openfisca-insee)/insee
     print df
     print df.to_string()
-        
+
 def test():
 
-    directory = os.path.dirname(__file__)    
+    directory = os.path.dirname(__file__)
     fname = os.path.join(directory, H5_FILENAME)
     store = HDFStore(fname)
     print store
     print store.keys()
-    
-    
+
+
 if __name__ == '__main__':
 #    build_from_insee()
     build_comparison()

@@ -14,8 +14,8 @@ from openfisca_qt.scripts.validation.check_consistency_tests import check_inputs
 
 
 # Validation
-# Should ideally produce a log file 
-# Try to be the most country/model 
+# Should ideally produce a log file
+# Try to be the most country/model
 # agnostic (so part of the general stuff could be elsewhere
 # Proceed using import from separate file in validation
 
@@ -31,30 +31,30 @@ simulation.set_survey()
 
 
 def test_inputs_consistency():
-    """ 
+    """
     Test consistency of inputs data
     """
 
 #    check that the Enumcols are right (and fix the labels/the original data)
     ok, message = check_inputs_enumcols(simulation)
-    if not ok: 
+    if not ok:
         print "Error: Check enumcols"
-    
+
     assert ok == True
-    
+
     #    check the validity of men/foy/fam  see check_consistency_test
     ok, message = check_entities(simulation)
-    if not ok: 
+    if not ok:
         print "Error: Check entities"
-        print message       
+        print message
     assert ok == True
-    
+
     #    check of positiveness of the variable that should be ?
     ok, message = check_weights(simulation)
-    if not ok: 
+    if not ok:
         print "Error: Check weights"
         print message
-        
+
     assert ok == True
 
 

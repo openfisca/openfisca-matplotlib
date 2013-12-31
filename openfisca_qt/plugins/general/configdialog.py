@@ -37,7 +37,7 @@ class ConfigPage(QWidget):
         QWidget.__init__(self, parent)
         self.apply_callback = apply_callback
         self.is_modified = False
-        
+
     def initialize(self):
         """
         Initialize configuration page:
@@ -46,27 +46,27 @@ class ConfigPage(QWidget):
         """
         self.setup_page()
         self.load_from_conf()
-        
+
     def get_name(self):
         """Return page name"""
         raise NotImplementedError
-    
+
     def get_icon(self):
         """Return page icon"""
         raise NotImplementedError
-    
+
     def setup_page(self):
         """Setup configuration page widget"""
         raise NotImplementedError
-        
+
     def set_modified(self, state):
         self.is_modified = state
         self.emit(SIGNAL("apply_button_enabled(bool)"), state)
-        
+
     def is_valid(self):
         """Return True if all widget contents are valid"""
         raise NotImplementedError
-    
+
     def apply_changes(self):
         """Apply changes callback"""
         if self.is_modified:
@@ -74,11 +74,11 @@ class ConfigPage(QWidget):
             if self.apply_callback is not None:
                 self.apply_callback()
             self.set_modified(False)
-    
+
     def load_from_conf(self):
         """Load settings from configuration file"""
         raise NotImplementedError
-    
+
     def save_to_conf(self):
         """Save settings to configuration file"""
         raise NotImplementedError
@@ -88,7 +88,7 @@ class ConfigDialog(QDialog):
     """Openfisca configuration ('Preferences') dialog box"""
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
-        
+
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
         # (e.g. the editor's analysis thread in Spyder), thus leading to
@@ -131,15 +131,15 @@ class ConfigDialog(QDialog):
 
         self.setWindowTitle(_("Preferences"))
         self.setWindowIcon(get_icon("configure.png"))
-        
+
     def get_current_index(self):
         """Return current page index"""
         return self.contents_widget.currentRow()
-        
+
     def set_current_index(self, index):
         """Set current page index"""
         self.contents_widget.setCurrentRow(index)
-        
+
     def get_page(self, index=None):
         """Return page widget"""
         if index is None:
@@ -147,7 +147,7 @@ class ConfigDialog(QDialog):
         else:
             widget = self.pages_widget.widget(index)
         return widget.widget()
-        
+
     def accept(self):
         """Reimplement Qt method"""
         for index in range(self.pages_widget.count()):
@@ -156,7 +156,7 @@ class ConfigDialog(QDialog):
                 return
             configpage.apply_changes()
         QDialog.accept(self)
-        
+
     def button_clicked(self, button):
         if button is self.apply_btn:
             # Apply button was clicked
@@ -164,12 +164,12 @@ class ConfigDialog(QDialog):
             if not configpage.is_valid():
                 return
             configpage.apply_changes()
-            
+
     def current_page_changed(self, index):
         widget = self.get_page(index)
         self.apply_btn.setVisible(widget.apply_callback is not None)
         self.apply_btn.setEnabled(widget.is_modified)
-        
+
     def add_page(self, widget):
         self.connect(self, SIGNAL('check_settings()'), widget.check_settings)
         self.connect(widget, SIGNAL('show_this_page()'),
@@ -186,7 +186,7 @@ class ConfigDialog(QDialog):
         item.setText(widget.get_name())
         item.setFlags(Qt.ItemIsSelectable|Qt.ItemIsEnabled)
         item.setSizeHint(QSize(0, 25))
-        
+
     def check_all_settings(self):
         """This method is called to check all configuration page settings
         after configuration dialog has been shown"""
@@ -212,20 +212,20 @@ class OpenfiscaConfigPage(ConfigPage):
         self.changed_options = set()
         self.dateedits =  {}
         self.default_button_group = None
-        
+
     def apply_settings(self, options):
         raise NotImplementedError
-    
+
     def check_settings(self):
-        """This method is called to check settings after configuration 
+        """This method is called to check settings after configuration
         dialog has been shown"""
         pass
-        
+
     def set_modified(self, state):
         ConfigPage.set_modified(self, state)
         if not state:
             self.changed_options = set()
-        
+
     def is_valid(self):
         """Return True if all widget contents are valid"""
         for lineedit in self.lineedits:
@@ -238,7 +238,7 @@ class OpenfiscaConfigPage(ConfigPage):
                                      QMessageBox.Ok)
                     return False
         return True
-        
+
     def load_from_conf(self):
         """Load settings from configuration file"""
         for checkbox, (option, default) in self.checkboxes.items():
@@ -247,7 +247,7 @@ class OpenfiscaConfigPage(ConfigPage):
                          lambda _foo, opt=option: self.has_been_modified(opt))
         for radiobutton, (option, default) in self.radiobuttons.items():
             radiobutton.setChecked(self.get_option(option, default))
-            
+
             self.connect(radiobutton, SIGNAL("toggled(bool)"),
                          lambda _foo, opt=option: self.has_been_modified(opt))
         for lineedit, (option, default) in self.lineedits.items():
@@ -262,8 +262,8 @@ class OpenfiscaConfigPage(ConfigPage):
             value = self.get_option(option, default)
             for index in range(combobox.count()):
                 data = from_qvariant(combobox.itemData(index), unicode)
-                # For PyQt API v2, it is necessary to convert `data` to 
-                # unicode in case the original type was not a string, like an 
+                # For PyQt API v2, it is necessary to convert `data` to
+                # unicode in case the original type was not a string, like an
                 # integer for example (see ...gui.qt.compat.from_qvariant):
                 if unicode(data) == unicode(value):
                     break
@@ -291,15 +291,15 @@ class OpenfiscaConfigPage(ConfigPage):
                          lambda opt=option: self.has_been_modified(opt))
             self.connect(edit, SIGNAL("textChanged(QString)"),
                          lambda _foo, opt=option: self.has_been_modified(opt))
-        
+
         for dateedit, (option, default) in self.dateedits.items():
             def extract_qdate_from_str(x):
                 return QDate(int(x[:4]), int(x[5:7]), int(x[8:10]))
             dateedit.setDate(extract_qdate_from_str(self.get_option(option, default)))
             self.connect(dateedit, SIGNAL('dateChanged(QDate)'),
                          lambda _foo, opt=option: self.has_been_modified(opt))
-        
-    
+
+
         for (clayout, cb_bold, cb_italic
              ), (option, default) in self.scedits.items():
             edit = clayout.lineedit
@@ -316,7 +316,7 @@ class OpenfiscaConfigPage(ConfigPage):
                          lambda _foo, opt=option: self.has_been_modified(opt))
             self.connect(cb_italic, SIGNAL("clicked(bool)"),
                          lambda _foo, opt=option: self.has_been_modified(opt))
-    
+
     def save_to_conf(self):
         """
         Save settings to configuration file
@@ -344,16 +344,16 @@ class OpenfiscaConfigPage(ConfigPage):
             bold = cb_bold.isChecked()
             italic = cb_italic.isChecked()
             self.set_option(option, (color, bold, italic))
-            
+
         for dateedit, (option, _default) in self.dateedits.items():
-            value = dateedit.date().toString("yyyy-MM-dd") 
+            value = dateedit.date().toString("yyyy-MM-dd")
             self.set_option(option, value)
-    
+
     @Slot(str)
     def has_been_modified(self, option):
         self.set_modified(True)
         self.changed_options.add(option)
-    
+
     def create_checkbox(self, text, option, default=NoDefault,
                         tip=None, msg_warning=None, msg_info=None,
                         msg_if_enabled=False):
@@ -372,7 +372,7 @@ class OpenfiscaConfigPage(ConfigPage):
                                                 msg_info, QMessageBox.Ok)
             self.connect(checkbox, SIGNAL("clicked(bool)"), show_message)
         return checkbox
-    
+
     def create_radiobutton(self, text, option, default=NoDefault,
                            tip=None, msg_warning=None, msg_info=None,
                            msg_if_enabled=False, button_group=None):
@@ -396,7 +396,7 @@ class OpenfiscaConfigPage(ConfigPage):
                                                 msg_info, QMessageBox.Ok)
             self.connect(radiobutton, SIGNAL("toggled(bool)"), show_message)
         return radiobutton
-    
+
     def create_lineedit(self, text, option, default=NoDefault,
                         tip=None, alignment=Qt.Vertical):
         label = QLabel(text)
@@ -412,7 +412,7 @@ class OpenfiscaConfigPage(ConfigPage):
         widget = QWidget(self)
         widget.setLayout(layout)
         return widget
-    
+
     def create_dateedit(self, prefix, option, default=NoDefault,
                        min_=None, max_=None, step=None, tip=None):
         if prefix:
@@ -432,10 +432,10 @@ class OpenfiscaConfigPage(ConfigPage):
         if max_ is not None:
             max_qdate = extract_qdate_from_str(max_)
             dateedit.setMaximumDate(max_qdate)
-        
+
         default_qdate = extract_qdate_from_str(default)
-    
-        dateedit.setDate(default_qdate)        
+
+        dateedit.setDate(default_qdate)
         if tip is not None:
             dateedit.setToolTip(tip)
         self.dateedits[dateedit] = (option, default)
@@ -448,9 +448,9 @@ class OpenfiscaConfigPage(ConfigPage):
         widget = QWidget(self)
         widget.setLayout(layout)
         return widget
-    
-    
-    
+
+
+
     def create_browsedir(self, text, option, default=NoDefault, tip=None):
         widget = self.create_lineedit(text, option, default,
                                       alignment=Qt.Horizontal)
@@ -480,7 +480,7 @@ class OpenfiscaConfigPage(ConfigPage):
         directory = getexistingdirectory(self, title, basedir)
         if directory:
             edit.setText(directory)
-    
+
     def create_browsefile(self, text, option, default=NoDefault, tip=None,
                           filters=None):
         widget = self.create_lineedit(text, option, default,
@@ -513,7 +513,7 @@ class OpenfiscaConfigPage(ConfigPage):
         filename, _selfilter = getopenfilename(self, title, basedir, filters)
         if filename:
             edit.setText(filename)
-    
+
     def create_spinbox(self, prefix, suffix, option, default=NoDefault,
                        min_=None, max_=None, step=None, tip=None):
         if prefix:
@@ -543,7 +543,7 @@ class OpenfiscaConfigPage(ConfigPage):
         widget = QWidget(self)
         widget.setLayout(layout)
         return widget
-    
+
     def create_coloredit(self, text, option, default=NoDefault, tip=None,
                          without_layout=False):
         label = QLabel(text)
@@ -562,7 +562,7 @@ class OpenfiscaConfigPage(ConfigPage):
         widget = QWidget(self)
         widget.setLayout(layout)
         return widget
-    
+
     def create_scedit(self, text, option, default=NoDefault, tip=None,
                       without_layout=False):
         label = QLabel(text)
@@ -590,7 +590,7 @@ class OpenfiscaConfigPage(ConfigPage):
         widget = QWidget(self)
         widget.setLayout(layout)
         return widget
-    
+
     def create_combobox(self, text, choices, option, default=NoDefault,
                         tip=None):
         """choices: couples (name, key)"""
@@ -609,7 +609,7 @@ class OpenfiscaConfigPage(ConfigPage):
         widget = QWidget(self)
         widget.setLayout(layout)
         return widget
-    
+
     def create_fontgroup(self, option=None, text=None,
                          tip=None, fontfilters=None):
         """Option=None -> setting plugin font"""
@@ -632,14 +632,14 @@ class OpenfiscaConfigPage(ConfigPage):
         if tip is not None:
             group.setToolTip(tip)
         return group
-    
+
     def create_button(self, text, callback):
         btn = QPushButton(text)
         self.connect(btn, SIGNAL('clicked()'), callback)
         self.connect(btn, SIGNAL('clicked()'),
                      lambda opt='': self.has_been_modified(opt))
         return btn
-    
+
     def create_tab(self, *widgets):
         """Create simple tab widget page: widgets added in a vertical layout"""
         widget = QWidget()
@@ -662,7 +662,7 @@ class GeneralConfigPage(OpenfiscaConfigPage):
 
     def get_option(self, option, default=NoDefault):
         return CONF.get(self.CONF_SECTION, option, default)
-            
+
     def apply_settings(self, options):
         raise NotImplementedError
 
@@ -671,10 +671,10 @@ class MainConfigPage(GeneralConfigPage):
     CONF_SECTION = "main"
     def get_name(self):
         return _("General")
-    
+
     def get_icon(self):
         return get_icon("genprefs.png")
-    
+
     def setup_page(self):
         interface_group = QGroupBox(_("Interface"))
         styles = [str(txt) for txt in QStyleFactory.keys()]
@@ -699,7 +699,7 @@ class MainConfigPage(GeneralConfigPage):
         margins_layout = QHBoxLayout()
         margins_layout.addWidget(margin_box)
         margins_layout.addWidget(margin_spin)
-        
+
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(style_combo)
         interface_layout.addWidget(vertdock_box)
@@ -707,12 +707,12 @@ class MainConfigPage(GeneralConfigPage):
         interface_layout.addWidget(animated_box)
         interface_layout.addLayout(margins_layout)
         interface_group.setLayout(interface_layout)
-        
+
         vlayout = QVBoxLayout()
         vlayout.addWidget(interface_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
-        
+
     def apply_settings(self, options):
         self.main.apply_settings()
 
@@ -721,10 +721,10 @@ class ColorSchemeConfigPage(GeneralConfigPage):
     CONF_SECTION = "color_schemes"
     def get_name(self):
         return _("Syntax coloring")
-    
+
     def get_icon(self):
         return get_icon("genprefs.png")
-    
+
     def setup_page(self):
         tabs = QTabWidget()
         names = self.get_option("names")
@@ -778,16 +778,16 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                 tabs.addTab(self.create_tab(cs_group, def_btn), tabname)
             else:
                 tabs.addTab(self.create_tab(cs_group), tabname)
-        
+
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)
         self.setLayout(vlayout)
-        
+
     @Slot(str)
     def reset_to_default(self, name):
         set_default_color_scheme(name, replace=True)
         self.load_from_conf()
-            
+
     def apply_settings(self, options):
         self.main.editor.apply_plugin_settings(['color_scheme_name'])
         if self.main.historylog is not None:

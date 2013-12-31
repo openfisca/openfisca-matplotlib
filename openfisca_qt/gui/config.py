@@ -36,11 +36,11 @@ MONOSPACE = ['Monospace', 'DejaVu Sans Mono', 'Consolas', 'Monaco',
 if sys.platform == 'darwin':
     BIG = MEDIUM = SMALL = 12
 elif os.name == 'nt':
-    BIG = 12    
+    BIG = 12
     MEDIUM = 10
     SMALL = 9
 else:
-    BIG = 12    
+    BIG = 12
     MEDIUM = 9
     SMALL = 9
 
@@ -119,12 +119,12 @@ DEFAULTS = [
               'memory_usage/timeout': 2000,
               'cpu_usage/enable': True,
               'cpu_usage/timeout': 2000,
-              }),    
+              }),
             ('quick_layouts',
              {
               'place_holder': '',
-              }),       
-            ('composition', 
+              }),
+            ('composition',
              {
               'year': '2006',
               'nmen': 101,
@@ -141,14 +141,14 @@ DEFAULTS = [
               'table/format': 'xls',
               'table/export_dir' : os.path.expanduser('~'),
               }),
-            ('survey', 
+            ('survey',
              {
               'enable': True,
               'bareme_only': True,
               'data_file': None,
               'reform': False,
-              }),            
-            ('calibration', 
+              }),
+            ('calibration',
              {'enable' : True,
               'inputs_filename' : "countries/france/calibrations/calib_2006.csv",
               'outputs_filename' : None,
@@ -162,7 +162,7 @@ DEFAULTS = [
               'enable': True,
               'country': 'france',
               'datesim': '2009-01-01',
-              'reformes_dir': None,  
+              'reformes_dir': None,
 #              'file/param': 'param'
               }),
             ('aggregates',
@@ -254,7 +254,7 @@ def get_image_label( name, default="not_found.png" ):
 def font_is_installed(font):
     """Check if font is installed"""
     return [fam for fam in QFontDatabase().families() if unicode(fam)==font]
-    
+
 def get_family(families):
     """Return the first installed font family in family list"""
     if not isinstance(families, list):
@@ -265,7 +265,7 @@ def get_family(families):
     else:
         print "Warning: None of the following fonts is installed: %r" % families
         return QFont().family()
-    
+
 FONT_CACHE = {}
 def get_font(section, option=None):
     """Get console font properties depending on OS and user options"""
@@ -309,13 +309,13 @@ def get_shortcut(context, name, default=NoDefault):
 def set_shortcut(context, name, keystr):
     """Set keyboard shortcut (key sequence string)"""
     CONF.set('shortcuts', '%s/%s' % (context, name), keystr)
-    
+
 def iter_shortcuts():
     """Iterate over keyboard shortcuts"""
     for option in CONF.options('shortcuts'):
         context, name = option.split("/", 1)
         yield context, name, get_shortcut(context, name)
-        
+
 def reset_shortcuts():
     """Reset keyboard shortcuts to default values"""
     CONF.remove_section('shortcuts')

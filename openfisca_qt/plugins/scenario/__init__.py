@@ -14,7 +14,7 @@ class CompositionConfigPage(PluginConfigPage):
     def __init__(self, plugin, parent):
         PluginConfigPage.__init__(self, plugin, parent)
         self.get_name = lambda: _("Composer")
-        
+
     def setup_page(self):
 
         axis_group = QGroupBox(_("Axis"))
@@ -22,25 +22,25 @@ class CompositionConfigPage(PluginConfigPage):
         x_axis_choices = [(u'Salaires', 'sal'),(u'Chômage', 'cho'), (u'Retraites', 'rst')]
         x_axis_combo = self.create_combobox('Axe des abscisses', x_axis_choices, 'x_axis')
         nmen_spinbox = self.create_spinbox(u'Nombre de ménages', '', 'nmen', min_ = 1, max_ = 10001, step = 100)
-        minrev_spinbox = self.create_spinbox("Revenu minimal", 
+        minrev_spinbox = self.create_spinbox("Revenu minimal",
                                              'euros', 'minrev', min_ = 0, max_ = 10000000, step = 1000)
-        maxrev_spinbox = self.create_spinbox("Revenu maximum", 
+        maxrev_spinbox = self.create_spinbox("Revenu maximum",
                                              'euros', 'maxrev', min_ = 0, max_ = 10000000, step = 1000)
-        
-        #x_axis          
+
+        #x_axis
         layout = QVBoxLayout()
 
         layout.addWidget(x_axis_combo)
-        layout.addWidget(minrev_spinbox)    
+        layout.addWidget(minrev_spinbox)
         layout.addWidget(maxrev_spinbox)
-        layout.addWidget(nmen_spinbox)        
+        layout.addWidget(nmen_spinbox)
         axis_group.setLayout(layout)
 
 
         legend_group = QGroupBox(_("Legend"))
 
         legend_enable  = self.create_checkbox('Insert legend', 'graph/legend/enable')
-        
+
         choices = [( _('upper right'), 1),
                    (_('upper left'), 2),
                    (_('lower left'), 3),
@@ -52,7 +52,7 @@ class CompositionConfigPage(PluginConfigPage):
                    (_('upper center'), 9),
                    (_('center'), 10 )]
         legend_location = self.create_combobox( _('Legend location'), choices, 'graph/legend/location')
-        
+
         layout = QVBoxLayout()
         layout.addWidget(legend_enable)
         layout.addWidget(legend_location)
@@ -67,22 +67,22 @@ class CompositionConfigPage(PluginConfigPage):
         choices = [('cvs', 'csv'),
                    ('xls', 'xls'),]
         table_format = self.create_combobox(_('Table export format'), choices, 'table/format')
-        # TODO: export format for figure  
-        
+        # TODO: export format for figure
+
         layout = QVBoxLayout()
         layout.addWidget(table_export_dir)
         layout.addWidget(graph_export_dir)
         layout.addWidget(table_format)
         export_group.setLayout(layout)
 
-        
+
 #        reform_group = QGroupBox(_("Reform"))
 #        reform = self.create_checkbox(_('Reform mode'), 'reform')
 #        layout = QVBoxLayout()
 #        layout.addWidget(reform)
 #        reform_group.setLayout(layout)
 
-        
+
         vlayout = QVBoxLayout()
         vlayout.addWidget(axis_group)
         vlayout.addWidget(legend_group)

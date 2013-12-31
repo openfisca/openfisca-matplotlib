@@ -40,7 +40,7 @@ def getobj(txt, last=False):
             return token
     except IndexError:
         return None
-    
+
 def getobjdir(obj):
     """
     For standard objects, will simply return dir(obj)
@@ -54,7 +54,7 @@ def getdoc(obj):
     doc = inspect.getdoc(obj) or inspect.getcomments(obj) or ''
     doc = unicode(doc)
     text = {'title': '', 'argspec': '', 'note': '', 'doc': doc}
-    
+
     if callable(obj):
         try:
             name = obj.__name__
@@ -89,13 +89,13 @@ def getdoc(obj):
             argspec = getsignaturesfromtext(first_line, '')
             if argspec:
                 text['argspec'] = argspec[0]
-                
+
                 # Eliminate the first docstring line if we found the argspec
                 doc_st = text['doc'].find('\n') + 2
                 text['doc'] = text['doc'][doc_st:]
             else:
                 text['argspec'] = '(...)'
-        
+
     return text
 
 def getsource(obj):
@@ -153,12 +153,12 @@ def getargs(obj):
     args, _, _ = inspect.getargs(func_obj.func_code)
     if not args:
         return getargsfromdoc(obj)
-    
+
     # Supporting tuple arguments in def statement:
     for i_arg, arg in enumerate(args):
         if isinstance(arg, list):
             args[i_arg] = "(%s)" % ", ".join(arg)
-            
+
     defaults = func_obj.func_defaults
     if defaults is not None:
         for index, default in enumerate(defaults):
@@ -231,7 +231,7 @@ def isdefined(obj, force_import=False, namespace=None):
                 return False
         base += '.'+attr
     return True
-    
+
 
 if __name__ == "__main__":
     class Test(object):

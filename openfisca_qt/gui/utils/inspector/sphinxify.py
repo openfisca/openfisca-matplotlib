@@ -42,13 +42,13 @@ CSS_PATH = osp.join(CONFDIR_PATH, 'static', 'css')
 
 def is_sphinx_markup(docstring):
     """Returns whether a string contains Sphinx-style ReST markup."""
-    
+
     # this could be made much more clever
     return ("`" in docstring or "::" in docstring)
 
 def warning(message):
     """Print a warning message on the rich text view"""
-    
+
     env = Environment()
     env.loader = FileSystemLoader(osp.join(CONFDIR_PATH, 'templates'))
     warning = env.get_template("warning.html")
@@ -57,7 +57,7 @@ def warning(message):
 def generate_context(title, argspec, note, math):
     """
     Generate the html_context dictionary for our Sphinx conf file.
-    
+
     This is a set of variables to be passed to the Jinja template engine and
     that are used to control how the webpage is rendered in connection with
     Sphinx
@@ -74,12 +74,12 @@ def generate_context(title, argspec, note, math):
     math : bool
         Turn on/off Latex rendering on the OI. If False, Latex will be shown in
         plain text.
-    
+
     Returns
     -------
     A dict of strings to be used by Jinja to generate the webpage
     """
-    
+
     context = \
     {
       # Arg dependent variables
@@ -87,14 +87,14 @@ def generate_context(title, argspec, note, math):
       'Title': title, # title in lowercase seems to be used by Sphinx
       'argspec': argspec,
       'note': note,
-      
+
       # Static variables
       'css_path': CSS_PATH,
       'js_path': osp.join(CONFDIR_PATH, 'js'),
       'right_sphinx_version': '' if sphinx_version < "1.1" else 'true',
       'platform': sys.platform
     }
-    
+
     return context
 
 def sphinxify(docstring, context, buildername='html'):
@@ -135,7 +135,7 @@ def sphinxify(docstring, context, buildername='html'):
     # docstrings
     if context['right_sphinx_version'] and context['math_on']:
         docstring = docstring.replace('\\\\', '\\\\\\\\')
-    
+
     # Add a class to several characters on the argspec. This way we can
     # colorize them using css, in a similar way to what IPython does.
     argspec = context['argspec']
@@ -147,7 +147,7 @@ def sphinxify(docstring, context, buildername='html'):
     doc_file = codecs.open(rst_name, 'w', encoding='utf-8')
     doc_file.write(docstring)
     doc_file.close()
-    
+
     temp_confdir = False
     if temp_confdir:
         # TODO: This may be inefficient. Find a faster way to do it.
@@ -198,14 +198,14 @@ def generate_configuration(directory):
     directory : str
         Base directory to use
     """
-    
+
     # conf.py file for Sphinx
     conf = osp.join(get_module_source_path('openfisca_qt.gui.utils.inspector'),
                     'conf.py')
 
     # Docstring layout page (in Jinja):
     layout = osp.join(osp.join(CONFDIR_PATH, 'templates'), 'layout.html')
-    
+
     os.makedirs(osp.join(directory, 'templates'))
     os.makedirs(osp.join(directory, 'static'))
     shutil.copy(conf, directory)

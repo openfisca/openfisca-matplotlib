@@ -35,7 +35,7 @@ _ = get_translation('openfisca_qt')
 locale.setlocale(locale.LC_ALL, '')
 
 
-class ScenarioTableWidget(OpenfiscaPluginWidget):    
+class ScenarioTableWidget(OpenfiscaPluginWidget):
     """
     Scenario Table Widget
     """
@@ -53,7 +53,7 @@ class ScenarioTableWidget(OpenfiscaPluginWidget):
         selection_behavior = QAbstractItemView.SelectRows
         # we should enable contguous selection, but the copy method does not yet handle this.
 #        selection_mode = QAbstractItemView.ContiguousSelection
-        selection_mode = QAbstractItemView.SingleSelection       
+        selection_mode = QAbstractItemView.SingleSelection
         self.treeView.setSelectionBehavior(selection_behavior)
         self.treeView.setSelectionMode(selection_mode)
         self.verticalLayout.addWidget(self.treeView)
@@ -73,7 +73,7 @@ class ScenarioTableWidget(OpenfiscaPluginWidget):
         '''
         data = simulation.data
         dataDefault = simulation.data_default
-        
+
         if dataDefault is None:
             dataDefault = data
 
@@ -103,12 +103,12 @@ class ScenarioTableWidget(OpenfiscaPluginWidget):
         Formats data into a dataframe
         '''
         data_dict = dict()
-        index = [] 
+        index = []
         for row in self.data:
             if not row.desc in ('root'):
                 index.append(row.desc)
                 data_dict[row.desc] = row.vals
-                
+
         df = DataFrame(data_dict).T
         df = df.reindex(index)
         return df
@@ -118,24 +118,24 @@ class ScenarioTableWidget(OpenfiscaPluginWidget):
         Creates a description dataframe
         '''
         now = datetime.now()
-        descr =  [u'OpenFisca', 
+        descr =  [u'OpenFisca',
                          u'Calculé le %s à %s' % (now.strftime('%d-%m-%Y'), now.strftime('%H:%M')),
                          u'Système socio-fiscal au %s' % str(self.simulation.datesim)]
         return DataFrame(descr)
 
-    
+
     def save_table(self):
-        
+
         table_format = self.table_format
         filename = _("Untitled.") + table_format
-        
+
         output_dir = self.get_option('table/export_dir')
         user_path = os.path.join(output_dir, filename)
 
         extension = table_format.upper() + "   (*." + table_format + ")"
         fname = QFileDialog.getSaveFileName(self,
                                                _("Save table"), user_path, extension)
-        
+
         if fname:
             output_dir = os.path.dirname(str(fname))
             self.set_option('table/export_dir', output_dir)
@@ -148,25 +148,25 @@ class ScenarioTableWidget(OpenfiscaPluginWidget):
                     descr.to_excel(writer, "description", index = False, header=False)
                     writer.save()
                 elif table_format =="csv":
-                    # TODO: use DataFrame's ? 
+                    # TODO: use DataFrame's ?
                     now = datetime.now()
                     csvfile = open(fname, 'wb')
                     writer = UnicodeWriter(csvfile, dialect= csv.excel, delimiter=';')
-                    
+
                     for row in self.data:
                         if not row.desc in ('root'):
                             outlist = [row.desc]
                             for val in row.vals:
                                 outlist.append(locale.str(val))
                             writer.writerow(outlist)
-                            
+
                     writer.writerow(['OpenFisca'])
                     writer.writerow([_('Computed on %s at %s') % (now.strftime('%d-%m-%Y'), now.strftime('%H:%M'))])
                     writer.writerow([_('Socio-fiscal legislation of date %s') % str(self.simulation.datesim)])
                     writer.writerow([])
-            
-                    csvfile.close()                
-                
+
+                    csvfile.close()
+
             except Exception, e:
                 QMessageBox.critical(
                     self, "Error saving file", str(e),
@@ -184,7 +184,7 @@ class ScenarioTableWidget(OpenfiscaPluginWidget):
         """
         return "Table"
 
-    
+
     def get_plugin_icon(self):
         """
         Return plugin icon (QIcon instance)
@@ -193,14 +193,14 @@ class ScenarioTableWidget(OpenfiscaPluginWidget):
               and for configuration dialog widgets creation
         """
         return get_icon('OpenFisca22.png')
-            
+
     def get_plugin_actions(self):
         """
         Return a list of actions related to plugin
         Note: these actions will be enabled when plugin's dockwidget is visible
               and they will be disabled when it's hidden
         """
-        
+
         self.save_action = create_action(self, _("Save &table"),
                 icon='filesave.png', tip=_("Save test-case table"),
                 triggered=self.save_table)
@@ -209,11 +209,11 @@ class ScenarioTableWidget(OpenfiscaPluginWidget):
 
         self.file_menu_actions = [self.save_action,]
 
-        self.main.file_menu_actions += self.file_menu_actions     
-#        self.main.test_case_toolbar_actions += self.file_menu_actions 
-    
+        self.main.file_menu_actions += self.file_menu_actions
+#        self.main.test_case_toolbar_actions += self.file_menu_actions
+
         return self.file_menu_actions
-    
+
     def register_plugin(self):
         """
         Register plugin in OpenFisca's main window
@@ -228,7 +228,7 @@ class ScenarioTableWidget(OpenfiscaPluginWidget):
         if self.main.scenario_simulation.data is not None:
             self.clearModel()
             self.updateTable(self.main.scenario_simulation)
-    
+
     def closing_plugin(self, cancelable=False):
         """
         Perform actions before parent main window is closed
@@ -255,20 +255,20 @@ class OutputModel(QAbstractItemModel):
 
     def columnCount(self, parent):
         return self._ncolumn +1
-    
+
     def data(self, index, role = Qt.DisplayRole):
         if not index.isValid():
             return None
         node = self.getNode(index)
         col = index.column()
         if role == Qt.DisplayRole:
-            if col == 0: 
+            if col == 0:
                 return to_qvariant(node.desc)
             else:
                 return to_qvariant(int(np.round(node.vals[col-1])))
 
         if role == Qt.TextAlignmentRole:
-            if col == 0: 
+            if col == 0:
                 return Qt.AlignLeft
             return Qt.AlignRight
 
@@ -278,7 +278,7 @@ class OutputModel(QAbstractItemModel):
             else:
                 return to_qvariant(int(self._headers.vals[section-1]))
 
-    
+
     def flags(self, index):
         node = self.getNode(index)
         if np.any(node.vals != 0):
@@ -287,14 +287,14 @@ class OutputModel(QAbstractItemModel):
             return Qt.ItemIsSelectable
 
     """Should return the parent of the node with the given QModelIndex"""
-    def parent(self, index):        
+    def parent(self, index):
         node = self.getNode(index)
         parentNode = node.parent
         if parentNode == self._rootNode:
             return QModelIndex()
-        
+
         return self.createIndex(parentNode.row(), 0, parentNode)
-        
+
     """Should return a QModelIndex that corresponds to the given row, column and parent node"""
     def index(self, row, column, parent):
         parentNode = self.getNode(parent)
@@ -308,7 +308,7 @@ class OutputModel(QAbstractItemModel):
         if index.isValid():
             node = index.internalPointer()
             if node:
-                return node            
+                return node
         return self._rootNode
 
 

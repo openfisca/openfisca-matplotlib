@@ -30,7 +30,7 @@ from numpy import logical_not, unique
 from openfisca_core.calmar import calmar
 from openfisca_core.columns import EnumCol, BoolCol, AgesCol, DateCol, BoolPresta, IntPresta
 from pandas import read_csv, DataFrame, concat
-from PyQt4.QtCore import SIGNAL, Qt, QSize 
+from PyQt4.QtCore import SIGNAL, Qt, QSize
 from PyQt4.QtGui import (QLabel, QDialog, QHBoxLayout, QVBoxLayout, QPushButton, QComboBox, QSpinBox, QDoubleSpinBox,
     QCheckBox, QInputDialog, QFileDialog, QMessageBox, QApplication, QCursor, QSpacerItem, QSizePolicy,
     QDialogButtonBox)
@@ -64,22 +64,22 @@ class Calibration(object):
         self.ini_totalpop = None
 
         self.param = {'use_proportions' : True, 'pondini': 'wprm_init', 'method' : None, 'up' : None, 'lo':None}
-        
+
         # TODO: add a champm option
-        
+
     def __repr__(self):
         return '%s \n simulation %s ' % (self.__class__.__name__, self.simulation)
-        
+
     def set_totalpop(self, totalpop):
         """
         Sets total population
         """
         self.totalpop = totalpop
-        
-        
+
+
     def set_simulation(self, simulation):
         """
-        Set simulation 
+        Set simulation
         """
         self.simulation = simulation
         inputs = self.simulation.survey
@@ -87,10 +87,10 @@ class Calibration(object):
         self.weights = 1*inputs.get_value("wprm", inputs.index[self.unit])
         self.weights_init = inputs.get_value("wprm_init", inputs.index[self.unit])
         self.champm =  inputs.get_value("champm", inputs.index[self.unit])
-        
+
         self.ini_totalpop = sum(self.weights_init*self.champm)
-        
-        
+
+
     def set_param(self, parameter, value):
         """
         Set parmeter
@@ -107,7 +107,7 @@ class Calibration(object):
         '''
         Sets margins for inputs variable from file
         '''
-        
+
         # TODO read from h5 files
         with open(filename) as f_tot:
             totals = read_csv(f_tot,index_col = (0,1))
@@ -119,17 +119,17 @@ class Calibration(object):
         marges = {}
         if source == 'input':
             print 'coucou'
-            self.input_margins_df = totals.rename(columns = {year : 'target'}, inplace = False) 
+            self.input_margins_df = totals.rename(columns = {year : 'target'}, inplace = False)
         elif source =='output':
-            self.output_margins_df = totals.rename(columns = {year : 'target'}, inplace = False) 
-            
+            self.output_margins_df = totals.rename(columns = {year : 'target'}, inplace = False)
+
         for var, mod in totals.index:
             if not marges.has_key(var):
                 marges[var] = {}
             marges[var][mod] =  totals.get_value((var,mod),year)
-            
+
         for var in marges.keys():
-            if var == 'totalpop': 
+            if var == 'totalpop':
                 if source == "input" or source == "config" :
                     totalpop = marges.pop('totalpop')[0]
                     marges['totalpop'] = totalpop
@@ -162,13 +162,13 @@ class Calibration(object):
 
         label = varcol.label
         # TODO: rewrite this using pivot table
-        items = [ ('marge'    , w[self.champm]  ), ('marge initiale' , w_init[self.champm] )]        
+        items = [ ('marge'    , w[self.champm]  ), ('marge initiale' , w_init[self.champm] )]
         if varcol.__class__  in MODCOLS:
             items.append(('mod',   value[self.champm]))
             df = DataFrame.from_items(items)
             res = df.groupby('mod', sort= True).sum()
         else:
-            res = DataFrame(index = ['total'], 
+            res = DataFrame(index = ['total'],
                             data = {'marge' : (value*w).sum(),
                                     'marge initiale' : (value*w_init).sum()  } )
         res.insert(0, u"modalités",u"")
@@ -176,18 +176,18 @@ class Calibration(object):
         res.insert(2, u"cible ajustée", 0)
         res.insert(4, "source", source)
         mods = res.index
-    
+
         if target is not None:
             if len(mods) != len(target.keys()):
                 print 'Problem with variable : ', varname
-                print len(target.keys()), ' target keys for ', len(mods), ' modalities' 
+                print len(target.keys()), ' target keys for ', len(mods), ' modalities'
                 print "modalities"
                 print mods
                 print "targets"
                 print target.keys()
                 print 'Skipping the variable'
                 drop_indices = [ (varname, mod) for mod in target.keys()]
-                if source == 'input':                    
+                if source == 'input':
                     self.input_margins_df = self.input_margins_df.drop(drop_indices)
                     self.input_margins_df.index.names = ['var','mod']
                 if source == 'output':
@@ -222,18 +222,18 @@ class Calibration(object):
             res['variable'] = varname
         res['var'] = varname
 
-        if target is not None: 
+        if target is not None:
             for mod, margin in target.iteritems():
                 if mod == varname:    # dirty to deal with non catgorical data
                     res['cible'][0] = margin
                 else:
-                    res['cible'][mod] = margin     
-                        
+                    res['cible'][mod] = margin
+
         if self.frame is None:
             self.frame = res
-        else: 
+        else:
             self.frame = concat([self.frame, res])
-        
+
         self.frame = self.frame.reset_index(drop=True)
 
 
@@ -249,26 +249,26 @@ class Calibration(object):
     def build_calmar_data(self, marges, weights_in):
         """
         Builds the data dictionnary used as calmar input argument
-        
+
         Parameters
         ----------
         marges : dict
-                 Variables and their margins. A scalar var for numeric variables and a dict with 
-                 categories key and population        
-    
+                 Variables and their margins. A scalar var for numeric variables and a dict with
+                 categories key and population
+
         weights_in : str
                      name of the original weight variable
-                     
+
         Returns
         -------
-        data : TODO:             
-        
+        data : TODO:
+
         """
-        
+
         # Select only champm ménages by nullifying weight for irrelevant ménages
         inputs = self.simulation.survey
         output_table = self.simulation.output_table
-        
+
         data = {weights_in: self.weights_init*self.champm}
         for var in marges:
             if inputs.description.has_col(var):
@@ -279,28 +279,28 @@ class Calibration(object):
                         idx = output_table.index[self.unit]
                         enum = inputs.description.get_col('qui'+self.unit).enum
                         people = [x[1] for x in enum]
-                        data[var] = output_table.get_value(var, index=idx, opt=people, sum_=True)        
+                        data[var] = output_table.get_value(var, index=idx, opt=people, sum_=True)
         return data
 
-    
+
     def update_weights(self, marges, param = {}, weights_in='wprm_init'):
         '''
         Runs calmar, stores new weights and returns adjusted margins
-        
+
         Parameters
         ----------
         marges : dict
-                 Variables and their margins. A scalar var for numeric variables and a dict with 
-                 categories key and population        
+                 Variables and their margins. A scalar var for numeric variables and a dict with
+                 categories key and population
         param : dict
                 parameters of the calibration
         weights_in : str
                      name of the original weight variable
-                     
+
         Returns
         -------
         marge_new : dict
-                    computed values of the margins             
+                    computed values of the margins
         '''
         data = self.build_calmar_data(marges, weights_in)
         try:
@@ -310,7 +310,7 @@ class Calibration(object):
 
         # Updating only champm weights
         self.weights = val_pondfin*self.champm + self.weights*(logical_not(self.champm))
-        return marge_new    
+        return marge_new
 
     def calibrate(self):
         """
@@ -321,10 +321,10 @@ class Calibration(object):
         inputs = self.simulation.survey
         output_table = self.simulation.output_table
         margins = {}
-        
+
         if df is not None:
             df = df.reset_index(drop=True)
-            df = df.set_index(['var','mod'], inplace = True)        
+            df = df.set_index(['var','mod'], inplace = True)
             for var, mod in df.index:
                 # Dealing with non categorical vars ...
                 if df.get_value((var,mod), u"modalités") == 'total':
@@ -334,16 +334,16 @@ class Calibration(object):
                     if not margins.has_key(var):
                         margins[var] = {}
                     margins[var][mod] =  df.get_value((var,mod), 'cible')
-                
+
         param = self.get_param()
 
         if self.totalpop is not None:
             margins['totalpop'] = self.totalpop
         adjusted_margins = self.update_weights(margins, param=param)
-        
+
         if 'totalpop' in margins.keys():
             del margins['totalpop']
-        
+
         w = self.weights
         for var in margins.keys():
             if inputs.description.has_col(var):
@@ -353,10 +353,10 @@ class Calibration(object):
                 enum = output_table._inputs.description.get_col('qui'+self.unit).enum
                 people = [x[1] for x in enum]
                 value = output_table.get_value(var, index=idx, opt=people, sum_=True)
-                
+
             if isinstance(margins[var], dict):
                 items = [('marge', w  ),('mod', value)]
-                updated_margins = DataFrame.from_items(items).groupby('mod', sort= True).sum()                
+                updated_margins = DataFrame.from_items(items).groupby('mod', sort= True).sum()
                 for mod in margins[var].keys():
                     df.set_value((var,mod), u"cible ajustée", adjusted_margins[var][mod])
                     df.set_value((var,mod), u"marge", updated_margins['marge'][mod])
@@ -364,11 +364,11 @@ class Calibration(object):
                 updated_margin = (w*value).sum()
                 df.set_value((var,0), u"cible ajustée", adjusted_margins[var])
                 df.set_value((var,0), u"marge", updated_margin)
-        
+
         if self.frame is not None:
             self.frame = df.reset_index()
 
-        
+
 
 def test():
     from openfisca_core.simulations import SurveySimulation
@@ -383,8 +383,8 @@ def test():
 
     filename = "../countries/france/calibrations/calib_2006.csv"
     cal.set_inputs_margins_from_file(filename, 2006)
-    
-    
+
+
     cal.set_param('invlo', 3)
     cal.set_param('up', 3)
     cal.set_param('method', 'logit')
@@ -399,16 +399,16 @@ class CalibrationConfigPage(PluginConfigPage):
     def __init__(self, plugin, parent):
         PluginConfigPage.__init__(self, plugin, parent)
         self.get_name = lambda: _("Calibration")
-        
+
     def setup_page(self):
 
-        import_group = QGroupBox(_("Calibration data")) # "Données d'enquête" 
+        import_group = QGroupBox(_("Calibration data")) # "Données d'enquête"
         import_bg = QButtonGroup(self)
         import_label = QLabel(_("Location of calibration data for microsimulation")) # u"Emplacement des données d'enquête pour la microsimulation")
 
         bareme_only_radio = self.create_radiobutton(_("Test case only"),  #u"Mode barème uniquement",
                                                     'calibration/automatic', False,
-                                                    tip = u"Calibration systématique",    
+                                                    tip = u"Calibration systématique",
                                                     button_group= import_bg)
         import_radio = self.create_radiobutton(_("The following file"),  # le fichier suivant",
                                                'enable', True,
@@ -416,7 +416,7 @@ class CalibrationConfigPage(PluginConfigPage):
                                                button_group=import_bg)
         import_file = self.create_browsefile("", 'data_file',
                                              filters='*.h5')
-        
+
         self.connect(bareme_only_radio, SIGNAL("toggled(bool)"),
                      import_file.setDisabled)
         self.connect(import_radio, SIGNAL("toggled(bool)"),
@@ -435,13 +435,13 @@ class CalibrationConfigPage(PluginConfigPage):
         export_dir = self.create_browsedir(_("Export directory"), "table/export_dir")
         choices = [('cvs', 'csv'),
                    ('xls', 'xls'),]
-        table_format = self.create_combobox(_('Table export format'), choices, 'table/format') 
+        table_format = self.create_combobox(_('Table export format'), choices, 'table/format')
         export_layout = QVBoxLayout()
         export_layout.addWidget(export_dir)
         export_layout.addWidget(table_format)
         export_group.setLayout(export_layout)
 
-#        variables_group = QGroupBox(_("Columns")) 
+#        variables_group = QGroupBox(_("Columns"))
 #        show_dep = self.create_checkbox(_("Display expenses"),
 #                                        'show_dep')
 #        show_benef = self.create_checkbox(_("Display beneficiaries"),
@@ -453,7 +453,7 @@ class CalibrationConfigPage(PluginConfigPage):
 #        show_diff_rel = self.create_checkbox(_("Display relative differences"),
 #                                        'show_diff_rel')
 #        show_diff_abs = self.create_checkbox(_("Display absolute differences"),
-#                                        'show_diff_abs')                
+#                                        'show_diff_abs')
 #        show_default = self.create_checkbox(_("Display default values"),
 #                                        'show_default')
 #
@@ -462,7 +462,7 @@ class CalibrationConfigPage(PluginConfigPage):
 #                       show_diff_rel, show_default]:
 #            variables_layout.addWidget(combo)
 #        variables_group.setLayout(variables_layout)
-        
+
         vlayout = QVBoxLayout()
         vlayout.addWidget(export_group)
 #        vlayout.addWidget(variables_group)
@@ -483,49 +483,49 @@ class CalibrationWidget(OpenfiscaPluginWidget):
 
         self.calibraton = None
 
-        
+
         ## Create geometry
         self.setWindowTitle("Calibration")
         self.setObjectName("Calibration")
 
         # Parameters widgets
         up_spinbox      = MyDoubleSpinBox(self, 'Ratio maximal','','',min_=1, max_=100, step=1, value = CONF.get('calibration', 'up'), changed = self.set_param)
-        invlo_spinbox   = MyDoubleSpinBox(self, 'Inverse du ratio minimal','','',min_=1, max_=100, step=1, value = CONF.get('calibration', 'invlo'), changed = self.set_param)                 
+        invlo_spinbox   = MyDoubleSpinBox(self, 'Inverse du ratio minimal','','',min_=1, max_=100, step=1, value = CONF.get('calibration', 'invlo'), changed = self.set_param)
         method_choices  = [(u'Linéaire', 'linear'),(u'Raking ratio', 'raking ratio'), (u'Logit', 'logit')]
         method_combo     = MyComboBox(self, u'Choix de la méthode', method_choices)
-        self.param_widgets = {'up': up_spinbox.spin, 'invlo': invlo_spinbox.spin, 'method': method_combo.box}        
+        self.param_widgets = {'up': up_spinbox.spin, 'invlo': invlo_spinbox.spin, 'method': method_combo.box}
 
         # Total population widget
-        self.ini_totalpop_label = QLabel("", parent = self) 
+        self.ini_totalpop_label = QLabel("", parent = self)
         self.pop_checkbox = QCheckBox(u"Ajuster", self)
         self.pop_spinbox = MySpinBox(self, u" Cible :", "", option = None ,min_=15e6, max_=30e6, step=5e6, changed = self.set_totalpop)
         self.pop_spinbox.setDisabled(True)
 
-        
+
         # Margins table view
         self.view = DataFrameViewWidget(self)
-        
-        # Add/Remove margin button         
+
+        # Add/Remove margin button
 
         save_btn = self.add_toolbar_btn(tooltip = u"Sauvegarder les paramètres et cales actuels",
                                         icon = "document-save.png")
-        
+
         open_btn = self.add_toolbar_btn(tooltip = u"Ouvrir des paramètres",
                                         icon = "document-open.png")
 
         add_var_btn  = self.add_toolbar_btn(tooltip = u"Ajouter une variable de calage",
                                         icon = "list-add.png")
-        
+
         rmv_var_btn = self.add_toolbar_btn(tooltip = u"Retirer une variable de calage",
                                         icon = "list-remove.png")
-        
+
         rst_var_btn = self.add_toolbar_btn(tooltip = u"Retirer toutes les variables de calage",
                                         icon = "view-refresh.png")
 
         self.calibrate_btn = self.add_toolbar_btn(tooltip = u"Lancer le calage",
                                              icon = "calculator_red.png")
         self.calibrate_btn.setDisabled(True)
-        
+
         toolbar_btns = [save_btn, open_btn, add_var_btn, rmv_var_btn, rst_var_btn, self.calibrate_btn]
         toolbar_lyt = QHBoxLayout()
 
@@ -535,7 +535,7 @@ class CalibrationWidget(OpenfiscaPluginWidget):
         calib_lyt = QHBoxLayout()
         calib_lyt.addLayout(toolbar_lyt)
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-        
+
         for w in [spacerItem, up_spinbox, invlo_spinbox, method_combo]:
             if isinstance(w, QSpacerItem):
                 calib_lyt.addItem(w)
@@ -546,23 +546,23 @@ class CalibrationWidget(OpenfiscaPluginWidget):
         verticalLayout.addLayout(calib_lyt)
 
         totalpop_lyt = QHBoxLayout()
-        for w in [self.ini_totalpop_label, 
+        for w in [self.ini_totalpop_label,
                   self.pop_checkbox, self.pop_spinbox]:
             totalpop_lyt.addWidget(w)
         verticalLayout.addLayout(totalpop_lyt)
         verticalLayout.addWidget(self.view)
 
-        # weights ratio plot        
+        # weights ratio plot
         self.mplwidget = MatplotlibWidget(self)
         verticalLayout.addWidget(self.mplwidget)
 
-        
+
         button_box = QDialogButtonBox(QDialogButtonBox.Cancel| QDialogButtonBox.Ok, parent = self)
         verticalLayout.addWidget(button_box)
 
 
         # Connect signals
-        self.connect(method_combo.box, SIGNAL('currentIndexChanged(int)'), self.set_param)        
+        self.connect(method_combo.box, SIGNAL('currentIndexChanged(int)'), self.set_param)
         self.connect(self.pop_checkbox, SIGNAL('clicked()'), self.set_totalpop)
         self.connect(save_btn, SIGNAL('clicked()'), self.save_config)
         self.connect(open_btn, SIGNAL('clicked()'), self.load_config)
@@ -581,7 +581,7 @@ class CalibrationWidget(OpenfiscaPluginWidget):
         self.init_param()
         self.set_inputs_margins_from_file()
 
-    
+
     def add_toolbar_btn(self, tooltip = None, icon = None):
         btn = QPushButton(self)
         if tooltip:
@@ -591,7 +591,7 @@ class CalibrationWidget(OpenfiscaPluginWidget):
             btn.setIcon(icn)
             btn.setIconSize(QSize(22, 22))
         return btn
-        
+
     def init_totalpop(self):
         if self.calibration is not None:
             self.pop_checkbox.setChecked(True)
@@ -610,7 +610,7 @@ class CalibrationWidget(OpenfiscaPluginWidget):
 
     def init_param(self):
         '''
-        Set initial values of parameters from configuration settings 
+        Set initial values of parameters from configuration settings
         '''
         for parameter in self.param_widgets:
             widget = self.param_widgets[parameter]
@@ -621,7 +621,7 @@ class CalibrationWidget(OpenfiscaPluginWidget):
                         break
                 widget.setCurrentIndex(index)
 
-    
+
     def set_inputs_margins_from_file(self, filename = None, year = None):
         if year is None:
             year     = str(CONF.get('simulation','datesim').year)
@@ -631,7 +631,7 @@ class CalibrationWidget(OpenfiscaPluginWidget):
             filename = os.path.join(data_dir, fname)
         self.set_margins_from_file(filename, year, source="input")
         self.init_totalpop()
-    
+
     def add_var(self, source = 'free'):
         '''
         Adds a variable to the margins
@@ -639,14 +639,14 @@ class CalibrationWidget(OpenfiscaPluginWidget):
         '''
 #        if   result == "add_input_margin" : self.add_input_margin()
 #        elif result == "add_output_margin": self.add_output_margin()
-        lists      = {'input': self.input_vars_list, 'output': self.output_vars_list, 'free': self.free_vars_list}        
-        
+        lists      = {'input': self.input_vars_list, 'output': self.output_vars_list, 'free': self.free_vars_list}
+
         variables_list = lists[source]
         varnames = self.get_name_label_dict(variables_list) # {varname: varlabel}
-        
-        varlabel, ok = QInputDialog.getItem(self.parent(), "Ajouter une variable", "Nom de la variable", 
+
+        varlabel, ok = QInputDialog.getItem(self.parent(), "Ajouter une variable", "Nom de la variable",
                                            sorted(varnames.keys()))
-        
+
         insertion = ok and not(varlabel.isEmpty()) and (varlabel in sorted(varnames.keys()))
         if insertion:
             varname = varnames[varlabel]
@@ -661,8 +661,8 @@ class CalibrationWidget(OpenfiscaPluginWidget):
                 if datatable_name =='output_table':
                     varcol = self.output_table.description.get_col(varname)
                 elif datatable_name =='inputs':
-                    varcol = self.inputs.description.get_col(varname) 
-                
+                    varcol = self.inputs.description.get_col(varname)
+
                 if varcol.__class__ not in MODCOLS:
                         val, ok = QInputDialog.getDouble(self.parent(), "Valeur de la  marge", unicode(varlabel) + "  (millions d'euros)")
                         if ok:
@@ -675,40 +675,40 @@ class CalibrationWidget(OpenfiscaPluginWidget):
                         idx = self.inputs.index[self.unit]
                         unique_values = unique(self.inputs.get_value(varname, idx))
                     target = {}
-                    
+
                     for mod in unique_values:
                         val, ok = QInputDialog.getDouble(self.parent(), "Valeur de la  marge", unicode(varlabel) + u" pour la modalité " + str(mod) )
                         if ok:
                             target[mod] = val
                         else:
                             return
-                    
+
             if target:
                 self.add_var2(varname, target = target, source=source)
                 self.param_or_margins_changed()
-        
+
     def rmv_var(self):
         '''
         Removes variable from the margins
         '''
-        vars_in_table = self.frame['var'].unique() 
-        varnames = self.get_name_label_dict(vars_in_table)        
-        varlabel, ok = QInputDialog.getItem(self.parent(), "Ajouter une variable", "Nom de la variable", 
+        vars_in_table = self.frame['var'].unique()
+        varnames = self.get_name_label_dict(vars_in_table)
+        varlabel, ok = QInputDialog.getItem(self.parent(), "Ajouter une variable", "Nom de la variable",
                                            sorted(varnames.keys()))
         varname = varnames[varlabel]
         deletion = ok and not(varlabel.isEmpty())
         if deletion:
             df =  self.frame.reset_index(drop=True)
             cleaned = df[df['var'] != varname]
-            self.frame = cleaned 
+            self.frame = cleaned
         self.param_or_margins_changed()
-        
+
     def rst_var(self):
         '''
         Removes all variables from the margins
         '''
         self.frame = None
-        self.pop_checkbox.setChecked(False)        
+        self.pop_checkbox.setChecked(False)
         self.pop_spinbox.setDisabled(True)
         self.pop_spinbox.spin.setDisabled(True)
         self.set_totalpop()
@@ -721,11 +721,11 @@ class CalibrationWidget(OpenfiscaPluginWidget):
         '''
         if self.frame:
             df = self.frame
-            if 'var' in df.columns: 
+            if 'var' in df.columns:
                 return list(df['var'].unique())
         else:
             return []
-    
+
     @property
     def input_vars_list(self):
         '''
@@ -733,13 +733,13 @@ class CalibrationWidget(OpenfiscaPluginWidget):
         '''
         if self.input_margins_df:
             df = self.input_margins_df.reset_index()
-            #  TODO 'config' 
+            #  TODO 'config'
             set_ic = set(df['var'].unique())
             lic = set_ic.intersection( set(self.inputs.description.col_names))
             return sorted(list(lic - set(self.table_vars_list)))
         else:
             return []
-    
+
     @property
     def free_vars_list(self):
         '''
@@ -749,18 +749,18 @@ class CalibrationWidget(OpenfiscaPluginWidget):
         if self.aggregate_calculated:
             outset = outset.union(set(self.output_table.col_names)) - set(self.table_vars_list)
         return sorted(list(outset))
-    
+
     @property
     def output_vars_list(self):
         if self.output_margins_df is not None:
-            df = self.output_margins_df.reset_index() 
+            df = self.output_margins_df.reset_index()
             #   data_oc = df[ df['source'] == 'output'] # + df['source'] == 'config']
             set_oc = set(df['var'].unique())
             loc = set_oc.intersection( set(self.output_table.col_names))
             return sorted(list(loc - set(self.table_vars_list)))
         else:
             return []
-    
+
     def set_totalpop(self):
         if self.pop_checkbox.isChecked():
             self.pop_spinbox.setEnabled(True)
@@ -770,8 +770,8 @@ class CalibrationWidget(OpenfiscaPluginWidget):
         else:
             self.pop_spinbox.setDisabled(True)
             self.pop_spinbox.spin.setDisabled(True)
-            self.totalpop = None    
-        
+            self.totalpop = None
+
 
         self.param_or_margins_changed()
 
@@ -779,51 +779,51 @@ class CalibrationWidget(OpenfiscaPluginWidget):
         self.calibrate_btn.setEnabled(True)
         self.update_view()
         self.emit(SIGNAL('param_or_margins_changed()'))
-        
+
     def update_view(self):
         self.view.clear()
         if self.frame is not None:
             df = self.frame.reset_index(drop=True)
-            df_view = df[ ["var", u"modalités", "cible", u"cible ajustée", "marge", "marge initiale", "variable" ]]            
+            df_view = df[ ["var", u"modalités", "cible", u"cible ajustée", "marge", "marge initiale", "variable" ]]
             self.view.set_dataframe(df_view)
         self.view.reset()
-        self.plotWeightsRatios()   
-                                        
+        self.plotWeightsRatios()
 
 
-             
+
+
     def set_param(self):
         '''
         Set parameters from box widget values
         '''
         for parameter, widget in self.param_widgets.iteritems():
             if isinstance(widget, QComboBox):
-                data = widget.itemData(widget.currentIndex())                
+                data = widget.itemData(widget.currentIndex())
                 self.param[parameter] = unicode(data.toString())
             if isinstance(widget, QSpinBox) or isinstance(widget, QDoubleSpinBox):
                 self.param[parameter] = widget.value()
-        self.param_or_margins_changed()        
+        self.param_or_margins_changed()
         return True
-                
+
 #    def update_output_margins(self):
 #        datatable = self.output_table
 #        inputs    = self.inputs
 #        w = inputs.get_value("wprm", inputs.index['men']) # TODO wprm_init ?
 #        for varname in datatable.description.col_names:
 #            varcol = datatable.description.get_col(varname)
-#            value = datatable.get_value(varname, inputs.index['men'])            
-#            
+#            value = datatable.get_value(varname, inputs.index['men'])
+#
 #            if isinstance(varcol , BoolPresta):
 #                self.margins._output_vars[varname] = {}
 #                self.margins._output_vars[varname][True]  = sum(w*(value == True))
 #                self.margins._output_vars[varname][False] = sum(w*(value == False))
 #            else:
 #                self.margins._output_vars[varname] = sum(w*(value))
-    
 
 
 
-    
+
+
     def calibrate(self):
         '''
         Calibrate accoding to margins found in frame
@@ -836,10 +836,10 @@ class CalibrationWidget(OpenfiscaPluginWidget):
         df = self.frame
         inputs = self.inputs
         margins = {}
-        
+
         if df is not None:
             df = df.reset_index(drop=True)
-            df = df.set_index(['var','mod'], inplace = True)        
+            df = df.set_index(['var','mod'], inplace = True)
             for var, mod in df.index:
                 # Dealing with non categorical vars ...
                 if df.get_value((var,mod), u"modalités") == 'total':
@@ -849,16 +849,16 @@ class CalibrationWidget(OpenfiscaPluginWidget):
                     if not margins.has_key(var):
                         margins[var] = {}
                     margins[var][mod] =  df.get_value((var,mod), 'cible')
-                
+
         param = self.get_param()
 
         if self.totalpop is not None:
             margins['totalpop'] = self.totalpop
         adjusted_margins = self.update_weights(margins, param=param)
-        
+
         if 'totalpop' in margins.keys():
             del margins['totalpop']
-        
+
         w = self.weights
         for var in margins.keys():
             if inputs.description.has_col(var):
@@ -868,10 +868,10 @@ class CalibrationWidget(OpenfiscaPluginWidget):
                 enum = self.output_table._inputs.description.get_col('qui'+self.unit).enum
                 people = [x[1] for x in enum]
                 value = self.output_table.get_value(var, index=idx, opt=people, sum_=True)
-                
+
             if isinstance(margins[var], dict):
                 items = [('marge', w  ),('mod', value)]
-                updated_margins = DataFrame.from_items(items).groupby('mod', sort= True).sum()                
+                updated_margins = DataFrame.from_items(items).groupby('mod', sort= True).sum()
                 for mod in margins[var].keys():
                     df.set_value((var,mod), u"cible ajustée", adjusted_margins[var][mod])
                     df.set_value((var,mod), u"marge", updated_margins['marge'][mod])
@@ -879,12 +879,12 @@ class CalibrationWidget(OpenfiscaPluginWidget):
                 updated_margin = (w*value).sum()
                 df.set_value((var,0), u"cible ajustée", adjusted_margins[var])
                 df.set_value((var,0), u"marge", updated_margin)
-        
+
         if self.frame is not None:
             self.frame = df.reset_index()
         self.update_view()
         self.calibrate_btn.setDisabled(True)
-                    
+
     def plotWeightsRatios(self):
         ax = self.mplwidget.axes
         ax.clear()
@@ -893,7 +893,7 @@ class CalibrationWidget(OpenfiscaPluginWidget):
         ax.set_xlabel(u"Poids relatifs")
         ax.set_ylabel(u"Densité")
         self.mplwidget.draw()
-        
+
 
 
     def get_name_label_dict(self, variables_list):
@@ -908,9 +908,9 @@ class CalibrationWidget(OpenfiscaPluginWidget):
                     varnames[_fromUtf8(varcol.label)] = varname
                 else:
                     varnames[_fromUtf8(varname)] = varname
-            
+
         return varnames
-    
+
 
 
     def get_var_datatable(self, varname):
@@ -930,14 +930,14 @@ class CalibrationWidget(OpenfiscaPluginWidget):
         # param_dict = self.get_param()
         year     = str(CONF.get('simulation','datesim').year)
         df = self.frame
-        
+
         if df is None:
             QMessageBox.critical(
                 self, "Erreur", u"La table est vide" ,
                 QMessageBox.Ok, QMessageBox.NoButton)
-            return 
-        
-        if df is not None:  
+            return
+
+        if df is not None:
             if len(df['var']) == 0:
                 QMessageBox.critical(
                     self, "Erreur", u"Les marges sont vides" ,
@@ -951,7 +951,7 @@ class CalibrationWidget(OpenfiscaPluginWidget):
         df[year] = df['cible']
         saved = df[['var','mod',year]]
         saved = saved.append(pop, ignore_index=True)
-        saved = DataFrame(data =saved, columns =['var','mod',year] ) # reorder the columns !                
+        saved = DataFrame(data =saved, columns =['var','mod',year] ) # reorder the columns !
         calib_dir = CONF.get('paths','calib_dir')
         default_fileName = os.path.join(calib_dir, 'sans-titre')
         fileName = QFileDialog.getSaveFileName(self,
@@ -963,7 +963,7 @@ class CalibrationWidget(OpenfiscaPluginWidget):
                 QMessageBox.critical(
                     self, "Erreur", u"Impossible d'enregistrer le fichier : " + str(e),
                     QMessageBox.Ok, QMessageBox.NoButton)
-        
+
     def load_config(self):
         self.reset()
         calib_dir = CONF.get('paths','calib_dir')
@@ -976,7 +976,7 @@ class CalibrationWidget(OpenfiscaPluginWidget):
             QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
             self.set_margins_from_file(fileName, year = year, source='config')
             self.init_totalpop()
-            QApplication.restoreOverrideCursor()    
+            QApplication.restoreOverrideCursor()
             self.param_or_margins_changed()
 
     def accept(self):
@@ -997,12 +997,12 @@ class CalibrationWidget(OpenfiscaPluginWidget):
         """
         show_options = ['show_default', 'show_real', 'show_diff_abs',
                         'show_diff_abs', 'show_diff_rel', 'show_dep', 'show_benef']
-        
+
         for option in options:
             if option in show_options:
                 self.toggle_option(option, self.get_option(option))
 
-    
+
     #------ OpenfiscaPluginWidget API ---------------------------------------------
 
     def get_plugin_title(self):
@@ -1013,7 +1013,7 @@ class CalibrationWidget(OpenfiscaPluginWidget):
         """
         return "Aggregates"
 
-    
+
     def get_plugin_icon(self):
         """
         Return plugin icon (QIcon instance)
@@ -1022,7 +1022,7 @@ class CalibrationWidget(OpenfiscaPluginWidget):
               and for configuration dialog widgets creation
         """
         return get_icon('OpenFisca22.png')
-            
+
     def get_plugin_actions(self):
         """
         Return a list of actions related to plugin
@@ -1030,7 +1030,7 @@ class CalibrationWidget(OpenfiscaPluginWidget):
               and they will be disabled when it's hidden
         """
         raise NotImplementedError
-    
+
     def register_plugin(self):
         """
         Register plugin in OpenFisca's main window
@@ -1042,24 +1042,24 @@ class CalibrationWidget(OpenfiscaPluginWidget):
         '''
         Update aggregate outputs and refresh view
         '''
-        
+
         simulation = self.main.survey_simulation
         self.starting_long_process(_("Refreshing calibration table ..."))
 
         self.ending_long_process(_("Calibration table updated"))
-    
-    
+
+
     def closing_plugin(self, cancelable=False):
         """
         Perform actions before parent main window is closed
         Return True or False whether the plugin may be closed immediately or not
         Note: returned value is ignored if *cancelable* is False
         """
-        return True    
-    
-    
+        return True
+
+
 if __name__ == '__main__':
 
 
     test()
-    
+

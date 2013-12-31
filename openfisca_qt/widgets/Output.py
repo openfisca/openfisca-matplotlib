@@ -75,7 +75,7 @@ class GraphFormater(QDialog):
         self.data.setLeavesVisible()
         self.updateGraph()
         self.model.reset()
-        
+
     def checkNone(self):
         self.data.hideAll()
         self.updateGraph()
@@ -91,7 +91,7 @@ def colorIcon(color):
     pixmap = QPixmap(size)
     pixmap.fill(qcolor)
     return QIcon(pixmap)
-        
+
 class DataModel(QAbstractItemModel):
     def __init__(self, root, mode, parent=None):
         super(DataModel, self).__init__(parent)
@@ -107,8 +107,8 @@ class DataModel(QAbstractItemModel):
 
     def columnCount(self, parent):
         return 1
-    
-    def data(self, index, role = Qt.DisplayRole):        
+
+    def data(self, index, role = Qt.DisplayRole):
         if not index.isValid():
             return None
         node = self.getNode(index)
@@ -118,17 +118,17 @@ class DataModel(QAbstractItemModel):
             return colorIcon(node.color)
         if role == Qt.CheckStateRole:
             return QVariant(2*(node.visible>=1))
-     
+
     def setData(self, index, value, role = Qt.EditRole):
         if not index.isValid():
             return None
         node = self.getNode(index)
         if role == Qt.CheckStateRole:
             if not(node.parent == self._rootNode):
-                first_index = self.createIndex(node.parent.row(), 0, node.parent) 
+                first_index = self.createIndex(node.parent.row(), 0, node.parent)
             else:
                 first_sibling = node.parent.children[0]
-                first_index = self.createIndex(first_sibling.row(), 0, first_sibling)                 
+                first_index = self.createIndex(first_sibling.row(), 0, first_sibling)
             last_sibling = node.parent.children[-1]
             last_index = self.createIndex(last_sibling.row(), 0, last_sibling)
             if self.mode == 'bareme':
@@ -144,7 +144,7 @@ class DataModel(QAbstractItemModel):
     def headerData(self, section, orientation, role):
         if role == Qt.DisplayRole:
             if   section == 0: return u"Variable"
-    
+
     def flags(self, index):
         node = self.getNode(index)
         if np.any(node.vals != 0):
@@ -153,14 +153,14 @@ class DataModel(QAbstractItemModel):
             return Qt.ItemIsSelectable
 
     """Should return the parent of the node with the given QModelIndex"""
-    def parent(self, index):        
+    def parent(self, index):
         node = self.getNode(index)
         parentNode = node.parent
         if parentNode == self._rootNode:
             return QModelIndex()
-        
+
         return self.createIndex(parentNode.row(), 0, parentNode)
-        
+
     """Should return a QModelIndex that corresponds to the given row, column and parent node"""
     def index(self, row, column, parent):
         parentNode = self.getNode(parent)
@@ -174,7 +174,7 @@ class DataModel(QAbstractItemModel):
         if index.isValid():
             node = index.internalPointer()
             if node:
-                return node            
+                return node
         return self._rootNode
 
 class Graph(QDockWidget, Ui_Graph):
@@ -201,17 +201,17 @@ class Graph(QDockWidget, Ui_Graph):
         if value: self.legend = False
         else: self.legend = True
         self.updateGraph2()
-        
+
     def set_option(self):
         gf = GraphFormater(self.data, self.mode, self)
         gf.exec_()
-    
+
     def pick(self, event):
         if not event.xdata is None and not event.ydata is None:
             self.mplwidget.figure.pick(event)
         else:
             self.setToolTip("")
-    
+
     def on_pick(self, event):
         label = event.artist._label
         self.setToolTip(label)
@@ -229,7 +229,7 @@ class Graph(QDockWidget, Ui_Graph):
                     data[rev].setHidden()
                 except:
                     pass
-            
+
             if reforme:
                 data.hideAll()
 
@@ -253,7 +253,7 @@ class Graph(QDockWidget, Ui_Graph):
                 drawBareme(self.data, ax, self.x_axis, self.reforme, self.dataDefault, self.legend)
 
         self.mplwidget.draw()
-    
+
     def populate_absBox(self, x_axis, mode):
         self.disconnect(self.absBox, SIGNAL('currentIndexChanged(int)'), self.x_axis_changed)
         self.absBox.clear()
@@ -262,7 +262,7 @@ class Graph(QDockWidget, Ui_Graph):
             self.taux_btn.setEnabled(False)
             self.hidelegend_btn.setEnabled(False)
             return
-        
+
         self.taux_btn.setEnabled(True)
         self.absBox.setEnabled(True)
         self.hidelegend_btn.setEnabled(True)
@@ -272,7 +272,7 @@ class Graph(QDockWidget, Ui_Graph):
                 typ_revs_labels = axe.typ_tot.values()
                 typ_revs = axe.typ_tot.keys()
                 self.absBox.addItems(typ_revs_labels) # TODO get label from description
-                self.absBox.setCurrentIndex(typ_revs.index(axe.typ_tot_default))            
+                self.absBox.setCurrentIndex(typ_revs.index(axe.typ_tot_default))
                 self.connect(self.absBox, SIGNAL('currentIndexChanged(int)'), self.x_axis_changed)
                 return
 
@@ -285,7 +285,7 @@ class Graph(QDockWidget, Ui_Graph):
                         self.x_axis = key
                         self.updateGraph2()
                         return
-            
+
     def save_figure(self, *args):
         filetypes = self.mplwidget.get_supported_filetypes_grouped()
         sorted_filetypes = filetypes.items()
@@ -305,7 +305,7 @@ class Graph(QDockWidget, Ui_Graph):
 
         fname = QFileDialog.getSaveFileName(
             self, "Enregistrer l'image", start, filters, selectedFilter)
-        
+
 
         if fname:
             CONF.set('paths', 'output_dir', os.path.dirname(str(fname)))
@@ -337,9 +337,9 @@ def drawWaterfall(data, ax):
             prev += child.vals[0]
         if (val != 0) and node.visible and node.code != 'root':
             r,g,b = node.color
-            a = FancyArrow(number[0] + barwidth/2, bot , 0, val, width = barwidth,  
-                           fc = (r/255,g/255,b/255), linewidth = 0.5, edgecolor = 'black', 
-                           label = node.desc, picker = True, length_includes_head=True, 
+            a = FancyArrow(number[0] + barwidth/2, bot , 0, val, width = barwidth,
+                           fc = (r/255,g/255,b/255), linewidth = 0.5, edgecolor = 'black',
+                           label = node.desc, picker = True, length_includes_head=True,
                            head_width=barwidth, head_length=abs(val/15))
             a.top = bot + max(0,val)
             a.absci = number[0] + 0
@@ -351,14 +351,14 @@ def drawWaterfall(data, ax):
             number[0] += 1
 
     prv = 0
-    
+
     drawNode(data, prv)
 
     for patch in patches:
         ax.add_patch(patch)
-    
+
     n = len(patches)
-    abscisses = np.arange(n) 
+    abscisses = np.arange(n)
 
     xlim = (-barwidth*0.5,n-1+barwidth*1.5)
     ax.hold(True)
@@ -379,28 +379,28 @@ def drawWaterfall(data, ax):
         else: col = 'red'
         ax.text(x + width/2, y + 1, val, horizontalalignment='center',
                  verticalalignment='bottom', color= col, weight = 'bold')
-    
+
     m, M = ax.get_ylim()
     ax.set_ylim((m, 1.05*M))
-    
+
 def drawBareme(data, ax, x_axis, reforme = False, dataDefault = None, legend = True):
     '''
     Draws bareme
     '''
-    
-    if dataDefault == None: 
+
+    if dataDefault == None:
         dataDefault = data
 
     ax.figure.subplots_adjust(bottom = 0.09, top = 0.95, left = 0.11, right = 0.95)
-        
-    if reforme: 
+
+    if reforme:
         prefix = 'Variation '
-    else: 
+    else:
         prefix = ''
 
     ax.hold(True)
     xdata = dataDefault[x_axis]
-    
+
     NMEN = len(xdata.vals)
     xlabel = xdata.desc
 
@@ -409,9 +409,9 @@ def drawBareme(data, ax, x_axis, reforme = False, dataDefault = None, legend = T
     ax.set_xlim(np.amin(xdata.vals), np.amax(xdata.vals))
     if not reforme:
         ax.set_ylim(np.amin(xdata.vals), np.amax(xdata.vals))
-    
+
     ax.plot(xdata.vals, np.zeros(NMEN), color = 'black', label = 'x_axis')
-    
+
     def drawNode(node, prv):
         prev = prv + 0
         if np.any(node.vals != 0) and node.visible and node.code != 'root':
@@ -440,8 +440,8 @@ def drawTaux(data, ax, x_axis, reforme = False, dataDefault = None):
     '''
     Draws marginal and average tax rates
     '''
-    
-    if dataDefault is None: 
+
+    if dataDefault is None:
         dataDefault = data
 
     if x_axis == "rev_cap_brut":
@@ -452,10 +452,10 @@ def drawTaux(data, ax, x_axis, reforme = False, dataDefault = None):
         for typrev, vars in model.REV_TYPE.iteritems():
             if x_axis in vars:
                 typ_rev = typrev
-        
+
     RB = RevTot(dataDefault, typ_rev)
     xdata = dataDefault[x_axis]
-    
+
     RD = dataDefault['revdisp'].vals
     div = RB*(RB != 0) + (RB == 0)
     taumoy = (1 - RD/div)*100
@@ -468,11 +468,11 @@ def drawTaux(data, ax, x_axis, reforme = False, dataDefault = None):
     ax.plot(xdata.vals, taumoy, label = u"Taux moyen d'imposition", linewidth = 2)
     ax.plot(xdata.vals[1:], taumar, label = u"Taux marginal d'imposition", linewidth = 2)
     ax.set_ylim(0,100)
-    
+
     ax.yaxis.set_major_formatter(FuncFormatter(percentFormatter))
     createLegend(ax)
-    
-    
+
+
 def createLegend(ax):
     '''
     Creates legend
@@ -503,7 +503,7 @@ def RevTot(data, typrev):
                 first = False
             else:
                 out += data[var].vals
-        return out 
+        return out
     except:
         raise Exception("typrev is %s but typrev should be one of the following: %s" %(str(typrev), str(dct.keys())))
 
@@ -521,7 +521,7 @@ class OutTable(QDockWidget):
         selection_behavior = QAbstractItemView.SelectRows
         # we should enable contguous selection, but the copy method does not yet handle this.
 #        selection_mode = QAbstractItemView.ContiguousSelection
-        selection_mode = QAbstractItemView.SingleSelection       
+        selection_mode = QAbstractItemView.SingleSelection
         self.treeView.setSelectionBehavior(selection_behavior)
         self.treeView.setSelectionMode(selection_mode)
         self.verticalLayout.addWidget(self.treeView)
@@ -563,12 +563,12 @@ class OutTable(QDockWidget):
         Formats data into a dataframe
         '''
         data_dict = dict()
-        index = [] 
+        index = []
         for row in self.data:
             if not row.desc in ('root'):
                 index.append(row.desc)
                 data_dict[row.desc] = row.vals
-                
+
         df = DataFrame(data_dict).T
         df = df.reindex(index)
         return df
@@ -578,19 +578,19 @@ class OutTable(QDockWidget):
         Creates a description dataframe
         '''
         now = datetime.now()
-        descr =  [u'OpenFisca', 
+        descr =  [u'OpenFisca',
                          u'Calculé le %s à %s' % (now.strftime('%d-%m-%Y'), now.strftime('%H:%M')),
                          u'Système socio-fiscal au %s' % CONF.get('simulation', 'datesim')]
         return DataFrame(descr)
 
     def saveCsv(self):
         self.save_table( table_format = "csv")
-    
+
     def save_table(self, table_format = None):
-        
+
         if table_format is None:
             table_format = CONF.get('paths', 'table')
-            
+
         output_dir = CONF.get('paths', 'output_dir')
         filename = 'sans-titre.' + table_format
         user_path = os.path.join(output_dir, filename)
@@ -598,7 +598,7 @@ class OutTable(QDockWidget):
         extension = table_format.upper() + "   (*." + table_format + ")"
         fname = QFileDialog.getSaveFileName(self,
                                                u"Exporter la table", user_path, extension)
-        
+
         if fname:
             CONF.set('paths', 'output_dir', os.path.dirname(str(fname)))
             try:
@@ -610,25 +610,25 @@ class OutTable(QDockWidget):
                     descr.to_excel(writer, "description", index = False, header=False)
                     writer.save()
                 elif table_format =="csv":
-                    # TODO: use DataFrame's ? 
+                    # TODO: use DataFrame's ?
                     now = datetime.now()
                     csvfile = open(fname, 'wb')
                     writer = UnicodeWriter(csvfile, dialect= csv.excel, delimiter=';')
-                    
+
                     for row in self.data:
                         if not row.desc in ('root'):
                             outlist = [row.desc]
                             for val in row.vals:
                                 outlist.append(locale.str(val))
                             writer.writerow(outlist)
-                            
+
                     writer.writerow([u'OpenFisca'])
                     writer.writerow([u'Calculé le %s à %s' % (now.strftime('%d-%m-%Y'), now.strftime('%H:%M'))])
                     writer.writerow([u'Système socio-fiscal au %s' % CONF.get('simulation', 'datesim')])
                     writer.writerow([])
-            
-                    csvfile.close()                
-                
+
+                    csvfile.close()
+
             except Exception, e:
                 QMessageBox.critical(
                     self, "Error saving file", str(e),
@@ -651,19 +651,19 @@ class OutputModel(QAbstractItemModel):
 
     def columnCount(self, parent):
         return self._ncolumn +1
-    
+
     def data(self, index, role = Qt.DisplayRole):
         if not index.isValid():
             return None
         node = self.getNode(index)
         col = index.column()
         if role == Qt.DisplayRole:
-            if col == 0: 
+            if col == 0:
                 return QVariant(node.desc)
             else:
                 return QVariant(int(np.round(node.vals[col-1])))
         if role == Qt.TextAlignmentRole:
-            if col == 0: 
+            if col == 0:
                 return Qt.AlignLeft
             return Qt.AlignRight
 
@@ -672,7 +672,7 @@ class OutputModel(QAbstractItemModel):
             if   section == 0: return QVariant(self._headers.desc)
             else:
                 return QVariant(int(self._headers.vals[section-1]))
-    
+
     def flags(self, index):
         node = self.getNode(index)
         if np.any(node.vals != 0):
@@ -681,14 +681,14 @@ class OutputModel(QAbstractItemModel):
             return Qt.ItemIsSelectable
 
     """Should return the parent of the node with the given QModelIndex"""
-    def parent(self, index):        
+    def parent(self, index):
         node = self.getNode(index)
         parentNode = node.parent
         if parentNode == self._rootNode:
             return QModelIndex()
-        
+
         return self.createIndex(parentNode.row(), 0, parentNode)
-        
+
     """Should return a QModelIndex that corresponds to the given row, column and parent node"""
     def index(self, row, column, parent):
         parentNode = self.getNode(parent)
@@ -702,7 +702,7 @@ class OutputModel(QAbstractItemModel):
         if index.isValid():
             node = index.internalPointer()
             if node:
-                return node            
+                return node
         return self._rootNode
 
 

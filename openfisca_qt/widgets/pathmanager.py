@@ -25,30 +25,30 @@ from ..gui.utils.qthelpers import get_std_icon, create_toolbutton
 class PathManager(QDialog):
     def __init__(self, parent=None, pathlist=None, ro_pathlist=None, sync=True):
         QDialog.__init__(self, parent)
-        
+
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
         # (e.g. the editor's analysis thread in Spyder), thus leading to
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
-        
+
         assert isinstance(pathlist, list)
         self.pathlist = pathlist
         if ro_pathlist is None:
             ro_pathlist = []
         self.ro_pathlist = ro_pathlist
-        
+
         self.last_path = os.getcwdu()
-        
+
         self.setWindowTitle(_("PYTHONPATH manager"))
         self.setWindowIcon(get_icon('pythonpath.png'))
         self.resize(500, 300)
-        
+
         self.selection_widgets = []
-        
+
         layout = QVBoxLayout()
         self.setLayout(layout)
-        
+
         top_layout = QHBoxLayout()
         layout.addLayout(top_layout)
         self.toolbar_widgets1 = self.setup_top_toolbar(top_layout)
@@ -61,21 +61,21 @@ class PathManager(QDialog):
         bottom_layout = QHBoxLayout()
         layout.addLayout(bottom_layout)
         self.sync_button = None
-        self.toolbar_widgets2 = self.setup_bottom_toolbar(bottom_layout, sync)        
-        
+        self.toolbar_widgets2 = self.setup_bottom_toolbar(bottom_layout, sync)
+
         # Buttons configuration
         bbox = QDialogButtonBox(QDialogButtonBox.Close)
         self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
         bottom_layout.addWidget(bbox)
-        
+
         self.update_list()
         self.refresh()
-        
+
     def _add_widgets_to_layout(self, layout, widgets):
         layout.setAlignment(Qt.AlignLeft)
         for widget in widgets:
             layout.addWidget(widget)
-        
+
     def setup_top_toolbar(self, layout):
         toolbar = []
         movetop_button = create_toolbutton(self,
@@ -105,7 +105,7 @@ class PathManager(QDialog):
         self.selection_widgets.extend(toolbar)
         self._add_widgets_to_layout(layout, toolbar)
         return toolbar
-    
+
     def setup_bottom_toolbar(self, layout, sync=True):
         toolbar = []
         add_button = create_toolbutton(self, text=_("Add path"),
@@ -130,7 +130,7 @@ class PathManager(QDialog):
                   text_beside_icon=True)
             layout.addWidget(self.sync_button)
         return toolbar
-    
+
     def synchronize(self):
         """
         Synchronize Spyder's path list with PYTHONPATH environment variable
@@ -164,11 +164,11 @@ class PathManager(QDialog):
             ppath.extend(self.pathlist+self.ro_pathlist)
         env['PYTHONPATH'] = ppath
         set_user_env( listdict2envdict(env), parent=self )
-        
+
     def get_path_list(self):
         """Return path list (does not include the read-only path list)"""
         return self.pathlist
-        
+
     def update_list(self):
         """Update path list"""
         self.listwidget.clear()
@@ -179,7 +179,7 @@ class PathManager(QDialog):
                 item.setFlags(Qt.NoItemFlags)
             self.listwidget.addItem(item)
         self.refresh()
-        
+
     def refresh(self, row=None):
         """Refresh widget"""
         for widget in self.selection_widgets:
@@ -187,7 +187,7 @@ class PathManager(QDialog):
         not_empty = self.listwidget.count() > 0
         if self.sync_button is not None:
             self.sync_button.setEnabled(not_empty)
-    
+
     def move_to(self, absolute=None, relative=None):
         index = self.listwidget.currentRow()
         if absolute is not None:
@@ -196,13 +196,13 @@ class PathManager(QDialog):
             else:
                 new_index = 0
         else:
-            new_index = index + relative        
+            new_index = index + relative
         new_index = max(0, min(len(self.pathlist)-1, new_index))
         path = self.pathlist.pop(index)
         self.pathlist.insert(new_index, path)
         self.update_list()
         self.listwidget.setCurrentRow(new_index)
-        
+
     def remove_path(self):
         answer = QMessageBox.warning(self, _("Remove path"),
             _("Do you really want to remove selected path?"),
@@ -210,7 +210,7 @@ class PathManager(QDialog):
         if answer == QMessageBox.Yes:
             self.pathlist.pop(self.listwidget.currentRow())
             self.update_list()
-    
+
     def add_path(self):
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         directory = getexistingdirectory(self, _("Select directory"),

@@ -8,26 +8,26 @@ Created on 20 févr. 2013
 
 import os
 
-from openfisca_core.simulations import SurveySimulation 
+from openfisca_core.simulations import SurveySimulation
 from openfisca_qt.plugins.survey.aggregates import Aggregates
 #from pandas import ExcelWriter, ExcelFile
 
 
 destination_dir = "c:/users/utilisateur/documents/"
 fname_all = "aggregates_euromod.xlsx"
-fname_all = os.path.join(destination_dir, fname_all)              
+fname_all = os.path.join(destination_dir, fname_all)
 
 
 def build_aggregates():
 #    writer = None
     years = range(2009,2010)
-    for year in years:        
+    for year in years:
         yr = str(year)
 #        fname = "Agg_%s.%s" %(str(yr), "xls")
         simu = SurveySimulation()
         simu.set_config(year = yr)
         simu.set_param()
-        simu.set_survey()       
+        simu.set_survey()
         simu.compute()
         variables = ["garext", "ci_garext", "inthab", "ppe_brute", "rni"]
         x = simu.aggregated_by_entity("men", variables, all_output_vars = False)
@@ -49,7 +49,7 @@ def build_aggregates():
         del agg
         import gc
         gc.collect()
-    
+
 #    writer.save()
 
 
@@ -76,10 +76,10 @@ if __name__ == '__main__':
 
 
 #- Les déductions pour les revenus des valeurs et capitaux mobiliers (section 2 de la déclaration des revenus)
-# 
+#
 #Il s’agit des deductions fiscales de la variable _ rev_cat_rvcm
-# 
+#
 #- Les déductions pour les revenus fonciers (section3)
-# 
+#
 #Il s’agit des deductions fiscales de la variable _rev_cat_rfon
- 
+

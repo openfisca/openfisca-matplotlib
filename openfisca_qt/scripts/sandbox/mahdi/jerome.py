@@ -7,7 +7,7 @@ from openfisca_core.simulations import SurveySimulation
 
 def toto():
     year = 2006
-    
+
     simulation = SurveySimulation()
     simulation.set_config(year=year)
     simulation.set_param()
@@ -19,16 +19,16 @@ def toto():
         print col.name
         print col._dtype
         print col.entity
-        
+
 #     for name in simulation.output_table._inputs.description.col_names:
 #         col =  simulation.output_table._inputs.description.get_col(name)
 #         print col.name
 #         print col._dtype
-#         print col.entity        
-    
-    
+#         print col.entity
+
+
 
 if __name__ == '__main__':
     toto()
-    
-    
+
+

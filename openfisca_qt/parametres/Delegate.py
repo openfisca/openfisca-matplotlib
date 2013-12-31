@@ -13,7 +13,7 @@ from openfisca_core import model
 from ..gui.qt.QtCore import QAbstractTableModel, Qt, QString, SIGNAL, QModelIndex
 from ..gui.qt.compat import to_qvariant, from_qvariant
 
-from ..gui.qt.QtGui import (QStyle, QApplication, QDialog, QPalette, QColor, 
+from ..gui.qt.QtGui import (QStyle, QApplication, QDialog, QPalette, QColor,
                          QStyledItemDelegate, QDoubleSpinBox, QSpinBox,
                          QPushButton, QStyleOptionButton, QSortFilterProxyModel,
                          QStyleOptionViewItemV4)
@@ -25,7 +25,7 @@ class CustomDelegate(QStyledItemDelegate):
         super(CustomDelegate, self).__init__(parent)
         self._parent = parent
         self.delegates = {}
-    
+
     def insertColumnDelegate(self, column, delegate):
 #        delegate.setParent(self)
         self.delegates[column] = delegate
@@ -33,10 +33,10 @@ class CustomDelegate(QStyledItemDelegate):
     def removeColumnDelegate(self, column):
         if column in self.delegates:
             del self.delegates[column]
-    
+
     def sizeHint(self, option, index):
         return QStyledItemDelegate.sizeHint(self, option, index )
-        
+
     def paint(self, painter, option, index):
         delegate = self.delegates.get(index.column())
         if delegate is not None:
@@ -57,7 +57,7 @@ class CustomDelegate(QStyledItemDelegate):
             delegate.setEditorData(editor, index)
         else:
             QStyledItemDelegate.setEditorData(self, editor, index)
-        
+
     def setModelData(self, editor, model, index):
         delegate = self.delegates.get(index.column())
         if delegate is not None:
@@ -87,8 +87,8 @@ class ValueColumnDelegate(QStyledItemDelegate):
 
         year = "an"  # TODO: localization
         years = "ans"
-        
-        
+
+
         painter.save()
         if index.isValid():
             style = self.parent().style()
@@ -105,7 +105,7 @@ class ValueColumnDelegate(QStyledItemDelegate):
                     text = '%d  ' % val
                 elif node.valueFormat == 'integer':
                     if node.valueType == 'monetary':
-                        text = '%d  %s' %( val, currency)  
+                        text = '%d  %s' %( val, currency)
                     elif node.valueType == 'age':
                         if val <= 1:
                             text = '%d  %s' %( val, year)
@@ -115,12 +115,12 @@ class ValueColumnDelegate(QStyledItemDelegate):
                         text = '%d  ' % val
                 elif node.valueFormat == 'float':
                     if node.valueType == 'monetary':
-                        text = '%.2f  %s' %( val, currency)  
+                        text = '%.2f  %s' %( val, currency)
                     else:
                         text = '%.2f  ' % val
                 else:
                     if node.valueType == 'monetary':
-                        text = '%.2f  %s' %( val, currency)  
+                        text = '%.2f  %s' %( val, currency)
                     else:
                         text = '%.2f  ' % val
 
@@ -128,7 +128,7 @@ class ValueColumnDelegate(QStyledItemDelegate):
                 styleOption.displayAlignment = Qt.AlignRight
 
                 style.drawControl(QStyle.CE_ItemViewItem, styleOption, painter)
-                
+
             elif node.typeInfo == 'BAREME' and index.column()==2:
                 styleOption = QStyleOptionButton()
                 styleOption.rect = option.rect
@@ -138,16 +138,16 @@ class ValueColumnDelegate(QStyledItemDelegate):
                 style.drawControl(QStyle.CE_PushButton, styleOption, painter)
             else:
                 QStyledItemDelegate.paint(self, painter, styleOption, index)
-            
+
         else:
             QStyledItemDelegate.paint(painter, option, index)
 
         painter.restore()
-    
+
     def createEditor(self, parent, option, index):
 
         currency = model.CURRENCY
-        
+
         node = index.internalPointer()
         if node.typeInfo == 'CODE':
             if node.valueFormat == 'percent':
@@ -199,8 +199,8 @@ class ValueColumnDelegate(QStyledItemDelegate):
 
 
     def runBaremeDialog(self):
-        self.baremeDialog.exec_()                    
-        
+        self.baremeDialog.exec_()
+
 class BaremeColumnDelegate(QStyledItemDelegate):
     def __init__(self, parent = None):
         super(BaremeColumnDelegate, self).__init__(parent)
@@ -217,14 +217,14 @@ class BaremeColumnDelegate(QStyledItemDelegate):
                 textColor = QPalette.HighlightedText if option.state & QStyle.State_Selected else QPalette.WindowText
             else:
                 textColor = QPalette.WindowText
-            
+
             col = index.column()
             val = from_qvariant(index.model().data(index))
             if col == 1:
                 text = '%.2f %%  ' % (val*100)
             else:
                 text = '%d ' % (val)
-            
+
             QApplication.style().drawItemText(painter, option.rect, Qt.AlignRight | Qt.AlignVCenter,
                                               option.palette, True, text,
                                               textColor)
@@ -232,7 +232,7 @@ class BaremeColumnDelegate(QStyledItemDelegate):
             QStyledItemDelegate.paint(painter, option, index)
 
         painter.restore()
-    
+
     def createEditor(self, parent, option, index):
         col = index.column()
         if col == 1:
@@ -240,7 +240,7 @@ class BaremeColumnDelegate(QStyledItemDelegate):
             editor.setSuffix('%')
         else:
             editor = QSpinBox(parent)
-            
+
         editor.setMaximum(100000000)
 
         return editor
@@ -269,8 +269,8 @@ class BaremeDialog(QDialog, Ui_BaremeDialog):
         self.setupUi(self)
         self._bareme = bareme
         self._bareme.unit = unit
-        
-        
+
+
         self._marModel = MarModel(self._bareme, self)
         self.marView.setModel(self._marModel)
 
@@ -296,7 +296,7 @@ class BaremeDialog(QDialog, Ui_BaremeDialog):
     def add_tranche(self):
         self._marModel.insertRows(0, 1)
         self.rmv_btn.setEnabled(True)
-    
+
     def rmv_tranche(self):
         '''
         Removes last bareme tranche
@@ -306,44 +306,44 @@ class BaremeDialog(QDialog, Ui_BaremeDialog):
             self.rmv_btn.setEnabled(False)
 
 class MarModel(QAbstractTableModel):
-    
+
     def __init__(self, bareme, parent = None):
         super(MarModel, self).__init__(parent)
         self._bareme = bareme
-        
+
     def rowCount(self, parent):
         return self._bareme.nb
 
     def columnCount(self, parent):
         return 2
-    
+
     def headerData(self, section, orientation, role = Qt.DisplayRole ):
         if orientation == Qt.Horizontal:
             if role == Qt.DisplayRole:
                 if   section == 0: return "Seuil"
                 elif section == 1: return "Taux"
- 
+
     def flags(self, index):
         return Qt.ItemIsEnabled | Qt.ItemIsSelectable |  Qt.ItemIsEditable
-       
+
     def data(self, index, role = Qt.DisplayRole ):
         row = index.row()
         column = index.column()
         if role == Qt.DisplayRole or role == Qt.EditRole:
-            if column == 0 : 
+            if column == 0 :
                 if (self._bareme.unit is not None) and (role == Qt.DisplayRole):
 
                     return to_qvariant( str(self._bareme.seuils[row]) + ' ' + self._bareme.unit)
-                else:                
+                else:
                     return to_qvariant(self._bareme.seuils[row])
-            if column == 1 : 
+            if column == 1 :
                 return to_qvariant(self._bareme.taux[row])
 
-        
+
         if role == Qt.TextAlignmentRole:
             return Qt.AlignRight
 
-        
+
     def insertRows(self, row, count, parent = QModelIndex() ):
         self.beginInsertRows(parent, row, row)
         if self._bareme.nb == 0:
@@ -352,7 +352,7 @@ class MarModel(QAbstractTableModel):
         else:
             s = self._bareme.seuils[-1] + 1000
             t = self._bareme.taux[-1]
-            
+
         self._bareme.addTranche(s ,t)
         self._bareme.marToMoy()
         self.endInsertRows()
@@ -364,7 +364,7 @@ class MarModel(QAbstractTableModel):
         self._bareme.marToMoy()
         self.endRemoveRows()
         return True
-        
+
     def setData(self, index, value, role = Qt.EditRole):
         if role == Qt.EditRole:
             row = index.row()
@@ -389,18 +389,18 @@ class MoyModel(QSortFilterProxyModel):
         self._bareme = self.source._bareme
 
 #        self.setDynamicSortFilter(True)
-    
+
     def rowCount(self, parent):
         return self._bareme.nb
-    
+
     def data(self, index, role = Qt.DisplayRole ):
         row = index.row()
         column = index.column()
         if role == Qt.DisplayRole or role == Qt.EditRole:
-            if column == 0 : 
+            if column == 0 :
                 if self._bareme.unit is not None and role == Qt.DisplayRole:
                     return to_qvariant( str(self._bareme.seuilsM[row]) + ' ' + self._bareme.unit)
-                else: 
+                else:
                     return to_qvariant( str(self._bareme.seuilsM[row]))
             if column == 1 : return to_qvariant(self._bareme.tauxM[row])
 
@@ -415,9 +415,9 @@ class MoyModel(QSortFilterProxyModel):
                 if row == self.rowCount(QModelIndex())-1:
                     return False
                 self._bareme.setSeuilM(row, from_qvariant(value))
-            if column == 1 : 
+            if column == 1 :
                 self._bareme.setTauxM(row, from_qvariant(value))
-                
+
             self._bareme.moyToMar()
             self.dataChanged.emit(index, index)
             return True

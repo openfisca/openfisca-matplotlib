@@ -30,11 +30,11 @@ def get_numpy_dtype(obj):
         # NumPy is available
         import numpy as np
         if isinstance(obj, np.object):
-            # Note: TTBOMK, there is no type associated to both NumPy arrays 
+            # Note: TTBOMK, there is no type associated to both NumPy arrays
             # and scalars, so we must handle the AttributeError exception.
-            # Thus, we could have skipped the `isinstance(obj, np.object)` 
-            # test, but keeping it is the only way to be sure that the object 
-            # is really a NumPy object instead of an object simply following 
+            # Thus, we could have skipped the `isinstance(obj, np.object)`
+            # test, but keeping it is the only way to be sure that the object
+            # is really a NumPy object instead of an object simply following
             # the same interface.
             try:
                 return obj.dtype.type
@@ -145,7 +145,7 @@ def value_to_display(value, truncate=False,
     if isinstance(value, Image):
         return '%s  Mode: %s' % (address(value), value.mode)
     if not isinstance(value, (str, unicode)):
-        if isinstance(value, (list, tuple, dict, set)) and not collvalue:            
+        if isinstance(value, (list, tuple, dict, set)) and not collvalue:
             value = address(value)
         else:
             value = repr(value)
@@ -159,7 +159,7 @@ def try_to_eval(value):
         return eval(value)
     except (NameError, SyntaxError, ImportError):
         return value
-    
+
 def get_size(item):
     """Return size of an item of arbitrary type"""
     if isinstance(item, (list, tuple, dict)):

@@ -15,8 +15,8 @@ from openfisca_core import model
 from .common import load_content
 
 
-if __name__ == "__main__":    
-    
+if __name__ == "__main__":
+
     # Code pour tester save_content
     yr = 2006
     simulation = SurveySimulation()
@@ -25,7 +25,7 @@ if __name__ == "__main__":
     simulation.set_param()
     simulation.compute()
     print simulation.__dict__.keys()
-            
+
     print simulation.output_table.__dict__.keys()
     print 'done'
     simulation.save_content('testundeux', 'fichiertestundeux')

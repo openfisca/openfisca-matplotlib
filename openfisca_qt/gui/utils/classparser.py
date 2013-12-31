@@ -84,7 +84,7 @@ class SuiteInfoBase:
 
     def get_name(self):
         return self._name
-        
+
     def get_lineno(self):
         return self._lineno
 

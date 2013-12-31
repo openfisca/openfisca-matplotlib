@@ -4,7 +4,7 @@
 # OpenFisca is a socio-fiscal microsimulation software
 # Copyright © 2011 Clément Schaff, Mahdi Ben Jelloul
 # Licensed under the terms of the GPL (version 3 or later) license
-# (see openfisca/__init__.py for details)# 
+# (see openfisca/__init__.py for details)#
 #
 # It is almost a copy of Spyder
 
@@ -12,9 +12,9 @@
 """
 Spyder base configuration management
 
-As opposed to spyderlib/config.py, this configuration script deals 
+As opposed to spyderlib/config.py, this configuration script deals
 exclusively with non-GUI features configuration only
-(in other words, we won't import any PyQt object here, avoiding any 
+(in other words, we won't import any PyQt object here, avoiding any
 sip API incompatibility issue in spyderlib's non-gui modules)
 """
 
@@ -50,7 +50,7 @@ def get_conf_path(filename=None):
         return conf_dir
     else:
         return osp.join(conf_dir, filename)
-        
+
 
 def get_module_path(modname):
     """
@@ -63,7 +63,7 @@ def get_module_data_path(modname, relpath=None, attr_name='DATAPATH'):
     """
     Return module *modname* data path
     Note: relpath is ignored if module has an attribute named *attr_name*
-    
+
     Handles py2exe/cx_Freeze distributions
     """
     datapath = getattr(sys.modules[modname], attr_name, '')
@@ -85,12 +85,12 @@ def get_module_data_path(modname, relpath=None, attr_name='DATAPATH'):
 def get_module_source_path(modname, basename=None):
     """
     Return module *modname* source path
-    If *basename* is specified, return *modname.basename* path where 
+    If *basename* is specified, return *modname.basename* path where
     *modname* is a package containing the module *basename*
-    
+
     *basename* is a filename (not a module name), so it must include the
     file extension: .py or .pyw
-    
+
     Handles py2exe/cx_Freeze distributions"""
     srcpath = get_module_path(modname)
     parentdir = osp.join(srcpath, osp.pardir)

@@ -7,7 +7,7 @@
 """Mix-in classes
 
 These classes were created to be able to provide Spyder's regular text and
-console widget features to an independant widget based on QTextEdit for the 
+console widget features to an independant widget based on QTextEdit for the
 IPython console plugin.
 """
 
@@ -32,7 +32,7 @@ HISTORY_FILENAMES = []
 class BaseEditMixin(object):
     def __init__(self):
         self.eol_chars = None
-        
+
     #------EOL characters
     def set_eol_chars(self, text):
         """Set widget end-of-line (EOL) characters from text (analyzes text)"""
@@ -42,7 +42,7 @@ class BaseEditMixin(object):
         if eol_chars is not None and self.eol_chars is not None:
             self.document().setModified(True)
         self.eol_chars = eol_chars
-        
+
     def get_line_separator(self):
         """Return line separator based on current EOL mode"""
         if self.eol_chars is not None:
@@ -51,7 +51,7 @@ class BaseEditMixin(object):
             return os.linesep
 
     def get_text_with_eol(self):
-        """Same as 'toPlainText', replace '\n' 
+        """Same as 'toPlainText', replace '\n'
         by correct end-of-line characters"""
         utext = unicode(self.toPlainText())
         lines = utext.splitlines()
@@ -81,19 +81,19 @@ class BaseEditMixin(object):
             # Assuming that input argument was already a position
             return subject
         return cursor.position()
-        
+
     def get_coordinates(self, position):
         position = self.get_position(position)
         cursor = self.textCursor()
         cursor.setPosition(position)
         point = self.cursorRect(cursor).center()
         return point.x(), point.y()
-    
+
     def get_cursor_line_column(self):
         """Return cursor (line, column) numbers"""
         cursor = self.textCursor()
         return cursor.blockNumber(), cursor.columnNumber()
-        
+
     def get_cursor_line_number(self):
         """Return cursor line number"""
         return self.textCursor().blockNumber()+1
@@ -105,7 +105,7 @@ class BaseEditMixin(object):
         cursor.setPosition(position)
         self.setTextCursor(cursor)
         self.ensureCursorVisible()
-        
+
     def move_cursor(self, chars=0):
         """Move cursor to left or right (unit: characters)"""
         direction = QTextCursor.Right if chars > 0 else QTextCursor.Left
@@ -136,7 +136,7 @@ class BaseEditMixin(object):
         if position < cursor.position():
             cursor.setPosition(position)
             return self.textCursor() < cursor
-                
+
     def __move_cursor_anchor(self, what, direction, move_mode):
         assert what in ('character', 'word', 'line')
         if what == 'character':
@@ -154,7 +154,7 @@ class BaseEditMixin(object):
                 self.moveCursor(QTextCursor.NextBlock, move_mode)
             elif direction == 'up':
                 self.moveCursor(QTextCursor.PreviousBlock, move_mode)
-                
+
     def move_cursor_to_next(self, what='word', direction='left'):
         """
         Move cursor to next *what* ('word' or 'character')
@@ -239,7 +239,7 @@ class BaseEditMixin(object):
             return unicode(self.toPlainText()).splitlines()[line_nb]
         except IndexError:
             return self.get_line_separator()
-    
+
     def get_text(self, position_from, position_to):
         """
         Return text between *position_from* and *position_to*
@@ -253,7 +253,7 @@ class BaseEditMixin(object):
             while text.endswith(u"\u2029"):
                 text = text[:-1]
         return text
-    
+
     def get_character(self, position):
         """Return character at *position*"""
         position = self.get_position(position)
@@ -266,37 +266,37 @@ class BaseEditMixin(object):
             return unicode(cursor.selectedText())
         else:
             return ''
-    
+
     def insert_text(self, text):
         """Insert text at cursor position"""
         if not self.isReadOnly():
             self.textCursor().insertText(text)
-    
+
     def replace_text(self, position_from, position_to, text):
         cursor = self.__select_text(position_from, position_to)
         cursor.removeSelectedText()
         cursor.insertText(text)
-        
+
     def remove_text(self, position_from, position_to):
         cursor = self.__select_text(position_from, position_to)
         cursor.removeSelectedText()
-        
+
     def get_current_word(self):
         """Return current word, i.e. word at cursor position"""
         cursor = self.textCursor()
 
         if cursor.hasSelection():
-            # Removes the selection and moves the cursor to the left side 
-            # of the selection: this is required to be able to properly 
-            # select the whole word under cursor (otherwise, the same word is 
+            # Removes the selection and moves the cursor to the left side
+            # of the selection: this is required to be able to properly
+            # select the whole word under cursor (otherwise, the same word is
             # not selected when the cursor is at the right side of it):
             cursor.setPosition(min([cursor.selectionStart(),
                                     cursor.selectionEnd()]))
         else:
             # Checks if the first character to the right is a white space
             # and if not, moves the cursor one word to the left (otherwise,
-            # if the character to the left do not match the "word regexp" 
-            # (see below), the word to the left of the cursor won't be 
+            # if the character to the left do not match the "word regexp"
+            # (see below), the word to the left of the cursor won't be
             # selected), but only if the first character to the left is not a
             # white space too.
             def is_space(move):
@@ -313,39 +313,39 @@ class BaseEditMixin(object):
         match = re.findall(r'([a-zA-Z\_]+[0-9a-zA-Z\_]*)', text)
         if match:
             return match[0]
-    
+
     def get_current_line(self):
         """Return current line's text"""
         cursor = self.textCursor()
         cursor.select(QTextCursor.BlockUnderCursor)
         return unicode(cursor.selectedText())
-    
+
     def get_current_line_to_cursor(self):
         """Return text from prompt to cursor"""
         return self.get_text(self.current_prompt_pos, 'cursor')
-    
+
     def get_line_number_at(self, coordinates):
         """Return line number at *coordinates* (QPoint)"""
         cursor = self.cursorForPosition(coordinates)
         return cursor.blockNumber()-1
-    
+
     def get_line_at(self, coordinates):
         """Return line at *coordinates* (QPoint)"""
         cursor = self.cursorForPosition(coordinates)
         cursor.select(QTextCursor.BlockUnderCursor)
         return unicode(cursor.selectedText()).replace(u'\u2029', '')
-    
+
     def get_word_at(self, coordinates):
         """Return word at *coordinates* (QPoint)"""
         cursor = self.cursorForPosition(coordinates)
         cursor.select(QTextCursor.WordUnderCursor)
         return unicode(cursor.selectedText())
-    
+
     def get_block_indentation(self, block_nb):
         """Return line indentation (character number)"""
         text = unicode(self.document().findBlockByNumber(block_nb).text())
         return len(text)-len(text.lstrip())
-    
+
     def get_selection_bounds(self):
         """Return selection bounds (block numbers)"""
         cursor = self.textCursor()
@@ -353,7 +353,7 @@ class BaseEditMixin(object):
         block_start = self.document().findBlock(start)
         block_end = self.document().findBlock(end)
         return sorted([block_start.blockNumber(), block_end.blockNumber()])
-        
+
 
     #------Text selection
     def has_selected_text(self):
@@ -363,17 +363,17 @@ class BaseEditMixin(object):
     def get_selected_text(self):
         """
         Return text selected by current text cursor, converted in unicode
-        
-        Replace the unicode line separator character \u2029 by 
+
+        Replace the unicode line separator character \u2029 by
         the line separator characters returned by get_line_separator
         """
         return unicode(self.textCursor().selectedText()).replace(u"\u2029",
                                                      self.get_line_separator())
-    
+
     def remove_selected_text(self):
         """Delete selected text"""
         self.textCursor().removeSelectedText()
-        
+
     def replace(self, text, pattern=None):
         """Replace selected text by *text*
         If *pattern* is not None, replacing selected text using regular
@@ -392,7 +392,7 @@ class BaseEditMixin(object):
     #------Find/replace
     def find_multiline_pattern(self, regexp, cursor, findflag):
         """Reimplement QTextDocument's find method
-        
+
         Add support for *multiline* regular expressions"""
         pattern = unicode(regexp.pattern())
         text = unicode(self.toPlainText())
@@ -462,15 +462,15 @@ class BaseEditMixin(object):
 
 class TracebackLinksMixin(object):
     QT_CLASS = None
-    
+
     def __init__(self):
         self.__cursor_changed = False
         self.setMouseTracking(True)
-        
+
     #------Mouse events
     def mouseReleaseEvent(self, event):
         """Go to error"""
-        self.QT_CLASS.mouseReleaseEvent(self, event)            
+        self.QT_CLASS.mouseReleaseEvent(self, event)
         text = self.get_line_at(event.pos())
         if get_error_match(text) and not self.has_selected_text():
             self.emit(SIGNAL("go_to_error(QString)"), text)
@@ -488,7 +488,7 @@ class TracebackLinksMixin(object):
             QApplication.restoreOverrideCursor()
             self.__cursor_changed = False
         self.QT_CLASS.mouseMoveEvent(self, event)
-        
+
     def leaveEvent(self, event):
         """If cursor has not been restored yet, do it now"""
         if self.__cursor_changed:
@@ -501,12 +501,12 @@ class InspectObjectMixin(object):
     def __init__(self):
         self.inspector = None
         self.inspector_enabled = True
-    
+
     def set_inspector(self, inspector):
         """Set ObjectInspector DockWidget reference"""
         self.inspector = inspector
         self.inspector.set_shell(self)
-    
+
     def inspect_current_object(self):
         text = ''
         text1 = self.get_text('sol', 'cursor')
@@ -519,11 +519,11 @@ class InspectObjectMixin(object):
             text += tl2[0]
         if text:
             self.show_docstring(text, force=True)
-    
+
     def show_docstring(self, text, call=False, force=False):
         """Show docstring or arguments"""
         text = unicode(text) # Useful only for ExternalShellBase
-        
+
         insp_enabled = self.inspector_enabled or force
         if force and self.inspector is not None:
             self.inspector.dockwidget.setVisible(True)
@@ -552,7 +552,7 @@ class InspectObjectMixin(object):
             doc = self.get__doc__(text)
             if doc is not None:
                 self.show_calltip(_("Documentation"), doc)
-    
+
     def get_last_obj(self, last=False):
         """
         Return the last valid object on the current line
@@ -561,13 +561,13 @@ class InspectObjectMixin(object):
 
 
 class SaveHistoryMixin(object):
-    
+
     INITHISTORY = None
     SEPARATOR = None
-    
+
     def __init__(self):
         pass
-    
+
     def add_to_history(self, command):
         """Add command to history"""
         command = unicode(command)
@@ -580,13 +580,13 @@ class SaveHistoryMixin(object):
             return
         self.history.append(command)
         text = os.linesep + command
-        
+
         # When the first entry will be written in history file,
         # the separator will be append first:
         if self.history_filename not in HISTORY_FILENAMES:
             HISTORY_FILENAMES.append(self.history_filename)
             text = self.SEPARATOR + text
-        
+
         encoding.write(text, self.history_filename, mode='ab')
         self.emit(SIGNAL('append_to_history(QString,QString)'),
                   self.history_filename, text)

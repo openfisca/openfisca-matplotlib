@@ -41,7 +41,7 @@ class InequalityWidget(QDockWidget):
         self.setObjectName("Inequality")
         self.setWindowTitle("Inequality")
         self.dockWidgetContents = QWidget()
-        
+
         widget_list = []
 
 
@@ -54,7 +54,7 @@ class InequalityWidget(QDockWidget):
                                               ylim = [0,1])
         widget_list.append(self.lorenzWidget)
 
-        
+
         self.ineqFrameWidget = DataFrameViewWidget(self.dockWidgetContents)
         widget_list.append(self.ineqFrameWidget)
 
@@ -66,19 +66,19 @@ class InequalityWidget(QDockWidget):
         # Initialize attributes
         self.parent = parent
 
-        self.data = DataFrame() 
+        self.data = DataFrame()
         self.data_default = None
 
 
         self.vars = {'nivvie_ini': ['men'],
-                     'nivvie_net':  ['men'],                    
+                     'nivvie_net':  ['men'],
                      'nivvie' : ['men']}
 
 #        self.vars = {'nivvie_prim': ['ind', 'men'],
 #                     'nivvie_init': ['ind', 'men'],
-#                     'nivvie_net':  ['ind', 'men'],                    
+#                     'nivvie_net':  ['ind', 'men'],
 #                     'nivvie' : ['ind', 'men']}
-        
+
 
     def refresh(self):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
@@ -90,37 +90,37 @@ class InequalityWidget(QDockWidget):
     def plot(self):
         '''
         Plots the Lorenz Curve
-        '''        
+        '''
         axes = self.lorenzWidget.axes
         axes.clear()
         output = self.output
-        
+
         idx_weight = {'ind': output._inputs.index['ind'],
                       'men': output._inputs.index['men']}
         weights = {}
         for unit, idx in idx_weight.iteritems():
             weights[unit] = output._inputs.get_value('wprm', idx)
-        
+
         p = []
         l = []
-        
+
         for varname, units in self.vars.iteritems():
             for unit in units:
-                
+
                 idx =  output.index[unit]
                 values  = output.get_value(varname, idx)
-                
+
                 x, y = lorenz(values, weights[unit])
-                label = varname + ' (' + unit + ') ' 
+                label = varname + ' (' + unit + ') '
                 axes.plot(x,y, linewidth = 2, label = label)
-                
+
         axes.plot(x,x, label ="")
 
         axes.legend(loc= 2, prop = {'size':'medium'})
         axes.set_xlim([0,1])
-        axes.set_ylim([0,1])   
-        
-            
+        axes.set_ylim([0,1])
+
+
     def set_data(self, output, default=None):
         '''
         Sets the tables
@@ -128,7 +128,7 @@ class InequalityWidget(QDockWidget):
         self.output = output
         if default is not None:
             self.data_default = default
-        
+
     def update_frame(self):
         from core.utils import mark_weighted_percentiles
         from pandas import Series
@@ -137,7 +137,7 @@ class InequalityWidget(QDockWidget):
         final_df = None
         for varname, units in self.vars.iteritems():
             for unit in units:
-                
+
                 idx =  output.index[unit]
                 val  = output.get_value(varname, idx)
                 weights = output._inputs.get_value('wprm', idx)
@@ -152,38 +152,38 @@ class InequalityWidget(QDockWidget):
             labels = range(1,11)
             method = 2
             decile, values = mark_weighted_percentiles(val, labels, weights*champm, method, return_quantiles=True)
-            
-            
+
+
             labels = [ 'D'+str(d) for d in range(1,11)]
             del decile
             for l, v in zip(labels[:-1],values[1:-1]):
                 items.append( (l, [v]))
-        
+
             # Compute Gini
             gini_coeff = gini(val, weights*champm)
             items.append(("Indice de Gini", [gini_coeff]))
 
-            df = DataFrame.from_items(items, orient = 'index', columns = [varname])            
+            df = DataFrame.from_items(items, orient = 'index', columns = [varname])
             df = df.reset_index()
             if final_df is None:
                 final_df = df
             else:
                 final_df = final_df.merge(df, on='index')
-        
+
         final_df[u"Initial à net"] = (final_df['nivvie_net']-final_df['nivvie_ini'])/final_df['nivvie_ini']
         final_df[u"Net à disponible"] = (final_df['nivvie']-final_df['nivvie_net'])/final_df['nivvie_net']
         final_df = final_df[['index','nivvie_ini', u"Initial à net", 'nivvie_net',u"Net à disponible",'nivvie']]
         self.ineqFrameWidget.set_dataframe(final_df)
         self.ineqFrameWidget.reset()
-        
+
     def update_view(self):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         self.plot()
         self.update_frame()
         QApplication.restoreOverrideCursor()
-        
+
     def calculated(self):
         self.emit(SIGNAL('calculated()'))
-                
+
     def clear(self):
         pass

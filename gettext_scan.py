@@ -13,7 +13,7 @@ except ImportError:
     raise ImportError, "This script requires guidata >= v1.3.0."
 
 
-if __name__ == "__main__":    
+if __name__ == "__main__":
     do_rescan("openfisca_qt")
 #    do_rescan_files(["spyderplugins/p_pylint.py",
 #                     "spyderplugins/widgets/pylintgui.py"],

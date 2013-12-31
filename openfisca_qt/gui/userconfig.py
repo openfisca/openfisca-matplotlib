@@ -76,7 +76,7 @@ class UserConfig(ConfigParser):
               *or* list of tuples (section_name, options)
     version: version of the configuration file (X.Y.Z format)
     subfolder: configuration file will be saved in %home%/subfolder/.%name%.ini
-    
+
     Note that 'get' and 'set' arguments number and type
     differ from the overriden methods
     """
@@ -125,11 +125,11 @@ class UserConfig(ConfigParser):
                 self.set_as_defaults()
         # In any case, the resulting config is saved in config file:
         self.__save()
-        
+
     def get_version(self, version='0.0.0'):
         """Return configuration (not application!) version"""
         return self.get(self.DEFAULT_SECTION_NAME, 'version', version)
-        
+
     def set_version(self, version='0.0.0', save=True):
         """Set configuration (not application!) version"""
         self.set(self.DEFAULT_SECTION_NAME, 'version', version, save=save)
@@ -142,7 +142,7 @@ class UserConfig(ConfigParser):
             self.read(self.filename())
         except MissingSectionHeaderError:
             print "Warning: File contains no section headers."
-        
+
     def __remove_deprecated_options(self):
         """
         Remove options which are present in the .ini file but not in defaults
@@ -153,7 +153,7 @@ class UserConfig(ConfigParser):
                     self.remove_option(section, option)
                     if len(self.items(section, raw=self.raw)) == 0:
                         self.remove_section(section)
-        
+
     def __save(self):
         """
         Save config into the associated .ini file
@@ -181,7 +181,7 @@ class UserConfig(ConfigParser):
                 # Folder (or one of its parents) already exists
                 pass
         return osp.join(folder, '.%s.ini' % self.name)
-        
+
     def cleanup(self):
         """
         Remove .ini file associated to config
@@ -209,7 +209,7 @@ class UserConfig(ConfigParser):
                 self.__set(section, option, value, verbose)
         if save:
             self.__save()
-        
+
     def __check_section_option(self, section, option):
         """
         Private method to check section and option types
@@ -234,7 +234,7 @@ class UserConfig(ConfigParser):
                     return options[ option ]
         else:
             return NoDefault
-                
+
     def get(self, section, option, default=NoDefault):
         """
         Get an option
@@ -249,17 +249,17 @@ class UserConfig(ConfigParser):
                 raise NoSectionError(section)
             else:
                 self.add_section(section)
-        
+
         if not self.has_option(section, option):
             if default is NoDefault:
                 raise NoOptionError(option, section)
             else:
                 self.set(section, option, default)
                 return default
-            
+
         value = ConfigParser.get(self, section, option, self.raw)
         default_value = self.get_default(section, option)
-        
+
         try:   # really ugly
             from datetime import datetime
             value = datetime.strptime(value ,"%Y-%m-%d").date()
@@ -272,9 +272,9 @@ class UserConfig(ConfigParser):
         elif isinstance(default_value, float):
             value = float(value)
         elif isinstance(default_value, int):
-            value = int(value)        
+            value = int(value)
         else:
-            
+
             if isinstance(default_value, basestring):
                 try:
                     value = value.decode('utf-8')
@@ -285,10 +285,10 @@ class UserConfig(ConfigParser):
                 value = eval(value)
             except:
                 pass
-            
-            
 
-            
+
+
+
         return value
 
     def __set(self, section, option, value, verbose):
@@ -334,11 +334,11 @@ class UserConfig(ConfigParser):
         self.__set(section, option, value, verbose)
         if save:
             self.__save()
-            
+
     def remove_section(self, section):
         ConfigParser.remove_section(self, section)
         self.__save()
-            
+
     def remove_option(self, section, option):
         ConfigParser.remove_option(self, section, option)
         self.__save()

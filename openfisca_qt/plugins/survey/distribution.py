@@ -43,26 +43,26 @@ _ = get_translation('openfisca_qt')
 class OpenfiscaPivotTable(object):
     def __init__(self):
         super(OpenfiscaPivotTable, self).__init__()
-        
+
         self.data = DataFrame() # Pandas DataFrame
         self.data_default   = None
         self.by_var_choices = None
-        
+
         # List of variable entering the level 0 (rows) index
         self.row_index = None
-        
+
         # TODO:
         # Dict of variables in the level 1 (columns)
         # exemple { revdisp : { data : [ 'current', 'default'], transform : ['mean', 'median'],  diff: ['absolute', 'relative', 'winners', 'loosers']
-    
-    
+
+
     def set_simulation(self, simulation):
         """
         Set the survey_simulation
-        
+
         Parameters
         ----------
-        
+
         simulation : SurveySimulation
         """
         if isinstance(simulation, SurveySimulation):
@@ -85,25 +85,25 @@ class OpenfiscaPivotTable(object):
     def get_table(self, by = None, vars = None, entity = None, champm = True, do_not_use_weights = False):
         """
         Build pivot table dataframe
-        
+
         Parameters
         ----------
-        
+
         by : string, default None
-             Name of the variable against which the selected variables are distributed 
+             Name of the variable against which the selected variables are distributed
         vars : list, default None
                Varaibles to be distributed
         entity : string, default TODO:
                  Name of the entity at which level varaibles are summed
         champm : bool default, default True
                  Use filtering variable champm
-        do_not_use_weights : bool default False          
+        do_not_use_weights : bool default False
                              Do not use weights to compute the statistics
         """
         by_var = by
         if by_var is None:
             raise Exception("OpenfiscaPivotTable : get_table needs a 'by' variable")
-        
+
         if vars is None:
             raise Exception("OpenfiscaPivotTable : get_table needs a 'vars' variable")
 
@@ -113,7 +113,7 @@ class OpenfiscaPivotTable(object):
             initial_set = set([by_var] + list(vars))
 
         WEIGHT = model.WEIGHT
-        
+
         if entity is None:
             entity = model.ENTITIES_INDEX[0]
 
@@ -122,11 +122,11 @@ class OpenfiscaPivotTable(object):
         except:
             self.simulation.compute()
             data, data_default = self.simulation.aggregated_by_entity(entity, initial_set)
-            
-        self.set_data(data, data_default)        
-        
+
+        self.set_data(data, data_default)
+
         dist_frame_dict = self.group_by(vars, by_var, champm=champm, do_not_use_weights=do_not_use_weights)
-        
+
         frame = None
         for dist_frame in dist_frame_dict.itervalues():
             if frame is None:
@@ -137,28 +137,28 @@ class OpenfiscaPivotTable(object):
                 except:
                     pass
                 frame = merge(frame, dist_frame, on=by_var)
-                
+
         by_var_label = self.simulation.var2label[by_var]
         if by_var_label == by_var:
             by_var_label = by_var
 
-        enum = self.simulation.var2enum[by_var]                
+        enum = self.simulation.var2enum[by_var]
         frame = frame.reset_index(drop=True)
-        
+
         for col in frame.columns:
             if col[-6:] == "__init":
-                frame.rename(columns = { col : self.simulation.var2label[col[:-6]] + " init."}, inplace = True) 
+                frame.rename(columns = { col : self.simulation.var2label[col[:-6]] + " init."}, inplace = True)
             else:
                 frame.rename(columns = { col : self.simulation.var2label[col] }, inplace = True)
-        
+
         if enum is not None:
             try:
-                frame[by_var_label] = frame[by_var_label].apply(lambda x: enum._vars[x])       
+                frame[by_var_label] = frame[by_var_label].apply(lambda x: enum._vars[x])
             except Exception as e:
                 print "Error in enum in distribution"
                 print e
         return frame
-     
+
 
     def group_by(self, varlist, category, champm=True, do_not_use_weights=False):
         '''
@@ -173,7 +173,7 @@ class OpenfiscaPivotTable(object):
         for name, data in datasets.iteritems():
             # Computes aggregates by category
             if champm:
-                keep = [category, WEIGHT, 'champm'] 
+                keep = [category, WEIGHT, 'champm']
                 temp_data = data[keep].copy()
                 temp_data[WEIGHT] = temp_data[WEIGHT]*temp_data['champm']
                 keep.remove('champm')
@@ -187,8 +187,8 @@ class OpenfiscaPivotTable(object):
                 temp_data[var] = temp_data[WEIGHT]*data[var]
                 temp.append(var)
                 keep.append(var)
-                
-            # TODO: we may use the pandas pivot_table       
+
+            # TODO: we may use the pandas pivot_table
             grouped = temp_data[keep].groupby(category, as_index = False)
             aggr_dict[name] = grouped.aggregate(np.sum)
 
@@ -200,7 +200,7 @@ class OpenfiscaPivotTable(object):
                     del aggr_dict[name][varname]
                 else:
                     aggr_dict[name][varname] = aggr_dict[name][varname]/aggr_dict[name][WEIGHT]
-                              
+
         return aggr_dict
 
 
@@ -213,7 +213,7 @@ class DistributionConfigPage(PluginConfigPage):
     def __init__(self, plugin, parent):
         PluginConfigPage.__init__(self, plugin, parent)
         self.get_name = lambda: _("Distribution")
-        
+
     def setup_page(self):
         variables_group = QGroupBox(_("Distribution"))
 
@@ -233,21 +233,21 @@ class DistributionConfigPage(PluginConfigPage):
         variables_layout.addWidget(byvar_combo)
         variables_layout.addWidget(colvar_combo)
         variables_group.setLayout(variables_layout)
-        
+
         vlayout = QVBoxLayout()
         vlayout.addWidget(variables_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
 
 
-    
+
 class DistributionWidget(OpenfiscaPluginWidget):
     """
     Distribution Widget
     """
     CONF_SECTION = 'distribution'
     CONFIGWIDGET_CLASS = DistributionConfigPage
-    
+
     def __init__(self, parent = None):
         super(DistributionWidget, self).__init__(parent)
         self.setStyleSheet(OfSs.dock_style)
@@ -255,42 +255,42 @@ class DistributionWidget(OpenfiscaPluginWidget):
         self.setObjectName("Distribution")
         self.setWindowTitle("Distribution")
         self.dockWidgetContents = QWidget()
-        
+
         self.distribution_combo = MyComboBox(self.dockWidgetContents, u"Distribution de l'impact par")
         self.distribution_combo.box.setSizeAdjustPolicy(self.distribution_combo.box.AdjustToContents)
         self.distribution_combo.box.setDisabled(True)
-        
+
         # To enable sorting of the combobox
         # hints from here: http://www.qtcentre.org/threads/3741-How-to-sort-a-QComboBox-in-Qt4
-        #        and here: http://www.pyside.org/docs/pyside/PySide/QtGui/QSortFilterProxyModel.html      
+        #        and here: http://www.pyside.org/docs/pyside/PySide/QtGui/QSortFilterProxyModel.html
         proxy = QSortFilterProxyModel(self.distribution_combo.box)
         proxy.setSourceModel(self.distribution_combo.box.model())
         self.distribution_combo.box.model().setParent(proxy)
         self.distribution_combo.box.setModel(proxy)
-        
+
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         add_var_btn  = self.add_toolbar_btn(tooltip = u"Ajouter une variable de calage",
                                         icon = "list-add.png")
-        
+
         rmv_var_btn = self.add_toolbar_btn(tooltip = u"Retirer une variable de calage",
                                         icon = "list-remove.png")
 
         toolbar_btns = [add_var_btn, rmv_var_btn] #rst_var_btn
-        
+
 
         distribLayout = QHBoxLayout()
         for btn in toolbar_btns:
             distribLayout.addWidget(btn)
         distribLayout.addWidget(self.distribution_combo)
         distribLayout.addItem(spacerItem)
-        
+
         self.view = DataFrameViewWidget(self.dockWidgetContents)
 
         verticalLayout = QVBoxLayout(self.dockWidgetContents)
         verticalLayout.addLayout(distribLayout)
         verticalLayout.addWidget(self.view)
-                
+
         self.connect(add_var_btn, SIGNAL('clicked()'), self.add_var)
         self.connect(rmv_var_btn, SIGNAL('clicked()'), self.remove_var)
 
@@ -299,7 +299,7 @@ class DistributionWidget(OpenfiscaPluginWidget):
         self.openfisca_pivot_table = None
         self.distribution_by_var = None
         self.selected_vars = None
-        
+
         self.setLayout(verticalLayout)
         self.initialize()
 
@@ -314,16 +314,16 @@ class DistributionWidget(OpenfiscaPluginWidget):
         return btn
 
     def initialize(self):
-        
+
         self.distribution_by_var = 'so'
-        self.selected_vars = set(['revdisp', 'nivvie']) 
-        
+        self.selected_vars = set(['revdisp', 'nivvie'])
+
 
     def set_openfisca_pivot_table(self, openfisca_pivot_table):
         self.openfisca_pivot_table = openfisca_pivot_table
-        self.vars = self.openfisca_pivot_table.vars 
+        self.vars = self.openfisca_pivot_table.vars
         self.set_distribution_choices()
-    
+
     def add_var(self):
         var = self.ask()
         if var is not None:
@@ -331,7 +331,7 @@ class DistributionWidget(OpenfiscaPluginWidget):
             self.refresh_plugin()
         else:
             return
-    
+
     def remove_var(self):
         var = self.ask(remove=True)
         if var is not None:
@@ -348,39 +348,39 @@ class DistributionWidget(OpenfiscaPluginWidget):
         else:
             choices =  self.selected_vars
             dialog_label = "Retirer une variable"
-            
+
         dialog_choices = sorted([self.openfisca_pivot_table.simulation.var2label[variab] for variab in list(choices)])
-        label, ok = QInputDialog.getItem(self, dialog_label , "Choisir la variable", 
+        label, ok = QInputDialog.getItem(self, dialog_label , "Choisir la variable",
                                        dialog_choices)
         if ok and label in dialog_choices:
-            return self.openfisca_pivot_table.simulation.label2var[unicode(label)] 
+            return self.openfisca_pivot_table.simulation.label2var[unicode(label)]
         else:
-            return None 
+            return None
 
-    def dist_by_changed(self):    
+    def dist_by_changed(self):
         widget = self.distribution_combo.box
         if isinstance(widget, QComboBox):
             data = widget.itemData(widget.currentIndex())
             by_var = unicode( from_qvariant(data))
 
-            self.distribution_by_var = by_var                
+            self.distribution_by_var = by_var
             self.refresh_plugin()
-                     
+
     def set_distribution_choices(self):
         '''
-        Set the variables appearing in the ComboBox 
+        Set the variables appearing in the ComboBox
         '''
         combobox = self.distribution_combo.box
         combobox.setEnabled(True)
         self.disconnect(combobox, SIGNAL('currentIndexChanged(int)'), self.dist_by_changed)
         self.distribution_combo.box.clear()
-        
+
         if self.openfisca_pivot_table is not None:
             choices = set( self.openfisca_pivot_table.by_var_choices )
             var2label = self.openfisca_pivot_table.simulation.var2label
         else:
             choices = []
-        
+
         for var in choices:
             try:
                 combobox.addItem(var2label[var], var )
@@ -391,7 +391,7 @@ class DistributionWidget(OpenfiscaPluginWidget):
             index = combobox.findData(self.distribution_by_var)
             if index != -1:
                 combobox.setCurrentIndex(index)
-        
+
         self.connect(self.distribution_combo.box, SIGNAL('currentIndexChanged(int)'), self.dist_by_changed)
         self.distribution_combo.box.model().sort(0)
 
@@ -412,7 +412,7 @@ class DistributionWidget(OpenfiscaPluginWidget):
         """
         return "Distribution"
 
-    
+
     def get_plugin_icon(self):
         """
         Return plugin icon (QIcon instance)
@@ -421,7 +421,7 @@ class DistributionWidget(OpenfiscaPluginWidget):
               and for configuration dialog widgets creation
         """
         return get_icon('OpenFisca22.png')
-    
+
     def refresh_plugin(self):
         '''
         Update distribution view
@@ -444,7 +444,7 @@ class DistributionWidget(OpenfiscaPluginWidget):
               and they will be disabled when it's hidden
         """
         raise NotImplementedError
-    
+
     def register_plugin(self):
         """
         Register plugin in OpenFisca's main window
@@ -454,7 +454,7 @@ class DistributionWidget(OpenfiscaPluginWidget):
         dist.set_simulation(self.main.survey_simulation)
         print self.main.survey_simulation.var_list
         self.set_openfisca_pivot_table(dist)
-        
+
 
     def closing_plugin(self, cancelable=False):
         """
@@ -462,5 +462,5 @@ class DistributionWidget(OpenfiscaPluginWidget):
         Return True or False whether the plugin may be closed immediately or not
         Note: returned value is ignored if *cancelable* is False
         """
-        
+
         return True

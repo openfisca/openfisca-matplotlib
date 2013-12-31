@@ -9,7 +9,7 @@
 
 from openfisca_core import model
 from openfisca_core.columns import EnumCol
-from openfisca_core.simulations import SurveySimulation 
+from openfisca_core.simulations import SurveySimulation
 from pandas import concat
 
 
@@ -20,23 +20,23 @@ def check_entities(simulation):
     survey = simulation.survey
 
     for entity in model.ENTITIES_INDEX:
-                
+
         id = survey.table['id' + entity]
         head = survey.table['qui' + entity]
-        
+
         df = concat([id, head],axis=1)
         grouped_by_id = df.groupby(id)
-        
+
         def is_there_head(group):
             dummy = (group == 0).sum()
             return dummy
-        
+
         headcount = grouped_by_id["qui"+entity].aggregate({entity + " heads" : is_there_head})
-        result =  headcount[headcount[entity + " heads"] != 1]  
-        
+        result =  headcount[headcount[entity + " heads"] != 1]
+
         if len(result) != 0:
             is_ok = False
-            
+
 
     return is_ok, message
 
@@ -45,9 +45,9 @@ def check_inputs_enumcols(simulation):
     """
     Check that the enumcols are consistent
     with data in the survey dataframe
-    
+
     Parameters
-    ----------    
+    ----------
     simulation : SurveySimulation
                  The simulation to check
     Returns
@@ -56,9 +56,9 @@ def check_inputs_enumcols(simulation):
             True or False according to tests
     message : string
     """
-    
-    # TODO: eventually should be a method of SurveySimulation specific for france 
-    
+
+    # TODO: eventually should be a method of SurveySimulation specific for france
+
     is_ok = True
     message = None
     survey = simulation.input_table
@@ -67,7 +67,7 @@ def check_inputs_enumcols(simulation):
         if isinstance(varcol, EnumCol):
             try:
                 x = sorted(varcol.enum._nums.values())
-                if set(survey.table[var].unique()) > set(varcol.enum._nums.values()):  
+                if set(survey.table[var].unique()) > set(varcol.enum._nums.values()):
                     print "Wrong nums for %s" %var
                     print varcol.enum._nums
                     print sorted(survey.table[var].unique())
@@ -89,13 +89,13 @@ def check_inputs_enumcols(simulation):
                 print varcol.enum
                 print sorted(survey.table[var].unique())
                 print "\n"
-    
+
     return is_ok, message
 
 def check_weights(simulation):
     """
     Check weights positiveness
-    
+
     Parameters
     ----------
     simulation : SurveySimulation
@@ -119,7 +119,7 @@ def check_weights(simulation):
     return is_ok, message
 
 def toto(simulation):
-    survey = simulation.survey        
+    survey = simulation.survey
     # verifying the age of childrens
     quifam = survey.get_value('quifam')
     age = survey.get_value('age')
@@ -135,7 +135,7 @@ def toto(simulation):
 #    print max_(idmen)
 
 
-                        
+
 if __name__ == '__main__':
     year = 2006
     simulation = SurveySimulation()
@@ -151,4 +151,4 @@ if __name__ == '__main__':
     ok, message = check_weights(simulation)
     if not ok:
         print message
-    
+

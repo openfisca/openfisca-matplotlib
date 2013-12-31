@@ -36,10 +36,10 @@ from openfisca_core import model
 from ...gui.baseconfig import get_translation
 from ...gui.config import get_icon
 from ...gui.qt.compat import (to_qvariant, getsavefilename)
-from ...gui.qt.QtCore import (QAbstractItemModel, QModelIndex, Qt, 
+from ...gui.qt.QtCore import (QAbstractItemModel, QModelIndex, Qt,
                           SIGNAL, QSize, QString)
-from ...gui.qt.QtGui import (QColor, QVBoxLayout, QDialog, 
-                         QMessageBox, QTreeView, QIcon, QPixmap, QHBoxLayout, 
+from ...gui.qt.QtGui import (QColor, QVBoxLayout, QDialog,
+                         QMessageBox, QTreeView, QIcon, QPixmap, QHBoxLayout,
                          QPushButton)
 from ...gui.utils.qthelpers import create_action
 from ...gui.views.ui_graph import Ui_Graph
@@ -79,7 +79,7 @@ class GraphFormater(QDialog):
         self.data.setLeavesVisible()
         self.updateGraph()
         self.model.reset()
-        
+
     def checkNone(self):
         self.data.hideAll()
         self.updateGraph()
@@ -95,7 +95,7 @@ def colorIcon(color):
     pixmap = QPixmap(size)
     pixmap.fill(qcolor)
     return QIcon(pixmap)
-        
+
 class DataModel(QAbstractItemModel):
     def __init__(self, root, mode, parent=None):
         super(DataModel, self).__init__(parent)
@@ -111,8 +111,8 @@ class DataModel(QAbstractItemModel):
 
     def columnCount(self, parent):
         return 1
-    
-    def data(self, index, role = Qt.DisplayRole):        
+
+    def data(self, index, role = Qt.DisplayRole):
         if not index.isValid():
             return None
         node = self.getNode(index)
@@ -123,17 +123,17 @@ class DataModel(QAbstractItemModel):
         if role == Qt.CheckStateRole:
             return to_qvariant(2*(node.visible>=1))
 
-     
+
     def setData(self, index, value, role = Qt.EditRole):
         if not index.isValid():
             return None
         node = self.getNode(index)
         if role == Qt.CheckStateRole:
             if not(node.parent == self._rootNode):
-                first_index = self.createIndex(node.parent.row(), 0, node.parent) 
+                first_index = self.createIndex(node.parent.row(), 0, node.parent)
             else:
                 first_sibling = node.parent.children[0]
-                first_index = self.createIndex(first_sibling.row(), 0, first_sibling)                 
+                first_index = self.createIndex(first_sibling.row(), 0, first_sibling)
             last_sibling = node.parent.children[-1]
             last_index = self.createIndex(last_sibling.row(), 0, last_sibling)
             if self.mode == 'bareme':
@@ -149,7 +149,7 @@ class DataModel(QAbstractItemModel):
     def headerData(self, section, orientation, role):
         if role == Qt.DisplayRole:
             if   section == 0: return u"Variable"
-    
+
     def flags(self, index):
         node = self.getNode(index)
         if np.any(node.vals != 0):
@@ -158,14 +158,14 @@ class DataModel(QAbstractItemModel):
             return Qt.ItemIsSelectable
 
     """Should return the parent of the node with the given QModelIndex"""
-    def parent(self, index):        
+    def parent(self, index):
         node = self.getNode(index)
         parentNode = node.parent
         if parentNode == self._rootNode:
             return QModelIndex()
-        
+
         return self.createIndex(parentNode.row(), 0, parentNode)
-        
+
     """Should return a QModelIndex that corresponds to the given row, column and parent node"""
     def index(self, row, column, parent):
         parentNode = self.getNode(parent)
@@ -179,15 +179,15 @@ class DataModel(QAbstractItemModel):
         if index.isValid():
             node = index.internalPointer()
             if node:
-                return node            
+                return node
         return self._rootNode
 
-class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):    
+class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
     """
     Scenario Graph Widget
     """
     CONF_SECTION = 'composition'
-    
+
     def __init__(self, parent = None):
         super(ScenarioGraphWidget, self).__init__(parent)
         self.setupUi(self)
@@ -200,7 +200,7 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
         self.taux = False
         self.legend = True
         self.simulation = None
-        
+
         self.setLayout(self.verticalLayout)
         self.initialize_plugin()
 
@@ -209,13 +209,13 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
     def set_taux(self, value):
         """
         Switch on/off the tax rates view
-        
+
         Parameters
         ----------
-        
+
         value : bool
                 If True, switch to tax rates view
-                
+
         """
         if value: self.taux = True
         else: self.taux = False
@@ -225,7 +225,7 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
         if value: self.legend = False
         else: self.legend = True
         self.updateGraph2()
-        
+
     def set_option(self):
         '''
         Sets graph options
@@ -234,16 +234,16 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
             mode = self.simulation.mode
         except:
             mode = 'bareme'
-         
+
         gf = GraphFormater(self.data, mode, self)
         gf.exec_()
-    
+
     def pick(self, event):
         if not event.xdata is None and not event.ydata is None:
             self.mplwidget.figure.pick(event)
         else:
             self.setToolTip("")
-    
+
     def on_pick(self, event):
         label = event.artist._label
         self.setToolTip(label)
@@ -261,17 +261,17 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
         self.data = data
         self.dataDefault = dataDefault
         self.data.setLeavesVisible()
-        
+
         data['revdisp'].visible = 1
         if mode == 'bareme':  # TODO: make this country-totals specific
             for rev in ['salsuperbrut', 'salbrut', 'chobrut', 'rstbrut']:
                 try:
                     data[rev].setHidden()
                 except:
-                    pass    
+                    pass
             if reforme:
                 data.hideAll()
-        
+
         self.populate_absBox(x_axis, mode)
 
         for axe in model.x_axes.itervalues():
@@ -284,7 +284,7 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
 
         ax = self.mplwidget.axes
         ax.clear()
-        
+
         mode = self.simulation.mode
         reforme = self.simulation.reforme
 
@@ -297,7 +297,7 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
                 drawBareme(self.data, ax, self.graph_x_axis, reforme, self.dataDefault, self.legend)
 
         self.mplwidget.draw()
-    
+
     def populate_absBox(self, x_axis, mode):
         self.disconnect(self.absBox, SIGNAL('currentIndexChanged(int)'), self.x_axis_changed)
         self.absBox.clear()
@@ -306,7 +306,7 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
             self.taux_btn.setEnabled(False)
             self.hidelegend_btn.setEnabled(False)
             return
-        
+
         self.taux_btn.setEnabled(True)
         self.absBox.setEnabled(True)
         self.hidelegend_btn.setEnabled(True)
@@ -316,7 +316,7 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
                 typ_revs_labels = axe.typ_tot.values()
                 typ_revs = axe.typ_tot.keys()
                 self.absBox.addItems(typ_revs_labels) # TODO: get label from description
-                self.absBox.setCurrentIndex(typ_revs.index(axe.typ_tot_default))            
+                self.absBox.setCurrentIndex(typ_revs.index(axe.typ_tot_default))
                 self.connect(self.absBox, SIGNAL('currentIndexChanged(int)'), self.x_axis_changed)
                 return
 
@@ -330,13 +330,13 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
                         self.graph_x_axis = key
                         self.updateGraph2()
                         return
-            
+
     def save_figure(self, *args):
         filetypes = self.mplwidget.get_supported_filetypes_grouped()
         sorted_filetypes = filetypes.items()
         sorted_filetypes.sort()
         default_filetype = self.mplwidget.get_default_filetype()
-        
+
         output_dir = self.get_option('graph/export_dir')
         start = os.path.join(output_dir, 'image.') + default_filetype
         filters = []
@@ -352,7 +352,7 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
 
         fname, format = getsavefilename(
             self, _("Save image"), start, filters, selectedFilter) # "Enregistrer l'image"
-        
+
         if fname:
             output_dir = os.path.dirname(str(fname))
             self.main.composition.set_option('graph/export_dir', output_dir)
@@ -375,7 +375,7 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
         """
         return _("Test case graphic")
 
-    
+
     def get_plugin_icon(self):
         """
         Return plugin icon (QIcon instance)
@@ -384,7 +384,7 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
               and for configuration dialog widgets creation
         """
         return get_icon('OpenFisca22.png')
-            
+
     def get_plugin_actions(self):
         """
         Return a list of actions related to plugin
@@ -400,9 +400,9 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
         self.file_menu_actions = [self.save_action,]
 
         self.main.file_menu_actions += self.file_menu_actions
-    
+
         return self.file_menu_actions
-    
+
     def register_plugin(self):
         """
         Register plugin in OpenFisca's main window
@@ -416,7 +416,7 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
         '''
         if self.main.scenario_simulation.data is not None:
             self.updateGraph(self.main.scenario_simulation)
-    
+
     def closing_plugin(self, cancelable=False):
         """
         Perform actions before parent main window is closed
@@ -448,9 +448,9 @@ def drawWaterfall(data, ax):
             prev += child.vals[0]
         if (val != 0) and node.visible and node.code != 'root':
             r,g,b = node.color
-            a = FancyArrow(number[0] + barwidth/2, bot , 0, val, width = barwidth,  
-                           fc = (r/255,g/255,b/255), linewidth = 0.5, edgecolor = 'black', 
-                           label = node.desc, picker = True, length_includes_head=True, 
+            a = FancyArrow(number[0] + barwidth/2, bot , 0, val, width = barwidth,
+                           fc = (r/255,g/255,b/255), linewidth = 0.5, edgecolor = 'black',
+                           label = node.desc, picker = True, length_includes_head=True,
                            head_width=barwidth, head_length=abs(val/15))
             a.top = bot + max(0,val)
             a.absci = number[0] + 0
@@ -464,9 +464,9 @@ def drawWaterfall(data, ax):
     drawNode(data, prv)
     for patch in patches:
         ax.add_patch(patch)
-    
+
     n = len(patches)
-    abscisses = np.arange(n) 
+    abscisses = np.arange(n)
 
     xlim = (-barwidth*0.5,n-1+barwidth*1.5)
     ax.hold(True)
@@ -489,18 +489,18 @@ def drawWaterfall(data, ax):
                  verticalalignment='bottom', color= col, weight = 'bold')
     m, M = ax.get_ylim()
     ax.set_ylim((m, 1.05*M))
-    
-    
+
+
 def drawBareme(data, ax, x_axis, reforme = False, dataDefault = None, legend = True ):
     '''
     Draws bareme
     '''
-    if dataDefault == None: 
+    if dataDefault == None:
         dataDefault = data
     ax.figure.subplots_adjust(bottom = 0.09, top = 0.95, left = 0.11, right = 0.95)
-    if reforme: 
+    if reforme:
         prefix = 'Variation '
-    else: 
+    else:
         prefix = ''
     ax.hold(True)
     xdata = dataDefault[x_axis]
@@ -513,7 +513,7 @@ def drawBareme(data, ax, x_axis, reforme = False, dataDefault = None, legend = T
     if not reforme:
         ax.set_ylim(np.amin(xdata.vals), np.amax(xdata.vals))
     ax.plot(xdata.vals, np.zeros(NMEN), color = 'black', label = 'x_axis')
-    
+
     def drawNode(node, prv):
         prev = prv + 0
         if np.any(node.vals != 0) and node.visible and node.code != 'root':
@@ -538,7 +538,7 @@ def drawBaremeCompareHouseholds(data, ax, x_axis, dataDefault = None, legend = T
     '''
     Draws bareme
     '''
-    if dataDefault is None: 
+    if dataDefault is None:
         raise Exception('drawBaremeCompareHouseHolds: dataDefault must be defined')
 
     ax.figure.subplots_adjust(bottom = 0.09, top = 0.95, left = 0.11, right = 0.95)
@@ -551,9 +551,9 @@ def drawBaremeCompareHouseholds(data, ax, x_axis, dataDefault = None, legend = T
     ax.set_ylabel(prefix + u"Revenu disponible (" + model.CURRENCY + " par an)")
     ax.set_xlim(np.amin(xdata.vals), np.amax(xdata.vals))
     ax.plot(xdata.vals, np.zeros(NMEN), color = 'black', label = 'x_axis')
-    
+
     code_list =  ['af', 'cf', 'ars', 'rsa', 'aefa', 'psa', 'logt', 'irpp', 'ppe', 'revdisp']
-    
+
 
     def drawNode(node, prv):
 
@@ -589,7 +589,7 @@ def drawBaremeCompareHouseholds2(data, ax, x_axis, dataDefault = None, legend = 
     '''
     Draws bareme
     '''
-    if dataDefault is None: 
+    if dataDefault is None:
         raise Exception('drawBaremeCompareHouseHolds: dataDefault must be defined')
 
     ax.figure.subplots_adjust(bottom = 0.09, top = 0.95, left = 0.11, right = 0.95)
@@ -605,10 +605,10 @@ def drawBaremeCompareHouseholds2(data, ax, x_axis, dataDefault = None, legend = 
 
     node_list =  ['af', 'cf', 'ars', 'rsa', 'aefa', 'psa', 'logt', 'irpp', 'ppe', 'revdisp']
 
-    prv = np.zeros(NMEN)    
-    
+    prv = np.zeros(NMEN)
+
     for nod in node_list:
-        node = data[nod] 
+        node = data[nod]
         prev = prv + 0
         r,g,b = node.color
         col = (r/255, g/255, b/255)
@@ -620,7 +620,7 @@ def drawBaremeCompareHouseholds2(data, ax, x_axis, dataDefault = None, legend = 
         prv += node.vals
 
 
-    if legend:        
+    if legend:
         createLegend(ax, position = position)
 
 def percentFormatter(x, pos=0):
@@ -631,10 +631,10 @@ def drawTaux(data, ax, x_axis, reforme = False, dataDefault = None, legend = Tru
     '''
     Draws marginal and average tax rates
     '''
-    if dataDefault is None: 
+    if dataDefault is None:
         dataDefault = data
-        
-    print "x_axis :", x_axis 
+
+    print "x_axis :", x_axis
     # TODO: the following is an ugly fix which is not general enough
     if x_axis == "rev_cap_brut":
         typ_rev = 'superbrut'
@@ -646,10 +646,10 @@ def drawTaux(data, ax, x_axis, reforme = False, dataDefault = None, legend = Tru
         for typrev, vars in model.REVENUES_CATEGORIES.iteritems():
             if x_axis in vars:
                 typ_rev = typrev
-        
+
     RB = RevTot(dataDefault, typ_rev)
     xdata = dataDefault[x_axis]
-    
+
     RD = dataDefault['revdisp'].vals
     div = RB*(RB != 0) + (RB == 0)
     taumoy = (1 - RD/div)*100
@@ -662,12 +662,12 @@ def drawTaux(data, ax, x_axis, reforme = False, dataDefault = None, legend = Tru
     ax.plot(xdata.vals, taumoy, label = u"Taux moyen d'imposition", linewidth = 2)
     ax.plot(xdata.vals[1:], taumar, label = u"Taux marginal d'imposition", linewidth = 2)
     ax.set_ylim(0,100)
-    
+
     ax.yaxis.set_major_formatter(FuncFormatter(percentFormatter))
     if legend:
         createLegend(ax)
-    
-    
+
+
 def createLegend(ax, position = 2):
     '''
     Creates legend
@@ -697,6 +697,6 @@ def RevTot(data, typrev):
                 first = False
             else:
                 out += data[var].vals
-        return out 
+        return out
     except:
         raise Exception("typrev is %s but typrev should be one of the following: %s" %(str(typrev), str(dct.keys())) )

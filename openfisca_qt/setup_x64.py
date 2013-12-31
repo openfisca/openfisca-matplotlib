@@ -31,7 +31,7 @@ from .setup import build_datafiles
 
 
 dist_dir = "c:/users/utilisateur/documents/OpenFisca-%s-x64" % VERSION
-countries = ['france'] # countries = ['france', 'tunisia'] 
+countries = ['france'] # countries = ['france', 'tunisia']
 data_files = build_datafiles(countries)
 
 
@@ -39,11 +39,11 @@ print dist_dir
 
 setup(windows=[{
                 "script" : "openFisca.pyw"
-                }], 
+                }],
       options={"py2exe" : {"includes" : ["sip", "encodings.*", "numpy.*"],
                            "dist_dir": dist_dir,
                            "packages": ["france","tunisia"],
                            "bundle_files":3,
                            "dll_excludes": ["MSVCP90.dll"]
-                           }}, 
+                           }},
       data_files=data_files)

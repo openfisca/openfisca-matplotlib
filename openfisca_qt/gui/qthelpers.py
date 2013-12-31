@@ -96,7 +96,7 @@ except AttributeError:
 class OfTreeView(QTreeView):
     def __init__(self, parent = None):
         super(OfTreeView, self).__init__(parent)
-        
+
     def copy(self):
         '''
         Copy the table selection to the clipboard
@@ -110,7 +110,7 @@ class OfTreeView(QTreeView):
         data = self.model().data(previous)
         text = data.toString()
         selected_text = QString(text)
-        
+
         for current in indexes:
             if current.row() != previous.row():
                 selected_text.append('\n')
@@ -140,7 +140,7 @@ class DataFrameViewWidget(QTableView):
         if model:
             model.clear()
         self.reset()
-        
+
     def copy(self):
         '''
         Copy the table selection to the clipboard
@@ -178,13 +178,13 @@ class DataFrameModel(QAbstractTableModel):
         self.dataframe = dataframe
         self.colnames = self.dataframe.columns
         self.roles = {}
-        
+
     def rowCount(self, parent):
         return self.dataframe.shape[0]
-    
+
     def columnCount(self, parent):
         return self.dataframe.shape[1]
-    
+
     def data(self, index, role = Qt.DisplayRole):
         row = index.row()
         col = index.column()
@@ -203,11 +203,11 @@ class DataFrameModel(QAbstractTableModel):
                     if abs(val) <= 1:
                         return to_qvariant(('%.3g' % val))
                     else:
-                        return to_qvariant(int(round(val)))            
+                        return to_qvariant(int(round(val)))
         elif role == Qt.TextAlignmentRole:
             return to_qvariant(Qt.AlignRight | Qt.AlignVCenter)
 
-                    
+
     def headerData(self, section, orientation, role):
         if role == Qt.DisplayRole:
             if orientation == Qt.Horizontal:
@@ -220,13 +220,13 @@ class DataFrameModel(QAbstractTableModel):
         self.dataframe = DataFrame()
         self.columns = []
         self.reset()
-        
-        
+
+
 
 class OfTableView(QTableView):
     def __init__(self, parent = None):
         super(OfTableView, self).__init__(parent)
-        
+
     def copy(self):
         '''
         Copy the table selection to the clipboard
@@ -253,10 +253,10 @@ class OfTableView(QTableView):
 
 class OfSs:
     '''a container for stylesheets'''
-        
+
     bold_center = '''
         QLabel {
-            font-weight: bold; 
+            font-weight: bold;
             qproperty-alignment: AlignCenter;
         }'''
 
@@ -265,19 +265,19 @@ class OfSs:
              margin: 5px;
              background : #e6ebf4;
          }
-        
+
          QDockWidget::title {
              margin: 2px;
              padding-left: 2px;
              background-color: #e7d2d9;
              border : 1px solid rgb(166, 54, 110);
-         }        
+         }
          '''
     declaration_page_style = '''
         QDialog{
             background-color: #e6ebf4;
         }
-        /*----------------- Objets----------------- */        
+        /*----------------- Objets----------------- */
         QLineEdit{
             border: 1px solid gray;
             border-style: solid;
@@ -303,7 +303,7 @@ class OfSs:
             background: white;
             selection-background-color: darkgray;
         }
-            
+
         /*-----------------Textes----------------- */
         /*  Titres */
 
@@ -344,21 +344,21 @@ class OfSs:
             font-size: 12px;
             font-weight : bold;
         }
-        
+
         /*----------------- Design----------------- */
         /*------  page  declaration.ui------*/
-        
+
         /*  boite générale */
         QLabel.sponsor{
-            background-image: url(:/images/logo1.png);  
+            background-image: url(:/images/logo1.png);
         }
-        
+
         QFrame.top{
             background-color: #e7d2d9;
             border: 2px solid #e7d2d9;
             border-radius: 6px;
         }
-        
+
         /*  Pages du formulaire */
         QLabel.boite1{
             background-color: #e7d2d9;
@@ -384,22 +384,22 @@ class OfSs:
         QScrollArea{
             border : 0px;
         }
-        
+
         QStackedWidget{
             background-color: #e6ebf4;
             border : 0px;
         }
-        
+
         '''
 
-    
+
 ### Some useful widgets
 
 class MySpinBox(QWidget):
     def __init__(self, parent, prefix = None, suffix = None, option = None, min_ = None, max_ = None,
                  step = None, tip = None, value = None, changed =None):
         super(MySpinBox, self).__init__(parent)
-    
+
         if prefix:
             plabel = QLabel(prefix)
         else:
@@ -423,7 +423,7 @@ class MySpinBox(QWidget):
                 layout.addWidget(subwidget)
         if value is not None:
             spinbox.setValue(value)
-        
+
         if changed is not None:
             self.connect(spinbox, SIGNAL('valueChanged(int)'), changed)
 
@@ -432,12 +432,12 @@ class MySpinBox(QWidget):
         self.setLayout(layout)
         self.spin = spinbox
 
-            
+
 class MyDoubleSpinBox(QWidget):
     def __init__(self, parent, prefix = None, suffix = None, option = None, min_ = None, max_ = None,
                  step = None, tip = None, value = None, changed =None):
         super(MyDoubleSpinBox, self).__init__(parent)
-    
+
         if prefix:
             plabel = QLabel(prefix)
         else:
@@ -461,7 +461,7 @@ class MyDoubleSpinBox(QWidget):
                 layout.addWidget(subwidget)
         if value is not None:
             spinbox.setValue(value)
-        
+
         if changed is not None:
             self.connect(spinbox, SIGNAL('valueChanged(double)'), changed)
 
@@ -492,7 +492,7 @@ class MyComboBox(QWidget):
 
 
 
-# TODO should improve qtpandas 
+# TODO should improve qtpandas
 from pandas import Index
 
 def testDf():

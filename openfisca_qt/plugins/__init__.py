@@ -31,7 +31,7 @@ from ..gui.userconfig import NoDefault
 
 from ..gui.config import get_font, set_font, get_icon
 from ..plugins.general.configdialog import OpenfiscaConfigPage
-  
+
 get_font = None
 set_font = None
 get_icon = None
@@ -57,7 +57,7 @@ class OpenfiscaPluginMixin(object):
     """
     Useful methods to bind widgets to the main window
     See OpenfiscaPluginWidget class for required widget interface
-    
+
     Signals:
         sig_option_changed
             Example:
@@ -87,7 +87,7 @@ class OpenfiscaPluginMixin(object):
         self.mainwindow = None
         self.ismaximized = False
         self.isvisible = False
-        
+
     def initialize_plugin(self):
         """
         Initialize plugin: connect signals, setup actions, ...
@@ -100,7 +100,7 @@ class OpenfiscaPluginMixin(object):
         if self.sig_option_changed is not None:
             self.sig_option_changed.connect(self.set_option)
         self.setWindowTitle(self.get_plugin_title())
-        
+
     def update_margins(self):
         layout = self.layout()
         if self.default_margins is None:
@@ -110,7 +110,7 @@ class OpenfiscaPluginMixin(object):
             layout.setContentsMargins(*[margin]*4)
         else:
             layout.setContentsMargins(*self.default_margins)
-            
+
     def __update_plugin_title(self):
         """
         Update plugin title, i.e. dockwidget or mainwindow title
@@ -122,7 +122,7 @@ class OpenfiscaPluginMixin(object):
         else:
             return
         win.setWindowTitle(self.get_plugin_title())
-        
+
     def create_dockwidget(self):
         """
         Add to parent QMainWindow as a dock widget
@@ -154,8 +154,8 @@ class OpenfiscaPluginMixin(object):
                                    "Switch to %s" % self.CONF_SECTION,
                                    default=short)
         return (dock, self.LOCATION)
-    
-    
+
+
     def create_configwidget(self, parent):
         """
         Create configuration dialog box page widget
@@ -168,7 +168,7 @@ class OpenfiscaPluginMixin(object):
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         raise NotImplementedError
-    
+
     def register_shortcut(self, qaction_or_qshortcut, context, name,
                           default=NoDefault):
         """
@@ -177,7 +177,7 @@ class OpenfiscaPluginMixin(object):
         """
         self.main.register_shortcut(qaction_or_qshortcut,
                                     context, name, default)
-        
+
     def register_widget_shortcuts(self, context, widget):
         """
         Register widget shortcuts
@@ -185,7 +185,7 @@ class OpenfiscaPluginMixin(object):
         """
         for qshortcut, name, default in widget.get_shortcut_data():
             self.register_shortcut(qshortcut, context, name, default)
-    
+
     def switch_to_plugin(self):
         """
         Switch to plugin
@@ -224,19 +224,19 @@ class OpenfiscaPluginMixin(object):
         Get a plugin option from configuration file
         """
         return CONF.get(self.CONF_SECTION, option, default)
-    
+
     def get_plugin_font(self, option=None):
         """
         Return plugin font option
         """
         return get_font(self.CONF_SECTION, option)
-    
+
     def set_plugin_font(self, font, option=None):
         """
         Set plugin font option
         """
         set_font(font, self.CONF_SECTION, option)
-        
+
     def show_message(self, message, timeout=0):
         """
         Show message in main window's status bar
@@ -251,7 +251,7 @@ class OpenfiscaPluginMixin(object):
         self.show_message(message)
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         QApplication.processEvents()
-        
+
     def ending_long_process(self, message=""):
         """
         Clearing main window's status bar
@@ -260,7 +260,7 @@ class OpenfiscaPluginMixin(object):
         QApplication.restoreOverrideCursor()
         self.show_message(message, timeout=2000)
         QApplication.processEvents()
-        
+
     def set_default_color_scheme(self, name='Spyder'):
         """Set default color scheme (only once)"""
         color_scheme_name = self.get_option('color_scheme_name', None)
@@ -277,11 +277,11 @@ class OpenfiscaPluginWidget(QWidget, OpenfiscaPluginMixin):
     OpenFisca's widgets either inherits this class or re-implements its interface
     """
     sig_option_changed = Signal(str, object)
-    
+
     def __init__(self, parent):
         QWidget.__init__(self, parent)
         OpenfiscaPluginMixin.__init__(self, parent)
-        
+
     def get_plugin_title(self):
         """
         Return plugin title
@@ -289,7 +289,7 @@ class OpenfiscaPluginWidget(QWidget, OpenfiscaPluginMixin):
         is more flexible here than using a class attribute
         """
         raise NotImplementedError
-    
+
     def get_plugin_icon(self):
         """
         Return plugin icon (QIcon instance)
@@ -298,14 +298,14 @@ class OpenfiscaPluginWidget(QWidget, OpenfiscaPluginMixin):
               and for configuration dialog widgets creation
         """
         return get_icon('OpenFisca22.png')
-    
+
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
         this plugin's dockwidget is raised on top-level
         """
         pass
-        
+
     def closing_plugin(self, cancelable=False):
         """
         Perform actions before parent main window is closed
@@ -313,13 +313,13 @@ class OpenfiscaPluginWidget(QWidget, OpenfiscaPluginMixin):
         Note: returned value is ignored if *cancelable* is False
         """
         raise NotImplementedError
-        
+
     def refresh_plugin(self):
         """
         Refresh widget
         """
         raise NotImplementedError
-    
+
     def get_plugin_actions(self):
         """
         Return a list of actions related to plugin
@@ -327,7 +327,7 @@ class OpenfiscaPluginWidget(QWidget, OpenfiscaPluginMixin):
               and they will be disabled when it's hidden
         """
         raise NotImplementedError
-    
+
     def register_plugin(self):
         """
         Register plugin in OpenFisca's main window"""

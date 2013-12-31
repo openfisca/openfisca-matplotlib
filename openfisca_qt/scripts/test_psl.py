@@ -20,20 +20,20 @@
 
 import os
 
-from openfisca_core.simulations import SurveySimulation 
+from openfisca_core.simulations import SurveySimulation
 from openfisca_core import model
 from openfisca_qt.plugins.survey.distribution import OpenfiscaPivotTable
 
 
 def get_age_structure(simulation):
-    
+
     pivot_table = OpenfiscaPivotTable()
     pivot_table.set_simulation(simulation)
     df = pivot_table.get_table(entity = 'ind', by = "age", vars = [])
     return df
 
 def get_structure(simulation, by_var):
-    
+
     pivot_table = OpenfiscaPivotTable()
     pivot_table.set_simulation(simulation)
     df = pivot_table.get_table(entity = 'ind', by = by_var, vars = [], champm=False)
@@ -48,13 +48,13 @@ def test():
     filename = os.path.join(model.DATA_DIR, 'survey_psl.h5')
     simu.set_survey(filename = filename)
     simu.compute()
-    
-    df = get_structure(simu, 'br_al')
-    print df.to_string()    
 
-    
+    df = get_structure(simu, 'br_al')
+    print df.to_string()
+
+
 if __name__ == '__main__':
-    
+
 
 #    build_aggregates()
 #    diag_aggregates()

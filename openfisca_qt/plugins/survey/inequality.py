@@ -45,21 +45,21 @@ class Inequality(object):
     def __init__(self):
         super(Inequality, self).__init__()
         self.simulation = None
-        
-        self.data = DataFrame() 
+
+        self.data = DataFrame()
         self.data_default = None
         self.vars = {'nivvie_ini': ['men'],
-                     'nivvie_net':  ['men'],                    
+                     'nivvie_net':  ['men'],
                      'nivvie' : ['men']}
 
 #        self.vars = {'nivvie_prim': ['ind', 'men'],
 #                     'nivvie_init': ['ind', 'men'],
-#                     'nivvie_net':  ['ind', 'men'],                    
+#                     'nivvie_net':  ['ind', 'men'],
 #                     'nivvie' : ['ind', 'men']}
         self.gini = None
         self.inequality_dataframe = None
         self.poverty = None
-    
+
     def set_default_filter_by(self):
         """
         Set country specific default filter by variable
@@ -67,7 +67,7 @@ class Inequality(object):
         self.set_default_filter_by_list()
         varname = self.filter_by_var_list[0]
         self.set_filter_by(varname)
-                
+
     def set_simulation(self, simulation):
         """
         Set simulation
@@ -90,12 +90,12 @@ class Inequality(object):
         for varname, entities in self.vars.iteritems():
             for entity in entities:
                 #idx =  output.index[entity]
-                
+
                 val  = output.get_value(varname, entity)
                 weights = output._inputs.get_value(WEIGHT, entity)
                 filter_var_name = FILTERING_VARS[0]
                 filter_var= output._inputs.get_value(filter_var_name, entity)
-                
+
             items = []
             # Compute mean
             moy = (weights*filter_var*val).sum()/(weights*filter_var).sum()
@@ -105,23 +105,23 @@ class Inequality(object):
             labels = range(1,11)
             method = 2
             decile, values = mark_weighted_percentiles(val, labels, weights*filter_var, method, return_quantiles=True)
-            
+
             labels = [ 'D'+str(d) for d in range(1,11)]
             del decile
             for l, v in zip(labels[:-1],values[1:-1]):
                 items.append( (l, [v]))
-        
+
             # Compute Gini
             gini_coeff = gini(val, weights*filter_var)
             items.append( ( _("Gini index"), [gini_coeff]))
 
-            df = DataFrame.from_items(items, orient = 'index', columns = [varname])            
+            df = DataFrame.from_items(items, orient = 'index', columns = [varname])
             df = df.reset_index()
             if final_df is None:
                 final_df = df
             else:
                 final_df = final_df.merge(df, on='index')
-        
+
         final_df[u"Initial à net"] = (final_df['nivvie_net']-final_df['nivvie_ini'])/final_df['nivvie_ini']
         final_df[u"Net à disponible"] = (final_df['nivvie']-final_df['nivvie_net'])/final_df['nivvie_net']
         final_df = final_df[['index','nivvie_ini', u"Initial à net", 'nivvie_net',u"Net à disponible",'nivvie']]
@@ -133,39 +133,39 @@ class Inequality(object):
         varname = "nivvie"
         for percentage in [ 40, 50, 60]:
 #            idx =  output.index[entity]
-            varname = "pauvre" + str(percentage) 
+            varname = "pauvre" + str(percentage)
             val = output.get_value(varname, entity)
             weights = output._inputs.get_value(WEIGHT, entity)
             filter_var_name = FILTERING_VARS[0]
-            filter_var= output._inputs.get_value(filter_var_name, entity) 
+            filter_var= output._inputs.get_value(filter_var_name, entity)
             poverty[percentage] =  (weights*filter_var*val).sum()/(weights*filter_var).sum()
-            
+
         self.poverty = poverty
-            
+
     def create_description(self):
         '''
         Creates a description dataframe
         '''
         now = datetime.now()
-        descr =  [u'OpenFisca', 
+        descr =  [u'OpenFisca',
                          u'Calculé le %s à %s' % (now.strftime('%d-%m-%Y'), now.strftime('%H:%M')),
                          u'Système socio-fiscal au %s' % self.simulation.datesim,
                          u"Données d'enquêtes de l'année %s" %str(self.simulation.survey.survey_year) ]
         return DataFrame(descr)
-        
+
 
 
 class InequalityConfigPage(PluginConfigPage):
     def __init__(self, plugin, parent):
         PluginConfigPage.__init__(self, plugin, parent)
         self.get_name = lambda: _("Inequality")
-        
+
     def setup_page(self):
 
         group = QGroupBox(_("Lorenz curve"))
-        
-        #x_axis  
-        
+
+        #x_axis
+
         vlayout = QVBoxLayout()
         vlayout.addWidget(group)
         vlayout.addStretch(1)
@@ -178,24 +178,24 @@ class InequalityWidget(OpenfiscaPluginWidget):
     """
     CONF_SECTION = 'inequality'
     CONFIGWIDGET_CLASS = InequalityConfigPage
-    
+
     LOCATION = Qt.LeftDockWidgetArea
     FEATURES = QDockWidget.DockWidgetClosable | \
                QDockWidget.DockWidgetFloatable | \
                QDockWidget.DockWidgetMovable
     DISABLE_ACTIONS_WHEN_HIDDEN = False
-    
+
     def __init__(self, parent = None):
         super(InequalityWidget, self).__init__(parent)
         self.setStyleSheet(OfSs.dock_style)
         # Create geometry
         self.dockWidgetContents = QWidget()
-        
+
         widget_list = []
 
         self.lorenzWidget = MatplotlibWidget(self.dockWidgetContents,
                                               title= _("Lorenz curve"), # 'Courbe de Lorenz',
-                                              xlabel= _('Population'), 
+                                              xlabel= _('Population'),
                                               ylabel= _('Variable'),
                                               hold=True,
                                               xlim = [0,1],
@@ -220,11 +220,11 @@ class InequalityWidget(OpenfiscaPluginWidget):
     def plot(self):
         '''
         Plots the Lorenz Curve
-        '''        
+        '''
         axes = self.lorenzWidget.axes
         axes.clear()
-        
-            
+
+
         output = self.inequality.simulation.output_table
         simulation = self.inequality.simulation
         WEIGHT = model.WEIGHT
@@ -233,33 +233,33 @@ class InequalityWidget(OpenfiscaPluginWidget):
         weights = {}
         for entity in entities:
             weights[entity] = output._inputs.get_value(WEIGHT, entity)
-        
+
         for varname, entities in self.inequality.vars.iteritems():
             for entity in entities:
-            
+
                 values  = output.get_value(varname, entity)
-                
+
                 x, y = lorenz(values, weights[entity])
-                label = varname + ' (' + entity + ') ' 
+                label = varname + ' (' + entity + ') '
                 axes.plot(x,y, linewidth = 2, label = label)
-                
+
         axes.plot(x,x, label ="")
         axes.legend(loc= 2, prop = {'size':'medium'})
         axes.set_xlim([0,1])
         axes.set_ylim([0,1])
         self.lorenzWidget.update()
-            
+
     def set_simulation(self, simulation):
         '''
         Set the simulation
-        
+
         Parameters
         ----------
-        
+
         simulation : SurveySimulation
                      the simulation object to extract the data from
         '''
-        self.inequality.set_simulation(simulation) 
+        self.inequality.set_simulation(simulation)
 
 
     def update_frame(self):
@@ -269,10 +269,10 @@ class InequalityWidget(OpenfiscaPluginWidget):
         self.inequality.compute()
         self.ineqFrameWidget.set_dataframe(self.inequality.inequality_dataframe)
         self.ineqFrameWidget.reset()
-        
+
     def calculated(self):
         self.emit(SIGNAL('calculated()'))
-    
+
     #------ OpenfiscaPluginMixin API ---------------------------------------------
     #------ OpenfiscaPluginWidget API ---------------------------------------------
 
@@ -284,7 +284,7 @@ class InequalityWidget(OpenfiscaPluginWidget):
         """
         return _("Inequality")
 
-    
+
     def get_plugin_icon(self):
         """
         Return plugin icon (QIcon instance)
@@ -292,7 +292,7 @@ class InequalityWidget(OpenfiscaPluginWidget):
               and for configuration dialog widgets creation
         """
         return get_icon('OpenFisca22.png')
-            
+
     def get_plugin_actions(self):
         """
         Return a list of actions related to plugin
@@ -300,7 +300,7 @@ class InequalityWidget(OpenfiscaPluginWidget):
               and they will be disabled when it's hidden
         """
         raise NotImplementedError
-    
+
     def register_plugin(self):
         """
         Register plugin in OpenFisca's main window
@@ -317,7 +317,7 @@ class InequalityWidget(OpenfiscaPluginWidget):
         self.update_frame()
         self.plot()
         self.ending_long_process(_("Inequality widget refreshed"))
-    
+
     def closing_plugin(self, cancelable=False):
         """
         Perform actions before parent main window is closed

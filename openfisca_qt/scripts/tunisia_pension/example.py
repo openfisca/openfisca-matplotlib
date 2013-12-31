@@ -21,14 +21,14 @@ def test_case(year):
                     nmen = 4, maxrev = 25*9*12*3, x_axis = 'sal0')
     # Adding a husband/wife on the same tax sheet (foyer)
 
-    
+
     simulation.set_param()
     df = simulation.get_results_dataframe()
     print df.to_string()
-    
+
     # Save example to excel
     # destination_dir = "c:/users/utilisateur/documents/"
-    # fname = "Example_%s.%s" %(str(yr), "xls")    
+    # fname = "Example_%s.%s" %(str(yr), "xls")
     # df.to_excel(destination_dir = destination_dir + fname)
 
 
@@ -42,21 +42,21 @@ def test_case_reform(year):
 
     simulation.set_param()
     test_case = simulation.scenario
-    
+
     sal_mensuel = 1000
-    for i in range(10): 
+    for i in range(10):
         test_case.indiv[0].update({"sal" + str(i): sal_mensuel*12})
-    
-    
+
+
     test_case.indiv[0].update({"nb_trim_val": 50})
     test_case.indiv[0].update({"age": 54})
     simulation.set_param()
-    
+
     print simulation.P_default
     param =  simulation.P
     # param.pension.rsna.taux_ann_base = .03
     param.pension.rsna.age_dep_anticip = 55
-        
+
     df = simulation.get_results_dataframe()
     print df.to_string()
 

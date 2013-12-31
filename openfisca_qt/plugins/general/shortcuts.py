@@ -60,7 +60,7 @@ class Key(object):
         self.modifiers = sorted(modifiers)
         assert key in self.KEYS
         self.key = key
-        
+
     def __str__(self):
         tlist = []
         for mod in sorted(list(set(self.modifiers))):
@@ -68,16 +68,16 @@ class Key(object):
                 tlist.append(self.MODIFIERS[mod])
         tlist.append(self.KEYS[self.key])
         return "+".join(tlist)
-    
+
     def __unicode__(self):
         return unicode(self.__str__())
-    
+
     @staticmethod
     def modifier_from_str(modstr):
         for k, v in Key.MODIFIERS.iteritems():
             if v.lower() == modstr.lower():
                 return k
-    
+
     @staticmethod
     def key_from_str(keystr):
         for k, v in Key.KEYS.iteritems():
@@ -88,7 +88,7 @@ class Key(object):
     def modifier_from_name(modname):
         for k, v in Key.MODIFIERNAMES.iteritems():
             if v.lower() == modname.lower():
-                return k        
+                return k
 
 def keystr2key(keystr):
     keylist = keystr.split("+")
@@ -105,13 +105,13 @@ class Shortcut(object):
         if isinstance(key, basestring):
             key = keystr2key(key)
         self.key = key
-        
+
     def __str__(self):
         return "%s/%s: %s" % (self.context, self.name, self.key)
-    
+
     def load(self):
         self.key = keystr2key(get_shortcut(self.context, self.name))
-    
+
     def save(self):
         set_shortcut(self.context, self.name, str(self.key))
 
@@ -189,7 +189,7 @@ class ShortcutsModel(QAbstractTableModel):
 
     def columnCount(self, index=QModelIndex()):
         return 6
-    
+
     def setData(self, index, value, role=Qt.EditRole):
         if index.isValid() and 0 <= index.row() < len(self.shortcuts):
             shortcut = self.shortcuts[index.row()]
@@ -217,7 +217,7 @@ class ShortcutsDelegate(QItemDelegate):
         self.mod = None
         self.keys = sorted(Key.KEYS.values())
         self.key = None
-        
+
     def sizeHint(self, option, index):
         fm = option.fontMetrics
         if index.column() in (MOD1, MOD2, MOD3):
@@ -281,12 +281,12 @@ class ShortcutsTable(QTableView):
         self.setModel(self.model)
         self.setItemDelegate(ShortcutsDelegate(self))
         self.load_shortcuts()
-                     
+
     def adjust_cells(self):
         self.resizeColumnsToContents()
 #        self.resizeRowsToContents()
         self.horizontalHeader().setStretchLastSection(True)
-        
+
     def load_shortcuts(self):
         shortcuts = []
         for context, name, keystr in iter_shortcuts():
@@ -317,21 +317,21 @@ class ShortcutsTable(QTableView):
             QMessageBox.warning(self, _( "Conflicts"),
                                 _("The following conflicts have been "
                                   "detected:")+"\n"+cstr, QMessageBox.Ok)
-        
+
     def save_shortcuts(self):
         self.check_shortcuts()
         for shortcut in self.model.shortcuts:
             shortcut.save()
-        
+
 
 class ShortcutsConfigPage(GeneralConfigPage):
     CONF_SECTION = "shortcuts"
     def get_name(self):
         return _("Keyboard shortcuts")
-    
+
     def get_icon(self):
         return get_icon("genprefs.png")
-    
+
     def setup_page(self):
         self.table = ShortcutsTable(self)
         self.connect(self.table.model,
@@ -343,17 +343,17 @@ class ShortcutsConfigPage(GeneralConfigPage):
         self.connect(reset_btn, SIGNAL('clicked()'), self.reset_to_default)
         vlayout.addWidget(reset_btn)
         self.setLayout(vlayout)
-        
+
     def check_settings(self):
         self.table.check_shortcuts()
-        
+
     def reset_to_default(self):
         reset_shortcuts()
         self.main.apply_shortcuts()
         self.table.load_shortcuts()
         self.load_from_conf()
         self.set_modified(False)
-            
+
     def apply_settings(self, options):
         self.table.save_shortcuts()
         self.main.apply_shortcuts()

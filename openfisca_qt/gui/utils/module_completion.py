@@ -39,15 +39,15 @@ def getRootModules():
         return modules_db['rootmodules']
     t = time()
     for path in sys.path:
-        modules += moduleList(path)        
+        modules += moduleList(path)
         if time() - t > TIMEOUT_GIVEUP:
             print "Module list generation is taking too long, we give up."
             print
             modules_db['rootmodules'] = []
             return []
-    
+
     modules += sys.builtin_module_names
-      
+
     modules = list(set(modules))
     if '__init__' in modules:
         modules.remove('__init__')
@@ -118,11 +118,11 @@ def moduleCompletion(line):
         if '__init__' in completion_list:
             completion_list.remove('__init__')
         return completion_list
-        
+
     def dotCompletion(mod):
         if len(mod) < 2:
             return filter(lambda x: x.startswith(mod[0]), getRootModules())
-        
+
         completion_list = tryImport('.'.join(mod[:-1]), True)
         completion_list = filter(lambda x: x.startswith(mod[-1]),
                                  completion_list)
@@ -130,30 +130,30 @@ def moduleCompletion(line):
         return completion_list
 
     words = line.split(' ')
-    
+
     if len(words) == 3 and words[0] == 'from':
         if words[2].startswith('i') or words[2] == '':
             return ['import ']
         else:
             return []
-            
+
     if words[0] == 'import':
         if len(words) == 2 and words[1] == '':
             return getRootModules()
 
         if ',' == words[-1][-1]:
             return [' ']
-        
+
         mod = words[-1].split('.')
         return dotCompletion(mod)
-        
+
     if len(words) < 3 and (words[0] == 'from'):
         if len(words) == 1:
             return getRootModules()
-        
+
         mod = words[1].split('.')
         return dotCompletion(mod)
-    
+
     if len(words) >= 3 and words[0] == 'from':
         mod = words[1]
         completion_list = tryImport(mod)
@@ -165,9 +165,9 @@ def moduleCompletion(line):
             return filter(lambda x: x.startswith(words[-1]), completion_list)
         else:
             return completion_list
-    
+
     return []
-        
+
 
 if __name__ == "__main__":
     # Some simple tests.
@@ -175,7 +175,7 @@ if __name__ == "__main__":
     # replicate them here.
     # We've chosen to use xml on all tests because it's on the standard
     # library. This way we can ensure they work on all plataforms.
-    
+
     assert sorted(moduleCompletion('import xml.')) == \
         ['xml.dom', 'xml.etree', 'xml.parsers', 'xml.sax']
 
@@ -185,7 +185,7 @@ if __name__ == "__main__":
 
     assert sorted(moduleCompletion('from xml.etree import '),key=str.lower) ==\
         ['cElementTree', 'ElementInclude', 'ElementPath', 'ElementTree']
-        
+
     s = 'from xml.etree.ElementTree import '
     assert moduleCompletion(s + 'V') == ['VERSION']
 

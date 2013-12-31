@@ -51,17 +51,17 @@ class ParamWidget(QDockWidget, Ui_Parametres):
     def reset(self):
         self.initialize()
         self.changed()
-            
+
     def changed(self):
         self.emit(SIGNAL('changed()'))
-    
+
     def initialize(self):
         self._date = CONF.get('simulation', 'datesim')
         self.label.setText(u"Date : %s" %( str(self._date)) )
         self._reader = XmlReader(self._file, self._date)
         self._rootNode = self._reader.tree
         self._rootNode.rmv_empty_code()
-                
+
         self._model = PrestationModel(self._rootNode, self)
         self.connect(self._model, SIGNAL('dataChanged(QModelIndex, QModelIndex)'), self.changed)
 
@@ -74,7 +74,7 @@ class ParamWidget(QDockWidget, Ui_Parametres):
         delegate.insertColumnDelegate(1, ValueColumnDelegate(self))
         delegate.insertColumnDelegate(2, ValueColumnDelegate(self))
         self.uiTree.setItemDelegate(delegate)
-    
+
     def getParam(self, defaut = False):
         obj = Tree2Object(self._rootNode, defaut)
         obj.datesim = self._date
@@ -100,7 +100,7 @@ class ParamWidget(QDockWidget, Ui_Parametres):
         fileName = QFileDialog.getOpenFileName(self,
                                                u"Ouvrir une réforme", reformes_dir, u"Paramètres OpenFisca (*.ofp)")
         if not fileName == '':
-            try: 
+            try:
                 loader = XmlReader(str(fileName))
                 CONF.set('simulation', 'datesim',str(loader._date))
                 self.initialize()
@@ -111,4 +111,4 @@ class ParamWidget(QDockWidget, Ui_Parametres):
                     self, "Erreur", u"Impossible de lire le fichier : " + str(e),
                     QMessageBox.Ok, QMessageBox.NoButton)
 
-        
+

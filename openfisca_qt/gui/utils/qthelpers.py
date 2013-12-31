@@ -115,7 +115,7 @@ def keyevent2tuple(event):
     return (event.type(), event.key(), event.modifiers(), event.text(),
             event.isAutoRepeat(), event.count())
 
-    
+
 def tuple2keyevent(past_event):
     """Convert tuple into a QKeyEvent instance"""
     return QKeyEvent(*past_event)
@@ -269,7 +269,7 @@ def create_module_bookmark_actions(parent, bookmarks):
             actions.append(act)
     return actions
 
-        
+
 def create_program_action(parent, text, icon, name, nt_name=None):
     """Create action to run a program"""
     if isinstance(icon, basestring):
@@ -281,7 +281,7 @@ def create_program_action(parent, text, icon, name, nt_name=None):
         return create_action(parent, text, icon=icon,
                              triggered=lambda: programs.run_program(name))
 
-        
+
 def create_python_script_action(parent, text, icon, package, module, args=[]):
     """Create action to run a GUI based Python script"""
     if isinstance(icon, basestring):
@@ -300,7 +300,7 @@ class DialogManager(QObject):
     def __init__(self):
         QObject.__init__(self)
         self.dialogs = {}
-        
+
     def show(self, dialog):
         """Generic method to show a non-modal dialog and keep reference
         to the Qt C++ object"""
@@ -316,17 +316,17 @@ class DialogManager(QObject):
                          lambda eid=id(dialog): self.dialog_finished(eid))
             self.connect(dialog, SIGNAL('rejected()'),
                          lambda eid=id(dialog): self.dialog_finished(eid))
-        
+
     def dialog_finished(self, dialog_id):
         """Manage non-modal dialog boxes"""
         return self.dialogs.pop(dialog_id)
-    
+
     def close_all(self):
         """Close all opened dialog boxes"""
         for dlg in self.dialogs.values():
             dlg.reject()
 
-        
+
 def get_std_icon(name, size=None):
     """Get standard platform icon
     Call 'show_std_icons()' for details"""
@@ -369,7 +369,7 @@ class ShowStdIcons(QWidget):
                 col_layout.addLayout(icon_layout)
                 cindex = (cindex+1) % row_nb
                 if cindex == 0:
-                    layout.addLayout(col_layout)                    
+                    layout.addLayout(col_layout)
         self.setLayout(layout)
         self.setWindowTitle('Standard Platform Icons')
         self.setWindowIcon(get_std_icon('TitleBarMenuButton'))

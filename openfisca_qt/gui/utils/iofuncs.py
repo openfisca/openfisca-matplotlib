@@ -64,7 +64,7 @@ try:
             name = osp.splitext(osp.basename(filename))[0]
             return {name: np.load(filename)}, None
         except Exception, error:
-            return None, str(error)    
+            return None, str(error)
     def __save_array(data, basename, index):
         """Save numpy array"""
         fname = basename + '_%04d.npy' % index
@@ -248,7 +248,7 @@ def load_session(filename):
     try:
         tar = tarfile.open(filename, "r")
         extracted_files = tar.getnames()
-        
+
         # Rename original config files
         for fname in extracted_files:
             orig_name = get_conf_path(fname)
@@ -258,12 +258,12 @@ def load_session(filename):
             if osp.isfile(orig_name):
                 os.rename(orig_name, bak_name)
         renamed = True
-        
+
         tar.extractall()
-        
+
         for fname in extracted_files:
             shutil.move(fname, get_conf_path(fname))
-            
+
     except Exception, error:
         error_message = unicode(error)
         if renamed:
@@ -275,14 +275,14 @@ def load_session(filename):
                     os.remove(orig_name)
                 if osp.isfile(bak_name):
                     os.rename(bak_name, orig_name)
-                    
+
     finally:
         # Removing backup config files
         for fname in extracted_files:
             bak_name = get_conf_path(fname+'.bak')
             if osp.isfile(bak_name):
                 os.remove(bak_name)
-        
+
     os.chdir(old_cwd)
     return error_message
 
@@ -297,7 +297,7 @@ class IOFunctions(object):
         self.save_filters = None
         self.load_funcs = None
         self.save_funcs = None
-        
+
     def setup(self):
         iofuncs = self.get_internal_funcs()+self.get_3rd_party_funcs()
         load_extensions = {}
@@ -326,7 +326,7 @@ class IOFunctions(object):
         self.save_funcs = save_funcs
         self.load_extensions = load_extensions
         self.save_extensions = save_extensions
-        
+
     def get_internal_funcs(self):
         return [
                 ('.spydata', _("Spyder data files"),
@@ -340,7 +340,7 @@ class IOFunctions(object):
                 ('.gif', _("GIF images"), load_image, None),
                 ('.tif', _("TIFF images"), load_image, None),
                 ]
-        
+
     def get_3rd_party_funcs(self):
         other_funcs = []
         from spyderlib.otherplugins import get_spyderplugins_mods
@@ -351,14 +351,14 @@ class IOFunctions(object):
             except AttributeError, error:
                 print >>STDERR, "%s: %s" % (mod, str(error))
         return other_funcs
-        
+
     def save(self, data, filename):
         ext = osp.splitext(filename)[1].lower()
         if ext in self.save_funcs:
             return self.save_funcs[ext](data, filename)
         else:
             return _("<b>Unsupported file type '%s'</b>") % ext
-    
+
     def load(self, filename):
         ext = osp.splitext(filename)[1].lower()
         if ext in self.load_funcs:

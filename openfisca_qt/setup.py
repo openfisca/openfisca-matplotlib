@@ -33,7 +33,7 @@ def find_data_files(source,target,patterns):
     """
     Locates the specified data-files and returns the matches
          in a data_files compatible format.
- 
+
      source is the root of the source data tree.
         Use '' or '.' for current directory.
      target is the root of the target data tree.
@@ -56,30 +56,30 @@ def find_data_files(source,target,patterns):
 
 def build_datafiles(countries):
     """
-    Returns data_files 
+    Returns data_files
     """
     tuples_list = []
     data_files = matplotlib.get_py2exe_datafiles()
-    
+
     for country in countries:
-        
+
         model = find_data_files('./countries//%s/model' %country,
                                    '/countries/%s/model' %country,
                                    ['*.py'])
         tuples_list.append(model[0])
-        
-        
+
+
         castypes = find_data_files('./countries//%s/castypes/' %country,
                                     '/countries/%s/castypes/' %country,
                                     ['*.ofct'])
-        
+
         tuples_list.append(castypes[0])
-        
+
         param = find_data_files('./countries//%s/param/' %country,
                                     '/countries/%s/param/' %country,
                                     ['param.xml'])
         tuples_list.append(param[0])
-    
+
         reformes = find_data_files('./countries//%s/reformes/' %country,
                                     '/countries/%s/reformes/' %country,
                                     ['*.ofp'])
@@ -88,7 +88,7 @@ def build_datafiles(countries):
                                     '/countries/%s/decompositions/' %country,
                                     ['decomp.xml'])
         tuples_list.append(decomp[0])
-    
+
         if country == 'france':
             calibrations = find_data_files('./countries/france/calibrations/',
                                            './countries/france/calibrations/',
@@ -102,10 +102,10 @@ def build_datafiles(countries):
                                            './countries/france/data/sources/',
                                            ['*.xls'])
             tuples_list.append(data_sources[0])
-            
+
     for tupl in tuples_list:
         data_files.append(tupl)
-    
+
     return data_files
 
 
@@ -124,8 +124,8 @@ myDataFiles = build_datafiles(countries)
 
 setup(windows=[{
                 "script" : "openFisca.pyw"
-                }], 
+                }],
       options={"py2exe" : {"includes" : ["sip", "encodings.*", "numpy.*"],
                            "dist_dir": "C:/users/utilisateur/documents/OpenFisca-%s-win32" % VERSION,
-                           "bundle_files":1}}, 
+                           "bundle_files":1}},
       data_files=myDataFiles)

@@ -41,7 +41,7 @@ def fix_indentation(text):
     """Replace tabs by spaces"""
     return text.replace('\t', ' '*4)
 
-    
+
 def is_builtin(text):
     """Test if passed string is the name of a Python builtin object"""
     import __builtin__

@@ -9,7 +9,7 @@ from datetime import datetime
 import os
 import sys
 
-from openfisca_core.simulations import ScenarioSimulation 
+from openfisca_core.simulations import ScenarioSimulation
 from openfisca_qt.gui.qt.QtGui import QMainWindow, QApplication
 from openfisca_qt.widgets.matplotlibwidget import MatplotlibWidget
 
@@ -20,7 +20,7 @@ class ApplicationWindow(QMainWindow):
         self.mplwidget = MatplotlibWidget(self)
         self.mplwidget.setFocus()
         self.setCentralWidget(self.mplwidget)
-        
+
 
 if __name__ == '__main__':
 
@@ -28,22 +28,22 @@ if __name__ == '__main__':
     SHOW = True
     destination_dir = u"c:/users/utilisateur/Desktop/Simula"
     app = QApplication(sys.argv)
-    win = ApplicationWindow()    
     win = ApplicationWindow()
-    
-    ax = win.mplwidget.axes    
+    win = ApplicationWindow()
+
+    ax = win.mplwidget.axes
 
     year = 2011
-    
-    simulation = ScenarioSimulation()        
-    simulation.set_config(year = year, nmen = 101, 
+
+    simulation = ScenarioSimulation()
+    simulation.set_config(year = year, nmen = 101,
                     x_axis = 'sali', maxrev = 50000,
                     mode ='bareme', same_rev_couple = False)
     simulation.set_param()
-    
-#    simulation.draw_bareme(ax, legend = True, position = 4) 
+
+#    simulation.draw_bareme(ax, legend = True, position = 4)
     simulation.draw_taux(ax, legend=True)
-    
+
     win.resize(1400,700)
     if SHOW:
         win.mplwidget.draw()
@@ -53,9 +53,9 @@ if __name__ == '__main__':
     print df.to_string()
 
     title = "test"
-    if SAVE:   
+    if SAVE:
         win.mplwidget.print_figure(os.path.join(destination_dir, title + '.png'))
 
-    del ax, simulation 
+    del ax, simulation
     sys.exit(app.exec_())
 

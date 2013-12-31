@@ -42,8 +42,8 @@ class PrestationModel(QAbstractItemModel):
 
     def columnCount(self, parent):
         return 3
-    
-    def data(self, index, role = Qt.DisplayRole):        
+
+    def data(self, index, role = Qt.DisplayRole):
         if not index.isValid():
             return None
 
@@ -56,10 +56,10 @@ class PrestationModel(QAbstractItemModel):
         if role == Qt.ToolTipRole:
             return node.code
         # warning this role is deprecated, use foregroundrole instead
-        if role == Qt.TextColorRole: 
+        if role == Qt.TextColorRole:
             if node.isDirty(): return QColor(Qt.red)
             else: return QColor(Qt.black)
-     
+
     def setData(self, index, value, role = Qt.EditRole):
         if not index.isValid():
             return None
@@ -79,29 +79,29 @@ class PrestationModel(QAbstractItemModel):
         if role == Qt.TextAlignmentRole:
             if section == 0: return Qt.AlignLeft
             else: return Qt.AlignRight
-    
+
     def flags(self, index):
         col = index.column()
         node = self.getNode(index)
         if col == 0:
             return Qt.ItemIsEnabled | Qt.ItemIsSelectable
         elif col == 1:
-            return Qt.ItemIsSelectable 
+            return Qt.ItemIsSelectable
         elif col == 2:
             if node.typeInfo == 'NODE':
-                return Qt.ItemIsEnabled | Qt.ItemIsSelectable 
+                return Qt.ItemIsEnabled | Qt.ItemIsSelectable
             else:
                 return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable
 
     """Should return the parent of the node with the given QModelIndex"""
-    def parent(self, index):        
+    def parent(self, index):
         node = self.getNode(index)
-        parentNode = node.parent()        
+        parentNode = node.parent()
         if parentNode == self._rootNode:
             return QModelIndex()
-        
+
         return self.createIndex(parentNode.row(), 0, parentNode)
-        
+
     """Should return a QModelIndex that corresponds to the given row, column and parent node"""
     def index(self, row, column, parent):
         parentNode = self.getNode(parent)
@@ -115,5 +115,5 @@ class PrestationModel(QAbstractItemModel):
         if index.isValid():
             node = index.internalPointer()
             if node:
-                return node            
+                return node
         return self._rootNode

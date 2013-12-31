@@ -37,18 +37,18 @@ class ExploreDataWidget(QDockWidget):
         self.setObjectName("ExploreData")
         self.setWindowTitle("ExploreData")
         self.dockWidgetContents = QWidget()
-        
+
 
         self.data_label = QLabel("Data", self.dockWidgetContents)
 
-        self.add_btn = QPushButton(u"Ajouter variable",self.dockWidgetContents)        
-        self.remove_btn = QPushButton(u"Retirer variable",self.dockWidgetContents)  
+        self.add_btn = QPushButton(u"Ajouter variable",self.dockWidgetContents)
+        self.remove_btn = QPushButton(u"Retirer variable",self.dockWidgetContents)
         self.datatables_choices = []
-        self.datatable_combo = MyComboBox(self.dockWidgetContents, u'Choix de la table', self.datatables_choices) 
-        
+        self.datatable_combo = MyComboBox(self.dockWidgetContents, u'Choix de la table', self.datatables_choices)
+
 #        self.add_btn.setDisabled(True)
 #        self.remove_btn.setDisabled(True)
-        
+
         spacerItem = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         horizontalLayout = QHBoxLayout()
@@ -69,14 +69,14 @@ class ExploreDataWidget(QDockWidget):
         self.parent = parent
 
         self.selected_vars = set()
-        self.data = DataFrame() 
+        self.data = DataFrame()
         self.view_data = None
         self.dataframes = {}
         self.vars = set()
 
         self.connect(self.add_btn, SIGNAL('clicked()'), self.add_var)
         self.connect(self.remove_btn, SIGNAL('clicked()'), self.remove_var)
-        self.connect(self.datatable_combo.box, SIGNAL('currentIndexChanged(int)'), self.select_data)        
+        self.connect(self.datatable_combo.box, SIGNAL('currentIndexChanged(int)'), self.select_data)
 
         self.update_btns()
 
@@ -92,7 +92,7 @@ class ExploreDataWidget(QDockWidget):
             self.add_btn.setEnabled(True)
         if self.selected_vars:
             self.remove_btn.setEnabled(True)
-            
+
     def update_choices(self):
         box = self.datatable_combo.box
         box.clear()
@@ -102,17 +102,17 @@ class ExploreDataWidget(QDockWidget):
     def select_data(self):
         widget = self.datatable_combo.box
         dataframe_name = unicode(widget.itemData(widget.currentIndex()).toString())
-        if dataframe_name: # to deal with the box.clear() 
+        if dataframe_name: # to deal with the box.clear()
             self.set_dataframe(name = dataframe_name)
         self.update_btns()
 
     def add_dataframe(self, dataframe, name = None):
         '''
-        Adds a dataframe to the list o the available dataframe 
+        Adds a dataframe to the list o the available dataframe
         '''
         if name == None:
             name = "dataframe" + len(self.dataframes.keys())
-    
+
 #        if not self.data:
 #            self.dataframes = {}
 
@@ -129,7 +129,7 @@ class ExploreDataWidget(QDockWidget):
             self.data = self.dataframes[name]
         if dataframe is not None:
             self.data = dataframe
-            
+
         self.vars = set(self.data.columns)
         self.update_btns()
 
@@ -140,13 +140,13 @@ class ExploreDataWidget(QDockWidget):
         else:
             choices =  self.selected_vars
             label = "Retirer une variable"
-            
-        var, ok = QInputDialog.getItem(self, label , "Choisir la variable", 
+
+        var, ok = QInputDialog.getItem(self, label , "Choisir la variable",
                                        sorted(list(choices)))
-        if ok and var in list(choices): 
+        if ok and var in list(choices):
             return str(var)
         else:
-            return None 
+            return None
 
     def add_var(self):
         var = self.ask()
@@ -155,7 +155,7 @@ class ExploreDataWidget(QDockWidget):
             self.update_view()
         else:
             return
-    
+
     def remove_var(self):
         var = self.ask(remove=True)
         if var is not None:
@@ -163,18 +163,18 @@ class ExploreDataWidget(QDockWidget):
             self.update_view()
         else:
             return
-                         
+
     def set_choices(self, description):
         '''
-        Set the variables appearing in the add and remove dialogs 
-        '''     
+        Set the variables appearing in the add and remove dialogs
+        '''
         data_vars = set(self.data.columns)
         label2var = {}
         var2label = {}
         var2enum = {}
         for var in description.col_names:
             varcol  = description.get_col(var)
-            if isinstance(varcol, EnumCol): 
+            if isinstance(varcol, EnumCol):
                 var2enum[var] = varcol.enum
                 if varcol.label:
                     label2var[varcol.label] = var
@@ -182,39 +182,39 @@ class ExploreDataWidget(QDockWidget):
                 else:
                     label2var[var] = var
                     var2label[var] = var
-        
+
         all_labels = set(label2var.values()).intersection(data_vars)
-        
+
         self.var2label = var2label
         self.var2enum  = var2enum
-        
+
     def update_view(self):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         if not self.selected_vars:
             self.view.clear()
             QApplication.restoreOverrideCursor()
             return
-        
+
         cols = self.selected_vars
         if self.view_data is None:
             self.view_data = self.data[list(cols)]
-        
+
         new_col = cols - set(self.view_data)
         if new_col:
-            self.view_data[list(new_col)] = self.data[list(new_col)] 
+            self.view_data[list(new_col)] = self.data[list(new_col)]
             df = self.view_data
         else:
             df = self.view_data[list(cols)]
-    
+
         self.view.set_dataframe(df)
 
         self.view.reset()
         self.update_btns()
         QApplication.restoreOverrideCursor()
-        
+
     def calculated(self):
         self.emit(SIGNAL('calculated()'))
-                
+
     def clear(self):
         self.view.clear()
         self.data = None

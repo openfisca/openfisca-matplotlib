@@ -14,7 +14,7 @@ try:
     win32console.GetConsoleWindow() # do nothing, this is just a test
     def set_attached_console_visible(state):
         """Show/hide console window attached to current window
-        
+
         This is for Windows platforms only. Requires pywin32 library."""
         win32gui.ShowWindow(win32console.GetConsoleWindow(),
                             win32con.SW_SHOW if state else win32con.SW_HIDE)

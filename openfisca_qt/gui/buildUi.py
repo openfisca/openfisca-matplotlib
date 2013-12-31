@@ -27,7 +27,7 @@ import os
 # Common views
 
 uiList = ['graph', 'declaration', 'composition', 'logement',
-          'page01', 'page02', 'page03', 'page04', 'page05', 'page06', 'page07', 
+          'page01', 'page02', 'page03', 'page04', 'page05', 'page06', 'page07',
           'page08', 'page_isf', 'parametres', 'baremedialog']
 
 commands = []

@@ -26,7 +26,7 @@ This file is part of openFisca.
 from datetime import datetime
 import sys
 
-from openfisca_core.simulations import ScenarioSimulation 
+from openfisca_core.simulations import ScenarioSimulation
 from openfisca_qt.gui.qt.QtGui import QMainWindow, QApplication
 from openfisca_qt.widgets.matplotlibwidget import MatplotlibWidget
 
@@ -39,18 +39,18 @@ class ApplicationWindow(QMainWindow):
         self.setCentralWidget(self.mplwidget)
 
 
-destination_dir = "c:/users/utilisateur/documents/test_enfant/"    
+destination_dir = "c:/users/utilisateur/documents/test_enfant/"
 
 if __name__ == '__main__':
 
 
     app = QApplication(sys.argv)
-    win = ApplicationWindow()    
+    win = ApplicationWindow()
 
     yr = 2010
 
     marginal = True
-    
+
     for n_enf_final in range(1,5):
         if n_enf_final == 1:
             title = str(n_enf_final) + ' enfant'
@@ -62,34 +62,34 @@ if __name__ == '__main__':
                 title = str(n_enf_final) + 'e enfant'
 
         win = ApplicationWindow()
-        ax = win.mplwidget.axes    
-            
-        simu = ScenarioSimulation()        
+        ax = win.mplwidget.axes
+
+        simu = ScenarioSimulation()
         simu.set_config(year = yr, nmen = 201, x_axis = 'sali', maxrev = 130000, reforme = False, mode ='bareme',
             same_rev_couple = True)
         simu.set_param()
-        simu.scenario.addIndiv(1, datetime(1975,1,1).date(), 'conj', 'part') 
-        
+        simu.scenario.addIndiv(1, datetime(1975,1,1).date(), 'conj', 'part')
+
         if marginal is True:
             for i in range(1,n_enf_final):
                 print 'adding %s kid(s)' %i
                 simu.scenario.addIndiv(1+i, datetime(2000,1,1).date(), 'pac', 'enf')
-            
+
         simu.set_marginal_alternative_scenario()
         for i in range(1,n_enf_final+1):
             if (marginal is False) or (i == n_enf_final):
                 print 'adding %s kid(s)' %i
                 simu.alternative_scenario.addIndiv(1+i, datetime(2000,1,1).date(), 'pac', 'enf')
-        
-        
+
+
         ax.set_title(title)
-        simu.draw_bareme(ax, legend = True, position = 4) 
+        simu.draw_bareme(ax, legend = True, position = 4)
         win.resize(1400,700)
         win.mplwidget.draw()
         win.show()
-        
+
         win.mplwidget.print_figure(destination_dir + title + '.png')
-        del ax, simu 
+        del ax, simu
     sys.exit(app.exec_())
 
 

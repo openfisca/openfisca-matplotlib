@@ -58,7 +58,7 @@ class InfoComp(QDialog):
 
         self.label_1 = QLabel(u'Activité', self)
         self.gridLayout.addWidget(self.label_1, 0, 1, 1, 1)
-        
+
         self.label_2 = QLabel(u"Invalide", self)
         self.gridLayout.addWidget(self.label_2, 0, 2, 1, 1)
 
@@ -86,7 +86,7 @@ class InfoComp(QDialog):
         self.act_list = []
         for noi, vals in self.scenario.indiv.iteritems():
             self.gridLayout.addWidget(QLabel('%d' % (noi + 1), self), noi + 1, 0)
-            
+
             # Acitivité
             cb_act = QComboBox(self)
             cb_act.addItems([u'Actif occupé', u'Chômeur', u'Étudiant, élève', u'Retraité', u'Autre inactif'])
@@ -100,7 +100,7 @@ class InfoComp(QDialog):
             layout1 = QHBoxLayout()
             layout1.addItem(QSpacerItem(0,0, QSizePolicy.Expanding, QSizePolicy.Minimum))
             layout1.addWidget(cb_inv)
-            layout1.addItem(QSpacerItem(0,0, QSizePolicy.Expanding, QSizePolicy.Minimum))            
+            layout1.addItem(QSpacerItem(0,0, QSizePolicy.Expanding, QSizePolicy.Minimum))
             self.inv_list.append(cb_inv)
             self.gridLayout.addLayout(layout1, noi + 1, 2)
 
@@ -123,4 +123,4 @@ class InfoComp(QDialog):
             vals['alt'] = self.alt_list[noi].checkState() >= 1
             vals['activite'] = self.act_list[noi].currentIndex()
         QDialog.accept(self)
-            
+

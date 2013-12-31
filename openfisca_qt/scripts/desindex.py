@@ -16,7 +16,7 @@ year = 2009
 erf = ErfsDataTable(year=year)
 #erf.set_config()
 vars = [ "zrstm", "zchom", "pfamm", "wprm", "pauvre50m", "pauvre60m", "nivviem", "champm"]
-df = erf.get_values(variables=vars, table="erf_menage" ) 
+df = erf.get_values(variables=vars, table="erf_menage" )
 
 
 labels = arange(1,11)
@@ -39,7 +39,7 @@ results = DataFrame(index =indexes.keys(), columns = ["total", "pauvre50", "pauv
 for var, index in indexes.iteritems():
     total = df[var]*index*df["wprm"]*df["champm"]
     pauvre50 = df[var]*index*df["wprm"]*(df["pauvre50m"]<=0)*df["champm"]
-    pauvre60 = df[var]*index*df["wprm"]*(df["pauvre60m"]<=0)*df["champm"] 
+    pauvre60 = df[var]*index*df["wprm"]*(df["pauvre60m"]<=0)*df["champm"]
     results.set_value(var, "total", total.sum()/1e6)
     results.set_value(var, "pauvre50", pauvre50.sum()/1e6)
     results.set_value(var, "pauvre60", pauvre60.sum()/1e6)
@@ -63,4 +63,4 @@ writer.save()
 #santé ipc IJ
 #choi smbo
 #
-#seuil 
+#seuil

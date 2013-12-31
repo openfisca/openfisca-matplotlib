@@ -39,16 +39,16 @@ class Recap(object):
 
     def set_years(self, years):
         self.years= years
-        
+
     def set_aggregates_variables(self, variables):
         self.aggregates_variables = variables
-        
+
     def set_sources(self, sources):
         self.sources = sources
-    
+
     def set_survey_filename(self, survey_filename):
         self.survey_filename = survey_filename
-        
+
     def _build_multiindex(self):
         variables = self.aggregates_variables
         sources = self.sources
@@ -56,16 +56,16 @@ class Recap(object):
         print variables
         print sources
         print years
-#        print [zip(variable, source, year) for variable in variables, source in sources, year in years]    
+#        print [zip(variable, source, year) for variable in variables, source in sources, year in years]
         index = list()
         for variable in variables:
             for source in sources:
                 for year in years:
                     index.append((variable, source, year))
-                    
+
         from pandas.core.index import MultiIndex
         self.index = MultiIndex.from_tuples(index, names = ['measure', 'source', 'year'])
-               
+
     def _generate_aggregates(self):
         dfs = list()
         dfs_erf = list()
@@ -89,7 +89,7 @@ class Recap(object):
             labels_variables = map(lambda x: var2label[x], variables)
             del simulation, agg, var2enum, df
             # simulation.save_content(name, filename)
-            
+
             gc.collect()
 
             # ERFS
@@ -103,9 +103,9 @@ class Recap(object):
             gc.collect()
 
         self.labels_variables = labels_variables
-        self.aggregates_of_dataframe = dfs 
+        self.aggregates_of_dataframe = dfs
         self.aggregates_erfs_dataframe = dfs_erf
-        
+
     def _reshape_tables(self):
         """
         TODO _reshape_tables should be cleaned !!!
@@ -113,11 +113,11 @@ class Recap(object):
         dfs = self.aggregates_of_dataframe
         dfs_erf = self.aggregates_erfs_dataframe
         labels_variables = self.labels_variables
-        
+
         agg = Aggregates()
-         
+
         # We need this for the columns labels to work
-        
+
         print 'Resetting index to avoid later trouble on manipulation'
         for d in dfs:
             d.reset_index(inplace = True)
@@ -132,18 +132,18 @@ class Recap(object):
             d.reindex_axis(agg.labels.values(), axis = 0)
             d.reset_index(inplace = True, drop = True)
 #             print d.to_string()
-            
+
         # Concatening the openfisca tables for =/= years
 
-        temp = dfs[0]        
+        temp = dfs[0]
         if len(dfs) != 1:
             for d in dfs[1:]:
                 temp = pd.concat([temp,d], ignore_index = True)
 
-        
+
         del temp[agg.labels['entity']], temp['index']
         gc.collect()
-        
+
         print 'We split the real aggregates from the of table'
         temp2 = temp[[agg.labels['var'], agg.labels['benef_real'], agg.labels['dep_real'], 'year']]
         del temp[agg.labels['benef_real']], temp[agg.labels['dep_real']]
@@ -151,26 +151,26 @@ class Recap(object):
         temp['source'] = 'of'
         temp2['source'] = 'reel'
         temp2.rename(columns = {agg.labels['benef_real'] : agg.labels['benef'],
-                                agg.labels['dep_real'] : agg.labels['dep']}, 
+                                agg.labels['dep_real'] : agg.labels['dep']},
                      inplace = True)
         temp = pd.concat([temp,temp2], ignore_index = True)
-        
+
         print 'We add the erf data to the table'
         for df in dfs_erf:
             del df['level_0'], df['Mesure']
             df.rename(columns = {'index' : agg.labels['var'], 1 : agg.labels['dep']}, inplace = True)
-        
-        
-        temp3 = dfs_erf[0]        
+
+
+        temp3 = dfs_erf[0]
         if len(dfs) != 1:
             for d3 in dfs_erf[1:]:
                 temp3 = pd.concat([temp3, d3], ignore_index = True)
-        
+
         temp3['source'] = 'erfs'
         gc.collect()
         temp = pd.concat([temp, temp3], ignore_index = True)
 #         print temp.to_string()
-        
+
         print 'Index manipulation to reshape the output'
         temp.reset_index(drop = True, inplace = True)
         # We set the new index
@@ -182,11 +182,11 @@ class Recap(object):
         # Groupby automatically deleted the source, mesure... columns and added them to index
         assert(isinstance(temp, pd.DataFrame))
 #         print temp.to_string()
-        
+
         # We want the years to be in columns, so we use unstack
         temp_unstacked = temp.unstack()
         # Unfortunately, unstack automatically sorts rows and columns, we have to reindex the table :
-        
+
         ## Reindexing rows
         from pandas.core.index import MultiIndex
         indtemp1 = temp.index.get_level_values(0)
@@ -202,7 +202,7 @@ class Recap(object):
 #         import pdb
 #         pdb.set_trace()
         temp_unstacked = temp_unstacked.reindex_axis(indexi, axis = 0) # axis = 0 for rows, 1 for columns
-        
+
         ## Reindexing columns
         # TODO : still not working
         col_indexi = []
@@ -218,7 +218,7 @@ class Recap(object):
         print col_indexi
         print temp_unstacked.columns
         temp_unstacked = temp_unstacked.reindex_axis(col_indexi, axis = 1)
-        
+
         # Our table is ready to be turned to Excel worksheet !
 #         print temp_unstacked.to_string()
         del temp_unstacked['Mesure'], temp_unstacked['year']
@@ -231,9 +231,9 @@ class Recap(object):
 
     def _save_as_xls(self, filename = None, alter_method = True):
         # Saves a datatable under Excel table using XLtable
-        
+
         if filename is None:
-            raise("filename argument is None") 
+            raise("filename argument is None")
         if alter_method:
             print filename
             writer = ExcelWriter(str(filename))
@@ -257,17 +257,17 @@ class Recap(object):
     def save(self, filename = None, alter_method = True):
         self._save_as_xls(filename, alter_method)
 
- 
+
 def test_recap(source_file_name=None, export_file_name = "myrecap.xls"):
     years = [2006] + range(2008, 2010)
     variables = ['cotsoc', 'af']
     sources = ['of', 'erfs', 'reel']
     recap = Recap()
-    
+
     if source_file_name is not None:
         survey_filename = os.path.join(model.DATA_DIR, 'sources', source_file_name + '.h5')
         recap.set_survey_filename(survey_filename)
-    
+
     recap.set_years(years)
     recap.set_aggregates_variables(variables)
     recap.set_sources(sources)
@@ -275,10 +275,10 @@ def test_recap(source_file_name=None, export_file_name = "myrecap.xls"):
     recap.build_dataframe()
     print recap.dataframe.to_string()
     recap.save(filename=export_file_name, alter_method=False)
-    
-        
+
+
 if __name__ == '__main__':
-    
+
 #    test_2013_10_10_16_58
     source_file_name = "test_2013_10_10_16_58"
     test_recap()

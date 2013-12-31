@@ -59,16 +59,16 @@ class ParametersConfigPage(PluginConfigPage):
         from ...gui.config import CONF
         default = CONF.get('parameters', 'datesim')
         date_dateedit = self.create_dateedit(prefix=_("Legislation date"),
-                                             option= 'datesim', 
+                                             option= 'datesim',
                                              default = default,
-                                             min_ = "2002-01-01", 
+                                             min_ = "2002-01-01",
                                              max_ = "2012-12-31")
-        
+
         layout = QVBoxLayout()
         layout.addWidget(country_combo)
         layout.addWidget(date_dateedit)
         group.setLayout(layout)
-        
+
         vlayout = QVBoxLayout()
         vlayout.addWidget(group)
         vlayout.addStretch(1)
@@ -86,13 +86,13 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
         super(ParamWidget, self).__init__(parent)
         self.setupUi(self)
         self.setLayout(self.verticalLayout)
-        
+
         self.__parent = parent
 
         self.connect(self.save_btn, SIGNAL("clicked()"), self.saveXml)
         self.connect(self.open_btn, SIGNAL("clicked()"), self.loadXml)
         self.connect(self.reset_btn, SIGNAL("clicked()"), self.reset)
-        
+
         self.initialize()
 
 
@@ -101,23 +101,23 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
     def reset(self):
         self.initialize()
         self.changed()
-            
+
     def changed(self):
         self.emit(SIGNAL('changed()'))
-    
+
     def initialize(self):
         self._file = model.PARAM_FILE
-        
+
         value = self.get_option('datesim')
         from datetime import datetime
         self._date = datetime.strptime(value ,"%Y-%m-%d").date()
 
-        
+
         self.label.setText(u"Date : %s" %( str(self._date)) )
         self._reader = XmlReader(self._file, self._date)
         self._rootNode = self._reader.tree
         self._rootNode.rmv_empty_code()
-                
+
         self._model = PrestationModel(self._rootNode, self)
         self.connect(self._model, SIGNAL('dataChanged(QModelIndex, QModelIndex)'), self.changed)
 
@@ -130,7 +130,7 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
         delegate.insertColumnDelegate(1, ValueColumnDelegate(self))
         delegate.insertColumnDelegate(2, ValueColumnDelegate(self))
         self.uiTree.setItemDelegate(delegate)
-    
+
     def getParam(self, defaut = False):
         obj = Tree2Object(self._rootNode, defaut)
         obj.datesim = self._date
@@ -161,7 +161,7 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
         fileName = QFileDialog.getOpenFileName(self,
                                                _("Open a reform"), reformes_dir, u"Paramètres OpenFisca (*.ofp)")
         if not fileName == '':
-            try: 
+            try:
                 loader = XmlReader(str(fileName))
                 self.set_option('datesim',str(loader._date))
                 self.initialize()
@@ -181,14 +181,14 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
         if 'country' in options:
             self.reset()
 
-        if 'datesim' in options:     
+        if 'datesim' in options:
             self.reset()
-            
-                
-            
 
-    
-    
+
+
+
+
+
     #------ OpenfiscaPluginWidget API ---------------------------------------------
 
     def get_plugin_title(self):
@@ -199,7 +199,7 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
         """
         return _("Legislative parameters")
 
-    
+
     def get_plugin_icon(self):
         """
         Return plugin icon (QIcon instance)
@@ -208,7 +208,7 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
               and for configuration dialog widgets creation
         """
         return get_icon('OpenFisca22.png')
-            
+
     def get_plugin_actions(self):
         """
         Return a list of actions related to plugin
@@ -216,7 +216,7 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
               and they will be disabled when it's hidden
         """
         return []
-    
+
     def register_plugin(self):
         """
         Register plugin in OpenFisca's main window
@@ -229,7 +229,7 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
         Update
         '''
         pass
-    
+
     def closing_plugin(self, cancelable=False):
         """
         Perform actions before parent main window is closed
