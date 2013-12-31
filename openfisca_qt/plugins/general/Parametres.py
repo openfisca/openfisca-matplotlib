@@ -106,7 +106,6 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
         self.emit(SIGNAL('changed()'))
     
     def initialize(self):
-        country = self.get_option('country')
         self._file = model.PARAM_FILE
         
         value = self.get_option('datesim')
@@ -140,7 +139,6 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
     def saveXml(self):
         reformes_dir = self.get_option('reformes_dir', default = None)
         if reformes_dir is None:
-            country = self.get_option('country')
             reformes_dir = model.REFORMS_DIR
         default_fileName = os.path.join(reformes_dir, 'sans-titre')
         fileName = QFileDialog.getSaveFileName(self,
@@ -159,7 +157,6 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
     def loadXml(self):
         reformes_dir = self.get_option('reformes_dir', default=None)
         if reformes_dir is None:
-            country = self.get_option('country')
             reformes_dir = model.REFORMS_DIR
         fileName = QFileDialog.getOpenFileName(self,
                                                _("Open a reform"), reformes_dir, u"Paramètres OpenFisca (*.ofp)")

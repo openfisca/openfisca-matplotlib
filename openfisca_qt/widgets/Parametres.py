@@ -38,11 +38,8 @@ class ParamWidget(QDockWidget, Ui_Parametres):
     def __init__(self, parent = None):
         super(ParamWidget, self).__init__(parent)
         self.setupUi(self)
-        
-        country = CONF.get('simulation', 'country')
-        self._file = country + '/param/param.xml' 
-        
-        
+
+        self._file = model.PARAM_FILE
         self.__parent = parent
 
         self.connect(self.save_btn, SIGNAL("clicked()"), self.saveXml)

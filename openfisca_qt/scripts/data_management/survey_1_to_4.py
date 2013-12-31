@@ -17,11 +17,7 @@ from pandas import HDFStore # DataFrame
 from openfisca_core import model
 
 
-country = 'france'
-filename = None
-if filename is None:
-    if country is not None:
-        filename = os.path.join(model.DATA_DIR, 'survey.h5')
+filename = os.path.join(model.DATA_DIR, 'survey.h5')
 filename3 = os.path.join(model.DATA_DIR, 'survey3.h5')
 
 store = HDFStore(filename)

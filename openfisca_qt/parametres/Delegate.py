@@ -83,10 +83,6 @@ class ValueColumnDelegate(QStyledItemDelegate):
         self._parent = parent
 
     def paint(self, painter, option, index):
-        
-        
-        from ..gui.config import CONF
-        country = CONF.get('parameters', 'country')
         currency = model.CURRENCY
 
         year = "an"  # TODO: localization
