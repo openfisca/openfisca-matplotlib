@@ -615,7 +615,6 @@ class CalibrationWidget(OpenfiscaPluginWidget):
             year     = str(self.calibration.simulation.datesim.year)
         if filename is None:
             fname    = self.get_option('inputs_filename')
-#            country = self.calibration.simulation.country
 #            data_dir = os.path.join(model.CALIBRATIONS_DIR)
             filename = os.path.join(model.TODO_DIR, fname)
         self.calibration.set_margins_from_file(filename, year, source="input")
@@ -1029,9 +1028,8 @@ def test():
     from .aggregates import Aggregates
 
     yr = 2006
-    country = 'france'
     simulation = SurveySimulation()
-    simulation.set_config(year = yr, country = country)
+    simulation.set_config(year = yr)
     simulation.set_param()
     simulation.set_survey()
 

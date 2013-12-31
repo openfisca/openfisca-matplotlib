@@ -37,10 +37,8 @@ def build_from_openfisca( directory = None):
     
     df_age_final = None
     for yr in range(2006,2010):
-        country = 'france'
-
         simulation = SurveySimulation()
-        simulation.set_config(year = yr, country = country)
+        simulation.set_config(year = yr)
         simulation.set_param()
         simulation.set_survey()
         

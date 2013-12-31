@@ -398,8 +398,8 @@ class MainWindow(QMainWindow):
         self.debug_print("Actions afer changing country : no action")
         
         
-#        self.main.register_test_case_widgets(country)
-#        self.main.register_survey_widgets(country)
+#        self.main.register_test_case_widgets()
+#        self.main.register_survey_widgets()
 #        self.register_plugins()
         
     def refresh_test_case_plugins(self):
@@ -544,16 +544,15 @@ class MainWindow(QMainWindow):
                 
         # Parameters widget
         if CONF.get('parameters', 'enable'):                
-            country = CONF.get('parameters', 'country')
             self.set_splash(_("Loading Parameters..."))
             self.parameters = ParamWidget(self)
             self.parameters.register_plugin()
                                                 
         # Test case widgets
-        self.register_test_case_widgets(country)
+        self.register_test_case_widgets()
        
         # Survey Widgets
-        self.register_survey_widgets(country)
+        self.register_survey_widgets()
 
         self.register_plugins()
 
@@ -675,15 +674,9 @@ class MainWindow(QMainWindow):
             plugin_registration = entry_point.load()
             plugin_registration(qt_main_window = self)
 
-    def register_test_case_widgets(self, country):
+    def register_test_case_widgets(self):
         """
-        Register test case widget for country *country*
-        
-        Parameters
-        ----------
-        
-        country : str
-                  Name of the country
+        Register test case widgets
         """
 
         # Test case widgets
@@ -691,7 +684,7 @@ class MainWindow(QMainWindow):
         self.set_splash(_("Loading Test case composer ..."))
         self.scenario_simulation = ScenarioSimulation()
         datesim = CONF.get('parameters', 'datesim')
-        self.scenario_simulation.set_config(country=country, datesim=datesim)
+        self.scenario_simulation.set_config(datesim=datesim)
         self.composition = widgets.CompositionWidget(self.scenario_simulation, parent=self)
         self.composition.register_plugin()
 
@@ -717,7 +710,7 @@ class MainWindow(QMainWindow):
         self.test_case_plugins = [ self.composition, self.test_case_graph, self.test_case_table ]
         self.splash.hide()
  
-    def register_survey_widgets(self, country):
+    def register_survey_widgets(self):
         """
         Registers enabled survey widgets
         """
@@ -732,7 +725,7 @@ class MainWindow(QMainWindow):
             self.survey_simulation = SurveySimulation()
             self.survey_explorer.initialize()
             self.survey_explorer.load_data()
-            self.survey_simulation.set_config(country = country)
+            self.survey_simulation.set_config()
             self.survey_simulation.set_param()
 
             if self.survey_simulation.input_table is None:

@@ -34,8 +34,8 @@ def complete_2012_param(P):
     # Hack to get rid of missing parameters in 2012
     dummy_simulation = ScenarioSimulation()
     
-    dummy_simulation.set_config(year = 2012-1, country = "france", nmen = 1,
-                          reforme = False, mode ='castype', decomp_file="decomp_contrib.xml")
+    dummy_simulation.set_config(year = 2012-1, nmen = 1, reforme = False, mode ='castype',
+        decomp_file="decomp_contrib.xml")
     dummy_simulation.set_param()
     
     P.fam = dummy_simulation.P.fam 
@@ -53,14 +53,12 @@ def test_case(year):
     
     app = QApplication(sys.argv)
     win = ApplicationWindow()
-    country = 'france'
 
     yr = year
 
 
     simulation = ScenarioSimulation()        
-    simulation.set_config(year = yr, country = country, nmen = 1,
-                          reforme = False, mode ='castype', decomp_file="decomp_contrib.xml")
+    simulation.set_config(year = yr, nmen = 1, reforme = False, mode ='castype', decomp_file="decomp_contrib.xml")
     simulation.set_param()
     
     # Hack to get rid of missing parameters in 2012    
@@ -162,7 +160,6 @@ def test_bareme(xaxis="sali"):
 
     maxrev = 500000    
     year = 2012
-    country = 'france'
     simulation = ScenarioSimulation()        
     
     # Changes in individualized caracteristics    
@@ -172,7 +169,7 @@ def test_bareme(xaxis="sali"):
     # dividendes: f2da divplf; f2dc divb
     # foncier  f4ba fon (micro foncier f4be)   
     
-    simulation.set_config(year = yr, country = country, nmen = 101, xaxis = xaxis, maxrev=maxrev,
+    simulation.set_config(year = yr, nmen = 101, xaxis = xaxis, maxrev=maxrev,
                           reforme = False, mode ='bareme', decomp_file="decomp_contrib.xml")
     simulation.set_param()
     # Hack to get rid of missing parameters in 2012    
@@ -217,7 +214,6 @@ def get_avg_tax_rate_dataframe(xaxis = "sali", maxrev = 50000, year = 2006):
     year : int, default 2006
            year of the legislation 
     """
-    country = 'france'
     simulation = ScenarioSimulation()        
     
     # Changes in individualized caracteristics    
@@ -227,7 +223,7 @@ def get_avg_tax_rate_dataframe(xaxis = "sali", maxrev = 50000, year = 2006):
     # dividendes: f2da divplf; f2dc divb
     # foncier  f4ba fon (micro foncier f4be)   
     
-    simulation.set_config(year = year, country = country, nmen = 101, xaxis = xaxis, maxrev=maxrev,
+    simulation.set_config(year = year, nmen = 101, xaxis = xaxis, maxrev=maxrev,
                           reforme = False, mode ='bareme', decomp_file="decomp_contrib.xml")
     simulation.set_param()
     

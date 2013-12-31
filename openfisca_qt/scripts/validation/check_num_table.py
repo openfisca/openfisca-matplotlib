@@ -20,7 +20,6 @@ from pandas import ExcelWriter, ExcelFile, HDFStore
 import pandas.rpy.common as com
 
 
-country = 'france'
 fname_all = "aggregates_inflated_loyers.xlsx"
 fname_all = os.path.join(destination_dir, fname_all)
 num_output = None
@@ -38,7 +37,7 @@ def compar_num_table():
         yr = str(year)
 #        fname = "Agg_%s.%s" %(str(yr), "xls")
         simu = SurveySimulation()
-        simu.set_config(year = yr, country = country)
+        simu.set_config(year = yr)
         simu.set_param()
         import time
         

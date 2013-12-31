@@ -23,11 +23,8 @@ from openfisca_qt.plugins.survey.aggregates import Aggregates
 
 
 def test_case(year):
-    
-    country = 'france'
-
     simulation = ScenarioSimulation()
-    simulation.set_config(year = year, country = country, reforme=False,
+    simulation.set_config(year = year, reforme=False,
                     nmen = 3, maxrev = 100000, xaxis = 'sali')
     # Adding a husband/wife on the same tax sheet (foyer)
     simulation.scenario.addIndiv(1, datetime(1975,1,1).date(), 'conj', 'part') 
@@ -44,11 +41,9 @@ def test_case(year):
     # df.to_excel(destination_dir = "c:/users/utilisateur/documents/" + fname)
 
 def survey_case(year):
-     
-
 #        fname = "Agg_%s.%s" %(str(yr), "xls")
     simulation = SurveySimulation()
-    simulation.set_config(year = year, country = country)
+    simulation.set_config(year = year)
     simulation.set_param()
 
 #    Ignore this

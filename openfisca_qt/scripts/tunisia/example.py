@@ -14,11 +14,8 @@ from datetime import datetime
 
 
 def test_case(year):
-    
-    country = 'tunisia'
     simulation = ScenarioSimulation()
-    simulation.set_config(year = year, country = country, reforme=False,
-                    nmen = 3, maxrev = 12*400, xaxis = 'sali')
+    simulation.set_config(year = year, reforme=False, nmen = 3, maxrev = 12*400, xaxis = 'sali')
     # Adding a husband/wife on the same tax sheet (foyer)
     simulation.scenario.addIndiv(1, datetime(1975,1,1).date(), 'conj', 'part') 
     

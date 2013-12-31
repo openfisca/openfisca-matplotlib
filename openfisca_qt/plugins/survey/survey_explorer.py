@@ -154,12 +154,11 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
             return
                 
         simulation = self.main.survey_simulation
-        country = CONF.get('parameters', 'country')
         value = CONF.get('parameters', 'datesim')
         datesim = datetime.strptime(value ,"%Y-%m-%d").date()
         reforme = self.get_option('reform')
         year = datesim.year
-        simulation.set_config(year = year, country = country, reforme = reforme)
+        simulation.set_config(year = year, reforme = reforme)
         survey_filename = self.get_option('data_file')
         if path.isfile(survey_filename):
             simulation.set_config(survey_filename = survey_filename)
@@ -377,7 +376,7 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
             self.action_set_reform.setChecked(self.get_option('reform'))
             
         if 'bareme_only' in options:
-            self.main.register_survey_widgets(self.main.scenario_simulation.country)
+            self.main.register_survey_widgets()
             
         if 'data_file' in options:
             self.initialize()

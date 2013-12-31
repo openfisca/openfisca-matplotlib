@@ -16,7 +16,6 @@ from openfisca_qt.plugins.survey.aggregates3 import Aggregates3
 from pandas import ExcelWriter, ExcelFile
 
 
-country = 'france'
 num_output = 100
 
 
@@ -30,7 +29,7 @@ def build_aggregates3():
         yr = str(year)
 #        fname = "Agg_%s.%s" %(str(yr), "xls")
         simu = SurveySimulation()
-        simu.set_config(year = yr, country = country)
+        simu.set_config(year = yr)
         simu.set_param()
         import time
         

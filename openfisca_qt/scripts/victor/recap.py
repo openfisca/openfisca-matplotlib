@@ -29,20 +29,13 @@ except:
     pass
 
 
-country = 'france'
-
-
 class Recap(object):
     def __init__(self):
         super(Recap, self).__init__()
-        self.country = None 
         self.years = None
         self.aggregates_variables = None
         self.sources = None
         self.survey_filename = None
-
-    def set_country(self, country):
-        self.country = country
 
     def set_years(self, years):
         self.years= years
@@ -77,13 +70,11 @@ class Recap(object):
         dfs = list()
         dfs_erf = list()
         years = self.years
-        country = self.country
         for year in years:
             # Running a standard SurveySimulation to get OF aggregates
             simulation = SurveySimulation()
             survey_filename = self.survey_filename
-            simulation.set_config(year=year, country=country, 
-                                  survey_filename=survey_filename)
+            simulation.set_config(year=year, survey_filename=survey_filename)
             simulation.set_param()
             simulation.compute()
             agg = Aggregates()
@@ -269,11 +260,9 @@ class Recap(object):
  
 def test_recap(source_file_name=None, export_file_name = "myrecap.xls"):
     years = [2006] + range(2008, 2010)
-    country = 'france'
     variables = ['cotsoc', 'af']
     sources = ['of', 'erfs', 'reel']
     recap = Recap()
-    recap.set_country(country)
     
     if source_file_name is not None:
         survey_filename = os.path.join(model.DATA_DIR, 'sources', source_file_name + '.h5')

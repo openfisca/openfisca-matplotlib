@@ -25,8 +25,6 @@ from openfisca_qt.countries.france.data.erf.build_survey.utilitaries import chec
 from openfisca_qt.countries.france.data.erf.datatable import DataCollection
 
 
-country = 'france'
-
 #Setting the files path:
 survey_test = os.path.join(model.DATA_DIR, 'sources', 'test.h5')
 survey_bis = os.path.join(model.DATA_DIR, 'sources', 'test_bis.h5')
@@ -136,7 +134,7 @@ def survey_case_3_tables():
       
     simulation.num_table = 3
 
-    simulation.set_config(year = yr, country = country, survey_filename=survey3_test)
+    simulation.set_config(year = yr, survey_filename=survey3_test)
     simulation.set_param()
  
     simulation.compute()

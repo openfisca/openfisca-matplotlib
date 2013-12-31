@@ -463,14 +463,9 @@ class Debugger(object):
 
 
 def test(year=2006, variables = ['af']):
-    '''
-    
-    '''
-    country= "france"
     simulation = SurveySimulation()
     survey_filename = os.path.join(model.DATA_DIR, 'sources', 'test.h5')
-    simulation.set_config(year=year, country=country, 
-                          survey_filename=survey_filename)
+    simulation.set_config(year=year, survey_filename=survey_filename)
     simulation.set_param()
     simulation.compute()
 
@@ -837,7 +832,6 @@ if __name__ == '__main__':
 
     restart = True
     survey = 'survey.h5'
-    country= "france"
     save_path = os.path.join(model.DATA_DIR, 'erf')
     saved_simulation_filename = os.path.join(save_path, 'debugger_' + survey[:-3])
 
@@ -849,8 +843,7 @@ if __name__ == '__main__':
         else:
             survey_filename = os.path.join(model.DATA_DIR, 'sources', survey)
 
-        simulation.set_config(year=year, country=country, 
-                              survey_filename=survey_filename)
+        simulation.set_config(year=year, survey_filename=survey_filename)
         simulation.set_param()
         simulation.compute()
         simulation.save_content('debug', saved_simulation_filename)

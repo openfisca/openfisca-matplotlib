@@ -20,9 +20,8 @@ from openfisca_qt.scripts.validation.check_consistency_tests import check_inputs
 # Proceed using import from separate file in validation
 
 year = 2006
-country = "france"
 simulation = SurveySimulation()
-simulation.set_config(year = year, country = country)
+simulation.set_config(year = year)
 simulation.set_param()
 simulation.set_survey()
 

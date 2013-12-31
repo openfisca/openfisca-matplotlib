@@ -25,9 +25,6 @@ from openfisca_core import model
 from openfisca_qt.plugins.survey.distribution import OpenfiscaPivotTable
 
 
-country = 'france'
-
-
 def get_age_structure(simulation):
     
     pivot_table = OpenfiscaPivotTable()
@@ -45,9 +42,8 @@ def get_structure(simulation, by_var):
 
 def test():
     yr = 2006
-    country = 'france'
     simu = SurveySimulation()
-    simu.set_config(year = yr, country = country)
+    simu.set_config(year = yr)
     simu.set_param()
     filename = os.path.join(model.DATA_DIR, 'survey_psl.h5')
     simu.set_survey(filename = filename)

@@ -6,11 +6,10 @@ Created on 11 juin 2013
 from openfisca_core.simulations import SurveySimulation
 
 def toto():
-    country = "france"
     year = 2006
     
     simulation = SurveySimulation()
-    simulation.set_config(country=country, year=year)
+    simulation.set_config(year=year)
     simulation.set_param()
     simulation.set_survey()
     simulation.compute()

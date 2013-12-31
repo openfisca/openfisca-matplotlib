@@ -62,9 +62,8 @@ def get_common_dataframe(variables, year = 2006):
     """
     Compare variables in erf an openfisca
     """
-    country = "france"
     simulation = SurveySimulation()
-    simulation.set_config(year = year, country = country)
+    simulation.set_config(year = year)
     simulation.set_param()
     simulation.set_survey()
     simulation.compute()

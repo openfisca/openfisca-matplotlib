@@ -34,7 +34,6 @@ except:
     pass
 
 
-country = 'france'
 # destination_dir = "c:/users/utilisateur/documents/"
 # fname_all = "aggregates_inflated_loyers.xlsx"
 # fname_all = os.path.join(destination_dir, fname_all)              
@@ -47,8 +46,7 @@ def survey_case(year = 2006):
 #        fname = "Agg_%s.%s" %(str(yr), "xls")
     simulation = SurveySimulation()
     survey_filename = os.path.join(model.DATA_DIR, 'sources', 'test.h5')
-    simulation.set_config(year=yr, country=country, 
-                          survey_filename=survey_filename)
+    simulation.set_config(year=yr, survey_filename=survey_filename)
     simulation.set_param()
 
 
@@ -267,8 +265,7 @@ def test_laurence():
         # Running a standard SurveySim to get aggregates
         simulation = SurveySimulation()
         survey_filename = os.path.join(model.DATA_DIR, 'sources', 'test.h5')
-        simulation.set_config(year=yr, country=country, 
-                              survey_filename=survey_filename)
+        simulation.set_config(year=yr, survey_filename=survey_filename)
         simulation.set_param()
         simulation.compute()
         agg = Aggregates()

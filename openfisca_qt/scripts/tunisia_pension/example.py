@@ -12,12 +12,12 @@
 from openfisca_core.simulations import ScenarioSimulation
 
 from datetime import datetime
-country = 'tunisia_pension'
+
 
 def test_case(year):
 
     simulation = ScenarioSimulation()
-    simulation.set_config(year = year, country = country, reforme=False,
+    simulation.set_config(year = year, reforme=False,
                     nmen = 4, maxrev = 25*9*12*3, xaxis = 'sal0')
     # Adding a husband/wife on the same tax sheet (foyer)
 
@@ -37,7 +37,7 @@ def test_case_reform(year):
     A test case with reform
     """
     simulation = ScenarioSimulation()
-    simulation.set_config(year = year, country = country, reforme=True, nmen = 1)
+    simulation.set_config(year = year, reforme=True, nmen = 1)
     # Adding a husband/wife on the same tax sheet (foyer)
 
     simulation.set_param()

@@ -27,7 +27,7 @@ years = ['2006']
 
 for yr in years: 
     simu = SurveySimulation()
-    simu.set_config(year = yr, country = 'france')
+    simu.set_config(year = yr)
     simu.set_param()
     simu.set_survey(num_table=num_table)
     survey_year = survey.createGroup("/", "survey_"+yr,"year") 

@@ -33,11 +33,10 @@ if __name__ == '__main__':
     
     ax = win.mplwidget.axes    
 
-    country = 'france'
     year = 2011
     
     simulation = ScenarioSimulation()        
-    simulation.set_config(year = year, country = country, nmen = 101, 
+    simulation.set_config(year = year, nmen = 101, 
                     xaxis = 'sali', maxrev = 50000,
                     mode ='bareme', same_rev_couple = False)
     simulation.set_param()

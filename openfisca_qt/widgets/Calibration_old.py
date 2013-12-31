@@ -373,9 +373,8 @@ class Calibration(object):
 def test():
     from openfisca_core.simulations import SurveySimulation
     yr = 2006
-    country = 'france'
     simu = SurveySimulation()
-    simu.set_config(year = yr, country = country)
+    simu.set_config(year = yr)
     simu.set_param()
     simu.set_survey()
 

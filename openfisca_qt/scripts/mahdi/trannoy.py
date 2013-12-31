@@ -12,7 +12,6 @@ from openfisca_core.simulations import SurveySimulation
 from openfisca_qt.plugins.survey.aggregates import Aggregates
 
 
-country = 'france'
 # destination_dir = "c:/users/utilisateur/documents/"
 # fname_all = "aggregates_inflated_loyers.xlsx"
 # fname_all = os.path.join(destination_dir, fname_all)              
@@ -20,11 +19,9 @@ country = 'france'
 
 
 def test_case(year):
-
-    country = 'france'
     simulation = ScenarioSimulation()
     salaires_nets = 1120.43*12
-    simulation.set_config(year = year, country = country, reforme=True,
+    simulation.set_config(year = year, reforme=True,
                     nmen = 4, maxrev = salaires_nets*3, xaxis = 'sali')
     
     # Adding a husband/wife on the same tax sheet (foyer)
@@ -50,7 +47,7 @@ def survey_case(year):
 
 #        fname = "Agg_%s.%s" %(str(yr), "xls")
     simulation = SurveySimulation()
-    simulation.set_config(year = year, country = country, num_table=1, reforme=True)
+    simulation.set_config(year = year, num_table=1, reforme=True)
     simulation.set_param()
     simulation.P.ir.autre.charge_loyer.plaf = 500
     simulation.P.ir.autre.charge_loyer.active = 1  

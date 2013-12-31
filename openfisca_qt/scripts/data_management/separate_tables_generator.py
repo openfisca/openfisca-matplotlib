@@ -12,9 +12,6 @@ from openfisca_core.simulations import SurveySimulation
 from pandas import HDFStore
 
 
-country = "france"
-
-
 def vars_matching_entity_from_table(table, simulation=None, entity='ind'):
     """
     Extract simulation input variables which entity attribute matches entity
@@ -46,7 +43,7 @@ def convert_to_3_tables(year=2006, survey_file=None, output_file=None):
     print output
     
     simulation = SurveySimulation()
-    simulation.set_config(country="france", year=year)
+    simulation.set_config(year=year)
     table1 = store['survey_'+str(year)]   
 
     for entity in ['ind','foy','men','fam']:

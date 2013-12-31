@@ -13,7 +13,6 @@ from openfisca_qt.plugins.survey.aggregates import Aggregates
 #from pandas import ExcelWriter, ExcelFile
 
 
-country = 'france'
 destination_dir = "c:/users/utilisateur/documents/"
 fname_all = "aggregates_euromod.xlsx"
 fname_all = os.path.join(destination_dir, fname_all)              
@@ -26,7 +25,7 @@ def build_aggregates():
         yr = str(year)
 #        fname = "Agg_%s.%s" %(str(yr), "xls")
         simu = SurveySimulation()
-        simu.set_config(year = yr, country = country)
+        simu.set_config(year = yr)
         simu.set_param()
         simu.set_survey()       
         simu.compute()
@@ -60,7 +59,7 @@ def test():
         yr = str(year)
     #        fname = "Agg_%s.%s" %(str(yr), "xls")
         simu = SurveySimulation()
-        simu.set_config(year = yr, country = country)
+        simu.set_config(year = yr)
         simu.set_param()
         simu.set_survey()
         for var in ["f4ga", "f4gb", "f4gc", "f4ge", "f4gf", "f4gg"]:

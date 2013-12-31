@@ -17,19 +17,14 @@ from openfisca_core.simulations import SurveySimulation
 from openfisca_qt.plugins.survey.aggregates import Aggregates
 
 
-country = 'france'
 # destination_dir = "c:/users/utilisateur/documents/"
 # fname_all = "aggregates_inflated_loyers.xlsx"
 # fname_all = os.path.join(destination_dir, fname_all)              
 
 
 def test_case(year):
-    
-    country = 'france'
-
     simulation = ScenarioSimulation()
-    simulation.set_config(year = year, country = country, reforme=False,
-                    nmen = 2, maxrev = 19296, xaxis = 'sali')
+    simulation.set_config(year = year, reforme=False, nmen = 2, maxrev = 19296, xaxis = 'sali')
  
     simulation.scenario.addIndiv(1, datetime(2000,1,1).date(), 'pac', 'enf') 
     simulation.scenario.addIndiv(2, datetime(2000,1,1).date(), 'pac', 'enf') 
@@ -53,7 +48,7 @@ def survey_case(year):
 
 #        fname = "Agg_%s.%s" %(str(yr), "xls")
     simulation = SurveySimulation()
-    simulation.set_config(year = year, country = country)
+    simulation.set_config(year = year)
     simulation.set_param()
 
 #    Ignore this

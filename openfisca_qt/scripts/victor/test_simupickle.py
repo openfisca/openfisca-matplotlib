@@ -19,11 +19,9 @@ if __name__ == "__main__":
     
     # Code pour tester save_content
     yr = 2006
-    country = 'france'
     simulation = SurveySimulation()
     survey_filename = os.path.join(model.DATA_DIR, 'sources', 'test.h5')
-    simulation.set_config(year=yr, country=country, 
-                          survey_filename=survey_filename)
+    simulation.set_config(year=yr, survey_filename=survey_filename)
     simulation.set_param()
     simulation.compute()
     print simulation.__dict__.keys()

@@ -14,20 +14,14 @@ from openfisca_qt.plugins.survey.aggregates import Aggregates
 from pandas import ExcelWriter
 
 
-country = 'france'
 # destination_dir = "c:/users/utilisateur/documents/"
 # fname_all = "aggregates_inflated_loyers.xlsx"
 # fname_all = os.path.join(destination_dir, fname_all)              
 
 
-
 def test_case(year):
-
-    country = 'france'
-
     simulation = ScenarioSimulation()
-    simulation.set_config(year = year, country = country, reforme=False,
-                    nmen = 3, maxrev = 1180*12, xaxis = 'sali')
+    simulation.set_config(year = year, reforme=False, nmen = 3, maxrev = 1180*12, xaxis = 'sali')
     # Adding a husband/wife on the same tax sheet (foyer)
     simulation.scenario.addIndiv(1, datetime(1975,1,1).date(), 'conj', 'part') 
     simulation.scenario.addIndiv(2, datetime(2000,1,1).date(), 'pac', 'enf')
@@ -49,7 +43,7 @@ def survey_case(year):
     yr = str(year)
 #        fname = "Agg_%s.%s" %(str(yr), "xls")
     simulation = SurveySimulation()
-    simulation.set_config(year = yr, country = country, num_table=1)
+    simulation.set_config(year = yr, num_table=1)
     simulation.set_param()
 
     simulation.compute()
