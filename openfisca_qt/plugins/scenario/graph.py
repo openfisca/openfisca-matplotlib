@@ -426,6 +426,50 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
         return True
 
 
+def draw_simulation_bareme(simulation, ax, graph_x_axis = None, legend = False, position = 1):
+    """
+    Draws a bareme on matplotlib.axes.Axes
+    """
+    reforme = simulation.reforme
+    alter = (simulation.alternative_scenario is not None)
+
+    simulation.compute()
+    data = simulation.data
+    data_default = simulation.data_default
+
+    data.setLeavesVisible()
+    data_default.setLeavesVisible()
+    if graph_x_axis is None:
+        graph_x_axis = 'sal'
+    if not alter:
+        drawBareme(data, ax, graph_x_axis, reforme, data_default, legend)
+    else:
+        drawBaremeCompareHouseholds(data, ax, graph_x_axis, data_default, legend, position = position)
+
+
+def draw_simulation_taux(simulation, ax, graph_x_axis = None, legend = True):
+    """
+    Draws a bareme on matplotlib.axes.Axes object ax
+    """
+    reforme = simulation.reforme or (simulation.alternative_scenario is not None)
+    simulation.compute()
+    data, data_default = simulation.data, simulation.data_default
+
+    data.setLeavesVisible()
+    data_default.setLeavesVisible()
+    if graph_x_axis is None:
+        graph_x_axis = 'sal'
+    drawTaux(data, ax, graph_x_axis, reforme, data_default, legend = legend)
+
+
+def draw_simulation_waterfall(simulation, ax):
+    """
+    Draws a waterfall on matplotlib.axes.Axes object ax
+    """
+    data, data_default = simulation.compute()
+    del data_default
+    data.setLeavesVisible()
+    drawWaterfall(data, ax)
 
 
 def drawWaterfall(data, ax):

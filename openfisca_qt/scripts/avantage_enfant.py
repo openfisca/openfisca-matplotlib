@@ -28,6 +28,7 @@ import sys
 
 from openfisca_core.simulations import ScenarioSimulation
 from openfisca_qt.gui.qt.QtGui import QMainWindow, QApplication
+from openfisca_qt.plugins.scenario.graph import draw_simulation_bareme
 from openfisca_qt.widgets.matplotlibwidget import MatplotlibWidget
 
 
@@ -83,7 +84,7 @@ if __name__ == '__main__':
 
 
         ax.set_title(title)
-        simu.draw_bareme(ax, legend = True, position = 4)
+        draw_simulation_bareme(simu, ax, legend = True, position = 4)
         win.resize(1400,700)
         win.mplwidget.draw()
         win.show()

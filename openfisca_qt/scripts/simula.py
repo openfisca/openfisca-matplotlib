@@ -11,6 +11,7 @@ import sys
 
 from openfisca_core.simulations import ScenarioSimulation
 from openfisca_qt.gui.qt.QtGui import QMainWindow, QApplication
+from openfisca_qt.plugins.scenario.graph import draw_simulation_bareme, draw_simulation_taux
 from openfisca_qt.widgets.matplotlibwidget import MatplotlibWidget
 
 
@@ -41,8 +42,8 @@ if __name__ == '__main__':
                     mode ='bareme', same_rev_couple = False)
     simulation.set_param()
 
-#    simulation.draw_bareme(ax, legend = True, position = 4)
-    simulation.draw_taux(ax, legend=True)
+#    draw_simulation_bareme(simulation, ax, legend = True, position = 4)
+    draw_simulation_taux(simulation, ax, legend=True)
 
     win.resize(1400,700)
     if SHOW:

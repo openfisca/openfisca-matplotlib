@@ -13,6 +13,7 @@ import sys
 import matplotlib.pyplot as plt
 from openfisca_core.simulations import ScenarioSimulation
 from openfisca_qt.gui.qt.QtGui import QMainWindow, QApplication
+from openfisca_qt.plugins.scenario.graph import draw_simulation_bareme, draw_simulation_waterfall
 from openfisca_qt.widgets.matplotlibwidget import MatplotlibWidget
 from pandas import DataFrame
 
@@ -131,7 +132,7 @@ def test_case(year):
     if SHOW_OPENFISCA:
         title ="Mon titre"
         ax.set_title(title)
-        simulation.draw_waterfall(ax)
+        draw_simulation_waterfall(simulation, ax)
         win.resize(1400,700)
         win.mplwidget.draw()
         win.show()
@@ -186,7 +187,7 @@ def test_bareme(x_axis="sali"):
         title ="Barème openfisca"
         ax.set_title(title)
         graph_x_axis = simulation.get_varying_revenues(x_axis)
-        simulation.draw_bareme(ax, graph_x_axis = graph_x_axis, legend = True, position = 4)
+        draw_simulation_bareme(simulation, ax, graph_x_axis = graph_x_axis, legend = True, position = 4)
         win.resize(1400,700)
         win.mplwidget.draw()
         win.show()
