@@ -159,9 +159,9 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         reforme = self.get_option('reform')
         year = datesim.year
         simulation.set_config(year = year, reforme = reforme)
-        survey_filename = self.get_option('data_file')
-        if path.isfile(survey_filename):
-            simulation.set_config(survey_filename = survey_filename)
+#        survey_filename = self.get_option('data_file')
+#        if path.isfile(survey_filename):
+#            simulation.set_config(survey_filename = survey_filename)
         self.simulation = simulation
 
     def load_data(self):
