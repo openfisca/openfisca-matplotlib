@@ -28,5 +28,4 @@
 # OpenFisca country-specific package is properly inited.
 __all__ = [
     'CompositionWidget',
-#    'ScenarioWidget',
     ]

@@ -4,10 +4,10 @@
 eclipse.preferences.version=1
 encoding//openfisca_qt/gui/config.py=utf-8
 encoding//openfisca_qt/openFisca.pyw=utf-8
-encoding//openfisca_qt/plugins/survey/aggregates.py=utf-8
 encoding//openfisca_qt/plugins/survey/distribution.py=utf-8
 encoding//openfisca_qt/plugins/survey/inequality.py=utf-8
 encoding//openfisca_qt/widgets/Output.py=utf-8
+encoding//openfisca_qt/widgets/__init__.py=utf-8
 encoding//src/countries/__init__.py=utf-8
 encoding//src/countries/france/__init__.py=utf-8
 encoding//src/countries/france/data/codeAplReader.py=utf-8
