@@ -42,7 +42,7 @@ def test_chunk():
         tps = {}
         for nb_chunk in range(1,5):
             deb_chunk = time.clock()
-            simu.set_config(survey_filename='C:\\Til\\output\\to_run_leg.h5', num_table=3, chunk=nb_chunk ,
+            simu.set_config(survey_filename='C:\\Til\\output\\to_run_leg.h5', num_table=3, chunks_count=nb_chunk ,
                             print_missing=False)
             simu.compute()
             tps[nb_chunk] = time.clock() - deb_chunk
