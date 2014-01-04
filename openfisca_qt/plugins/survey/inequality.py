@@ -60,14 +60,6 @@ class Inequality(object):
         self.inequality_dataframe = None
         self.poverty = None
 
-    def set_default_filter_by(self):
-        """
-        Set country specific default filter by variable
-        """
-        self.set_default_filter_by_list()
-        varname = self.filter_by_var_list[0]
-        self.set_filter_by(varname)
-
     def set_simulation(self, simulation):
         """
         Set simulation
