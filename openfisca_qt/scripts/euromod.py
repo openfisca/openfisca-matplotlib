@@ -38,7 +38,7 @@ def build_aggregates():
         agg.show_default = False
         agg.show_real = False
         agg.show_diff = False
-        agg.set_var_list(var_list)
+        agg.varlist = var_list  # ERROR: var_list is undefined.
         agg.compute()
         cols = agg.aggr_frame.columns[:4]
         print agg.aggr_frame[cols].to_string()
