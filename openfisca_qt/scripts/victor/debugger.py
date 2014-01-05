@@ -81,15 +81,12 @@ class Debugger(object):
 
         temp = (build_erf_aggregates(variables=[variable], year= self.simulation.datesim.year))
 
-
-
-        selection = of_aggregates.aggr_frame["Mesure"] == self.simulation.var2label[variable]
+        selection = of_aggregates.aggr_frame["Mesure"] == self.simulation.io_column_by_name[variable].label
         print of_aggregates.aggr_frame[selection]
 
         print temp
         # TODO: clean this
         return
-
 
     def preproc(self):
 
@@ -111,7 +108,7 @@ class Debugger(object):
                       + get_all_ancestors(varlist[1:]))
 
         # We want to get all ancestors + children + the options that we're going to encounter
-        parents = map(lambda x: self.simulation.output_table.description.get_col(x), [self.variable])
+        parents = map(lambda x: self.simulation.output_table.column_by_name.get(x), [self.variable])
         parents = get_all_ancestors(parents)
         options = []
         for varcol in parents:
@@ -121,7 +118,7 @@ class Debugger(object):
         parents = map(lambda x: x.name, parents)
         for var in [self.variable]:
             children = set()
-            varcol = self.simulation.output_table.description.get_col(var)
+            varcol = self.simulation.output_table.column_by_name.get(var)
             children = children.union(set(map(lambda x: x.name, varcol._children)))
         variables = list(set(parents + list(children)))
         #print variables
@@ -331,7 +328,7 @@ class Debugger(object):
             #print "\n"
 
             # If variable is a Prestation, we show the dependancies
-            varcol = self.simulation.output_table.description.get_col(col)
+            varcol = self.simulation.output_table.column_by_name.get(col)
             if isinstance(varcol, Prestation):
 
                 '''
@@ -501,7 +498,7 @@ def test(year=2006, variables = ['af']):
                   + get_all_ancestors(varlist[1:]))
 
     # We want to get all ancestors + children + the options that we're going to encounter
-    parents = map(lambda x: simulation.output_table.description.get_col(x), variables)
+    parents = map(lambda x: simulation.output_table.column_by_name.get(x), variables)
     parents = get_all_ancestors(parents)
     options = []
     for varcol in parents:
@@ -511,7 +508,7 @@ def test(year=2006, variables = ['af']):
     parents = map(lambda x: x.name, parents)
     for var in variables:
         children = set()
-        varcol = simulation.output_table.description.get_col(var)
+        varcol = simulation.output_table.column_by_name.get(var)
         children = children.union(set(map(lambda x: x.name, varcol._children)))
     variables = list(set(parents + list(children)))
     #print variables
@@ -698,7 +695,7 @@ def test(year=2006, variables = ['af']):
         #print "\n"
 
         # If variable is a Prestation, we show the dependancies
-        varcol = simulation.output_table.description.get_col(col)
+        varcol = simulation.output_table.column_by_name.get(col)
         if isinstance(varcol, Prestation):
 
             '''

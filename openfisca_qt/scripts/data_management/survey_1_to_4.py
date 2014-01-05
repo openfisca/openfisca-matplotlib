@@ -27,19 +27,13 @@ output = HDFStore(filename3)
 available_years = sorted([int(x[-4:]) for x in  store.keys()])
 available_years = [2006]
 
-def getattr_deep(obj, attr):
-    """Recurses through an attribute chain to get the ultimate value."""
-    return reduce(getattr, attr.split('.'), obj)
 
-def from_one_to_three(table,entity):
-    InputDescription = model.InputDescription
-    vars = [x for x in dir(InputDescription()) if x[0] !="_" and x not in ['columns','get_comment','get_title','to_string']]
-    vars_entity = []
-    for var in vars:
-        if var in table.columns:
-            if getattr_deep(InputDescription(), str(var) +'.entity') == entity:
-                vars_entity.append(str(var))
-    return vars_entity
+def from_one_to_three(table, entity):
+    return [
+        name
+        for name, column in model.column_by_name.iteritems()
+        if name in table.columns and column.entity == entity
+        ]
 
 
 # on peut en profiter pour faire l'index ici ? Ca tournerait un peu plus vite

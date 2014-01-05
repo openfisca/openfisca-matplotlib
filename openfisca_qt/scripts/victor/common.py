@@ -2,6 +2,7 @@
 
 
 import os
+import pickle
 
 from openfisca_core import model
 from pandas import HDFStore

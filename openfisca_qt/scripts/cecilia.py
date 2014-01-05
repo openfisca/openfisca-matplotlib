@@ -265,7 +265,7 @@ def get_avg_tax_rate_dataframe(x_axis = "sali", maxrev = 50000, year = 2006):
     output_df = DataFrame( {"Revenus" : rev, "Prélèvements": prelev, "Taux moyen d'imposition": avg_rate})
     output_df.set_index(keys=["Revenus"], inplace=True)
 
-    x_axis_long_name = simulation.var2label[x_axis]
+    x_axis_long_name = simulation.io_column_by_name[x_axis].label
     return output_df, x_axis_long_name
 
 

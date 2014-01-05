@@ -31,5 +31,5 @@ if __name__ == "__main__":
     simulation.save_content('testundeux', 'fichiertestundeux')
 
     a = load_content('testundeux', 'fichiertestundeux')
-    print a.output_table.description.columns
+    print a.output_table.column_by_name
     print a.input_table.table['idfoy'][0:50]

@@ -138,27 +138,23 @@ class OpenfiscaPivotTable(object):
                     pass
                 frame = merge(frame, dist_frame, on=by_var)
 
-        by_var_label = self.simulation.var2label[by_var]
-        if by_var_label == by_var:
-            by_var_label = by_var
-
-        enum = self.simulation.var2enum[by_var]
         frame = frame.reset_index(drop=True)
 
         for col in frame.columns:
             if col[-6:] == "__init":
-                frame.rename(columns = { col : self.simulation.var2label[col[:-6]] + " init."}, inplace = True)
+                frame.rename(columns = { col : self.simulation.io_column_by_name[col[:-6]].label + " init."}, inplace = True)
             else:
-                frame.rename(columns = { col : self.simulation.var2label[col] }, inplace = True)
+                frame.rename(columns = { col : self.simulation.io_column_by_name[col].label }, inplace = True)
 
+        by_var_column = self.simulation.io_column_by_name[by_var]
+        enum = getattr(by_var_column, 'enum', None)
         if enum is not None:
             try:
-                frame[by_var_label] = frame[by_var_label].apply(lambda x: enum._vars[x])
+                frame[by_var_column.label] = frame[by_var_column.label].apply(lambda x: enum._vars[x])
             except Exception as e:
                 print "Error in enum in distribution"
                 print e
         return frame
-
 
     def group_by(self, varlist, category, champm=True, do_not_use_weights=False):
         '''
@@ -349,11 +345,11 @@ class DistributionWidget(OpenfiscaPluginWidget):
             choices =  self.selected_vars
             dialog_label = "Retirer une variable"
 
-        dialog_choices = sorted([self.openfisca_pivot_table.simulation.var2label[variab] for variab in list(choices)])
+        dialog_choices = sorted([self.openfisca_pivot_table.simulation.io_column_by_name[variab].label for variab in list(choices)])
         label, ok = QInputDialog.getItem(self, dialog_label , "Choisir la variable",
                                        dialog_choices)
         if ok and label in dialog_choices:
-            return self.openfisca_pivot_table.simulation.label2var[unicode(label)]
+            return self.openfisca_pivot_table.simulation.io_column_by_label[unicode(label)].name
         else:
             return None
 
@@ -377,13 +373,13 @@ class DistributionWidget(OpenfiscaPluginWidget):
 
         if self.openfisca_pivot_table is not None:
             choices = set( self.openfisca_pivot_table.by_var_choices )
-            var2label = self.openfisca_pivot_table.simulation.var2label
+            io_column_by_name = self.openfisca_pivot_table.simulation.io_column_by_name
         else:
             choices = []
 
         for var in choices:
             try:
-                combobox.addItem(var2label[var], var )
+                combobox.addItem(io_column_by_name[var].label, var)
             except:
                 combobox.addItem(var, var )
 

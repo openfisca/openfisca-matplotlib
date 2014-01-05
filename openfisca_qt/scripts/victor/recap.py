@@ -82,19 +82,25 @@ class Recap(object):
             agg.compute()
             df = agg.aggr_frame
             df['year'] = year
-            label2var, var2label, var2enum = simulation.output_table.description.builds_dicts()
+            label_by_name = dict(
+                (name, column.label)
+                for name, column in simulation.output_table.column_by_name.iteritems()
+                )
             #colonnes = simulation.output_table.table.columns
             dfs.append(df)
             variables = agg.varlist
-            labels_variables = map(lambda x: var2label[x], variables)
-            del simulation, agg, var2enum, df
+            labels_variables = [
+                label_by_name[variable]
+                for variable in variables
+                ]
+            del simulation, agg, df
             # simulation.save_content(name, filename)
 
             gc.collect()
 
             # ERFS
             temp = (build_erf_aggregates(variables=variables, year= year))
-            temp.rename(columns = var2label, inplace = True)
+            temp.rename(columns = label_by_name, inplace = True)
             temp = temp.T
             temp.reset_index(inplace = True)
             temp['year'] = year

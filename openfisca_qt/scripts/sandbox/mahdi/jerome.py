@@ -14,14 +14,12 @@ def toto():
     simulation.set_survey()
     simulation.compute()
 
-    for name in simulation.output_table.description.col_names:
-        col =  simulation.output_table.description.get_col(name)
+    for name, col in simulation.output_table.column_by_name.iteritems():
         print col.name
         print col._dtype
         print col.entity
 
-#     for name in simulation.output_table._inputs.description.col_names:
-#         col =  simulation.output_table._inputs.description.get_col(name)
+#     for name, col in simulation.output_table._inputs.column_by_name.iteritems():
 #         print col.name
 #         print col._dtype
 #         print col.entity

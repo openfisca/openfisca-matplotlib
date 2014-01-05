@@ -62,8 +62,7 @@ def check_inputs_enumcols(simulation):
     is_ok = True
     message = None
     survey = simulation.input_table
-    for var in survey.col_names:
-        varcol  = survey.description.get_col(var)
+    for var, varcol in survey.column_by_name.iteritems():
         if isinstance(varcol, EnumCol):
             try:
                 x = sorted(varcol.enum._nums.values())

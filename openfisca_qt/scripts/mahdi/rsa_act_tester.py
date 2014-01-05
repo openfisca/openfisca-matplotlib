@@ -54,25 +54,24 @@ def survey_case(year):
     del simulation
     import gc
     gc.collect()
-    return
 
-# Compute aggregates
-    agg = Aggregates()
-    agg.set_simulation(simulation)
-    agg.compute()
+## Compute aggregates
+#    agg = Aggregates()
+#    agg.set_simulation(simulation)
+#    agg.compute()
 
-    df1 = agg.aggr_frame
-    print df1.to_string()
-
+#    df1 = agg.aggr_frame
+#    print df1.to_string()
 
 
 
-# Displaying a pivot table
-    from openfisca_qt.plugins.survey.distribution import OpenfiscaPivotTable
-    pivot_table = OpenfiscaPivotTable()
-    pivot_table.set_simulation(simulation)
-    df2 = pivot_table.get_table(by ='so', vars=['nivvie'])
-    print df2.to_string()
+
+## Displaying a pivot table
+#    from openfisca_qt.plugins.survey.distribution import OpenfiscaPivotTable
+#    pivot_table = OpenfiscaPivotTable()
+#    pivot_table.set_simulation(simulation)
+#    df2 = pivot_table.get_table(by ='so', vars=['nivvie'])
+#    print df2.to_string()
 
 
 if __name__ == '__main__':

@@ -40,7 +40,7 @@ def build_aggregates3():
         fin3  = time.clock()
 
         print "coucou"
-        col = simu.survey.description.get_col("so")
+        col = simu.survey.column_by_name.get("so")
         print col.entity
         agg3 = Aggregates3()
         agg3.set_simulation(simu)

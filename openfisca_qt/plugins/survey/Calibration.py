@@ -50,7 +50,6 @@ _ = get_translation('openfisca_qt')
 MODCOLS = [EnumCol, BoolCol, BoolPresta, IntPresta, AgesCol, DateCol]
 
 
-
 class Calibration(object):
     """
     An object to calibrate survey data of a SurveySimulation
@@ -95,7 +94,6 @@ class Calibration(object):
         """
         Set simulation
         """
-
         self.simulation = simulation
         inputs = self.simulation.input_table
         if inputs is None:
@@ -175,14 +173,13 @@ class Calibration(object):
 
         varcol = self.simulation.get_col(varname)
         entity = self.entity
-        enum = inputs.description.get_col('qui'+self.entity).enum
+        enum = inputs.column_by_name.get('qui'+self.entity).enum
         people = [x[1] for x in enum]
 
-        if inputs.description.has_col(varname):
+        if varname in inputs.column_by_name:
             value = inputs.get_value(varname, index = idx)
-        elif  output_table is not None:
-            if output_table.description.has_col(varname):
-                value = output_table.get_value(varname, index = idx, opt = people, sum_ = True)
+        elif output_table is not None and varname in output_table.column_by_name:
+            value = output_table.get_value(varname, index = idx, opt = people, sum_ = True)
 
         label = varcol.label
         # TODO: rewrite this using pivot table
@@ -286,15 +283,13 @@ class Calibration(object):
 
         data = {weights_in: self.weights_init*self.champm}
         for var in marges:
-            if inputs.description.has_col(var):
+            if var in inputs.column_by_name:
                 data[var] = inputs.get_value(var, self.entity)
-            else:
-                if output_table:
-                    if output_table.description.has_col(var):
-                        entity = self.entity
-                        enum = inputs.description.get_col('qui'+self.entity).enum
-                        people = [x[1] for x in enum]
-                        data[var] = output_table.get_value(var, entity=entity, opt=people, sum_=True)
+            elif output_table and var in output_table.column_by_name:
+                entity = self.entity
+                enum = inputs.column_by_name.get('qui'+self.entity).enum
+                people = [x[1] for x in enum]
+                data[var] = output_table.get_value(var, entity=entity, opt=people, sum_=True)
         return data
 
 
@@ -365,11 +360,11 @@ class Calibration(object):
 
         w = self.weights
         for var in margins.keys():
-            if inputs.description.has_col(var):
+            if var in inputs.column_by_name:
                 value = inputs.get_value(var, self.entity)
             else:
                 entity = self.entity
-                enum = output_table._inputs.description.get_col('qui'+self.entity).enum
+                enum = output_table._inputs.column_by_name.get('qui'+self.entity).enum
                 people = [x[1] for x in enum]
                 value = output_table.get_value(var, entity=entity, opt=people, sum_=True)
 
@@ -652,9 +647,9 @@ class CalibrationWidget(OpenfiscaPluginWidget):
                 target = dict(zip(target_df['mod'] ,target_df['target']))
             else:
                 if datatable_name =='output_table':
-                    varcol = self.output_table.description.get_col(varname)
+                    varcol = self.output_table.column_by_name.get(varname)
                 elif datatable_name =='inputs':
-                    varcol = self.inputs.description.get_col(varname)
+                    varcol = self.inputs.column_by_name.get(varname)
 
                 if varcol.__class__ not in MODCOLS:
                         val, ok = QInputDialog.getDouble(self.parent(), "Valeur de la  marge", unicode(varlabel) + "  (millions d'euros)")
@@ -728,7 +723,7 @@ class CalibrationWidget(OpenfiscaPluginWidget):
             df = input_margins_df.reset_index()
             #  TODO 'config'
             set_ic = set(df['var'].unique())
-            lic = set_ic.intersection( set(inputs.description.col_names))
+            lic = set_ic.intersection(set(inputs.column_by_name))
             return sorted(list(lic - set(self.table_vars_list)))
         else:
             return []
@@ -740,9 +735,9 @@ class CalibrationWidget(OpenfiscaPluginWidget):
         '''
         inputs = self.calibartion.simulation.inputs
         output_table = self.calibartion.simulation.output_table
-        outset = set(inputs.col_names) - set(self.table_vars_list)
+        outset = set(inputs.column_by_name) - set(self.table_vars_list)
         if self.aggregate_calculated:
-            outset = outset.union(set(output_table.col_names)) - set(self.table_vars_list)
+            outset = outset.union(set(output_table.column_by_name)) - set(self.table_vars_list)
         return sorted(list(outset))
 
     @property
@@ -758,7 +753,7 @@ class CalibrationWidget(OpenfiscaPluginWidget):
             df = output_margins_df.reset_index()
             #   data_oc = df[ df['source'] == 'output'] # + df['source'] == 'config']
             set_oc = set(df['var'].unique())
-            loc = set_oc.intersection( set(output_table.col_names))
+            loc = set_oc.intersection(set(output_table.column_by_name))
             return sorted(list(loc - set(self.table_vars_list)))
         else:
             return []
@@ -813,8 +808,7 @@ class CalibrationWidget(OpenfiscaPluginWidget):
 #        datatable = self.output_table
 #        inputs    = self.inputs
 #        w = inputs.get_value("wprm", inputs.index['men']) # TODO wprm_init ?
-#        for varname in datatable.description.col_names:
-#            varcol = datatable.description.get_col(varname)
+#        for varname, varcol in datatable.column_by_name.iteritems():
 #            value = datatable.get_value(varname, inputs.index['men'])
 #
 #            if isinstance(varcol , BoolPresta):
@@ -863,12 +857,10 @@ class CalibrationWidget(OpenfiscaPluginWidget):
 
         return varnames
 
-
-
     def get_var_datatable(self, varname):
-        if self.calibration.simulation.survey.description.has_col(varname):
+        if varname in self.calibration.simulation.survey.column_by_name:
             return 'inputs'
-        elif self.self.calibration.simulation.output_table.description.has_col(varname):
+        elif varname in self.self.calibration.simulation.output_table.column_by_name:
             return 'output_table'
         else:
             print "Variable %s is absent from both inputs and output_table" % varname

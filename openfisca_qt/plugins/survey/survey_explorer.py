@@ -269,33 +269,6 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         else:
             return
 
-    def set_choices(self, description):
-        '''
-        Set the variables appearing in the add and remove dialogs
-
-        Parameters
-        ----------
-
-        description : TODO:
-        '''
-        data_vars = set(self.data.columns)
-        label2var = {}
-        var2label = {}
-        var2enum = {}
-        for var in description.col_names:
-            varcol  = description.get_col(var)
-            if isinstance(varcol, EnumCol):
-                var2enum[var] = varcol.enum
-                if varcol.label:
-                    label2var[varcol.label] = var
-                    var2label[var]          = varcol.label
-                else:
-                    label2var[var] = var
-                    var2label[var] = var
-
-        self.var2label = var2label
-        self.var2enum  = var2enum
-
     def update_view(self, fill_default=False):
         """
         Update view

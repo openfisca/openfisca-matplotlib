@@ -24,6 +24,7 @@ This file is part of openFisca.
 
 import os
 
+from openfisca_core import model
 from openfisca_core.parameters import XmlReader, Tree2Object
 from PyQt4.QtCore import SIGNAL
 from PyQt4.QtGui import QDockWidget, QFileDialog, QMessageBox
