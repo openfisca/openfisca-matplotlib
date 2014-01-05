@@ -1046,7 +1046,7 @@ class DictEditorTableView(BaseTableView):
     def plot(self, key, funcname):
         """Plot item"""
         data = self.model.get_data()
-        import ...gui.pyplot as plt
+        from ...gui import pyplot as plt
         plt.figure()
         getattr(plt, funcname)(data[key])
         plt.show()
@@ -1054,7 +1054,7 @@ class DictEditorTableView(BaseTableView):
     def imshow(self, key):
         """Show item's image"""
         data = self.model.get_data()
-        import ...gui.pyplot as plt
+        from ...gui import pyplot as plt
         plt.figure()
         plt.imshow(data[key])
         plt.show()
