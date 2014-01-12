@@ -88,7 +88,7 @@ class PrestationModel(QAbstractItemModel):
         elif col == 1:
             return Qt.ItemIsSelectable
         elif col == 2:
-            if node.typeInfo == 'NODE':
+            if node.type_info == 'NODE':
                 return Qt.ItemIsEnabled | Qt.ItemIsSelectable
             else:
                 return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable

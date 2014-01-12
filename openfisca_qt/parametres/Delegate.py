@@ -98,28 +98,28 @@ class ValueColumnDelegate(QStyledItemDelegate):
             val = from_qvariant(index.model().data(index))
 
 
-            if node.typeInfo == 'CODE':
-                if node.valueFormat == 'percent':
+            if node.type_info == 'CODE':
+                if node.value_format == 'percent':
                     text = '%.2f %%  ' % (val*100)
-                elif node.valueFormat == 'bool':
+                elif node.value_format == 'bool':
                     text = '%d  ' % val
-                elif node.valueFormat == 'integer':
-                    if node.valueType == 'monetary':
+                elif node.value_format == 'integer':
+                    if node.value_type == 'monetary':
                         text = '%d  %s' %( val, currency)
-                    elif node.valueType == 'age':
+                    elif node.value_type == 'age':
                         if val <= 1:
                             text = '%d  %s' %( val, year)
                         else:
                             text = '%d  %s' %( val, years)
                     else:
                         text = '%d  ' % val
-                elif node.valueFormat == 'float':
-                    if node.valueType == 'monetary':
+                elif node.value_format == 'float':
+                    if node.value_type == 'monetary':
                         text = '%.2f  %s' %( val, currency)
                     else:
                         text = '%.2f  ' % val
                 else:
-                    if node.valueType == 'monetary':
+                    if node.value_type == 'monetary':
                         text = '%.2f  %s' %( val, currency)
                     else:
                         text = '%.2f  ' % val
@@ -129,7 +129,7 @@ class ValueColumnDelegate(QStyledItemDelegate):
 
                 style.drawControl(QStyle.CE_ItemViewItem, styleOption, painter)
 
-            elif node.typeInfo == 'BAREME' and index.column()==2:
+            elif node.type_info == 'BAREME' and index.column()==2:
                 styleOption = QStyleOptionButton()
                 styleOption.rect = option.rect
                 styleOption.text = QString('Editer')
@@ -149,20 +149,20 @@ class ValueColumnDelegate(QStyledItemDelegate):
         currency = model.CURRENCY
 
         node = index.internalPointer()
-        if node.typeInfo == 'CODE':
-            if node.valueFormat == 'percent':
+        if node.type_info == 'CODE':
+            if node.value_format == 'percent':
                 editor = QDoubleSpinBox(parent)
                 editor.setSuffix('%')
-            elif node.valueFormat == 'integer':
+            elif node.value_format == 'integer':
                 editor = QSpinBox(parent)
             else:
                 editor = QDoubleSpinBox(parent)
             editor.setMaximum(100000000)
-        elif node.typeInfo == 'BAREME':
+        elif node.type_info == 'BAREME':
             editor = QPushButton(parent)
             editor.setText('Editer')
             unit = None
-            if node.valueType == 'monetary':
+            if node.value_type == 'monetary':
                 unit = currency
             value = node._value
             value.marToMoy()
@@ -179,18 +179,18 @@ class ValueColumnDelegate(QStyledItemDelegate):
 
     def setEditorData(self, editor, index):
         node = index.internalPointer()
-        if node.typeInfo == 'BAREME':
+        if node.type_info == 'BAREME':
             return
-        if node.valueFormat == 'percent':
+        if node.value_format == 'percent':
             editor.setValue(node.value*100)
         else:
             editor.setValue(node.value)
 
     def setModelData(self, editor, model, index):
         node = index.internalPointer()
-        if node.typeInfo == 'BAREME':
+        if node.type_info == 'BAREME':
             newValue = None
-        elif node.valueFormat == 'percent':
+        elif node.value_format == 'percent':
             newValue = editor.value()*0.01
         else:
             newValue = editor.value()
