@@ -6,11 +6,13 @@
 # Licensed under the terms of the GVPLv3 or later license
 # (see openfisca/__init__.py for details)
 
-from pandas import DataFrame, ExcelWriter
+
 from numpy import arange
-from openfisca_core.utils import mark_weighted_percentiles
+from openfisca_core.statshelpers import mark_weighted_percentiles
 from src.countries.france.data.erf.datatable import ErfsDataTable
 from src.countries.france.data.sources.config import destination_dir
+from pandas import DataFrame, ExcelWriter
+
 
 year = 2009
 erf = ErfsDataTable(year=year)

@@ -18,8 +18,8 @@ import numpy as np
 from numpy import logical_and as and_
 from openfisca_core import model
 from openfisca_core.columns import Prestation
-from openfisca_core.utils import mark_weighted_percentiles as mwp
 from openfisca_core.simulations import SurveySimulation
+from openfisca_core.statshelpers import mark_weighted_percentiles as mwp
 from src.countries.france.data.erf.datatable import DataCollection
 from openfisca_qt.plugins.survey.aggregates import Aggregates
 import pandas as pd

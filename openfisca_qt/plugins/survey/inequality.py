@@ -26,7 +26,7 @@ from datetime import datetime
 
 from openfisca_core import model
 from openfisca_core.simulations import SurveySimulation
-from openfisca_core.utils import gini, lorenz, mark_weighted_percentiles
+from openfisca_core.statshelpers import gini, lorenz, mark_weighted_percentiles
 from pandas import DataFrame
 
 from ...gui.baseconfig import get_translation
