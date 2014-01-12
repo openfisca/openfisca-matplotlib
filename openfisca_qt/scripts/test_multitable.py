@@ -12,17 +12,19 @@ Created on 9 juil. 2013
 @author: Jérôme SANTOUL
 '''
 
+
+import os
+
+import numpy as np
+from openfisca_core import model
 from openfisca_core.simulations import ScenarioSimulation
 from openfisca_core.simulations import SurveySimulation
+from openfisca_france.data.erf.build_survey.utilitaries import check_structure, control
+from openfisca_france.data.erf.datatable import DataCollection
 from openfisca_qt.plugins.survey.aggregates import Aggregates
-from pandas import HDFStore
-import os
-import numpy as np
 from openfisca_qt.scripts.data_management.separate_tables_generator import convert_to_3_tables
 import pandas as pd
-from openfisca_core import model
-from openfisca_qt.countries.france.data.erf.build_survey.utilitaries import check_structure, control
-from openfisca_qt.countries.france.data.erf.datatable import DataCollection
+from pandas import HDFStore
 
 
 #Setting the files path:

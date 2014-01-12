@@ -5,7 +5,7 @@ Export survey<hh in a Pytables format from which ViTables can be used to visuali
 '''
 
 
-from src.countries.france.data.sources.config import destination_dir
+from openfisca_france.data.sources.config import destination_dir
 import tables
 import pdb
 import os

@@ -20,7 +20,7 @@ from openfisca_core import model
 from openfisca_core.columns import Prestation
 from openfisca_core.simulations import SurveySimulation
 from openfisca_core.statshelpers import mark_weighted_percentiles as mwp
-from src.countries.france.data.erf.datatable import DataCollection
+from openfisca_france.data.erf.datatable import DataCollection
 from openfisca_qt.plugins.survey.aggregates import Aggregates
 import pandas as pd
 from pandas import merge
@@ -70,7 +70,7 @@ class Debugger(object):
             self.variable = variable
 
     def show_aggregates(self):
-        from src.countries.france.data.erf.aggregates import build_erf_aggregates
+        from openfisca_france.data.erf.aggregates import build_erf_aggregates
 
         assert self.simulation is not None, 'simulation attribute is None'
         assert self.variable is not None, 'variable attribute is None'
@@ -172,7 +172,7 @@ class Debugger(object):
         gc.collect()
         assert 'ident' in erf_menage.columns, "ident not in erf_menage.columns"
 
-        from src.countries.france.data.erf import get_erf2of
+        from openfisca_france.data.erf import get_erf2of
         erf2of = get_erf2of()
         erf_menage.rename(columns = erf2of, inplace = True)
 
@@ -471,7 +471,7 @@ def test(year=2006, variables = ['af']):
 #     of_aggregates.compute()
 #     print of_aggregates.aggr_frame
 #
-#     from src.countries.france.data.erf.aggregates import build_erf_aggregates
+#     from openfisca_france.data.erf.aggregates import build_erf_aggregates
 #     temp = (build_erf_aggregates(variables=variables, year= year))
 #     print temp
 #     return
@@ -563,7 +563,7 @@ def test(year=2006, variables = ['af']):
     gc.collect()
     assert 'ident' in erf_menage.columns, "ident not in erf_menage.columns"
 
-    from src.countries.france.data.erf import get_erf2of
+    from openfisca_france.data.erf import get_erf2of
     erf2of = get_erf2of()
     erf_menage.rename(columns = erf2of, inplace = True)
 

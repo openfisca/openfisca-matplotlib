@@ -20,11 +20,11 @@ from openfisca_qt.plugins.survey.aggregates import Aggregates
 # from openfisca_qt.scripts.validation.check_consistency_tests import (check_inputs_enumcols, check_entities,
 #    check_weights)
 from pandas import ExcelWriter
-from src.countries.france.data.erf.aggregates import build_erf_aggregates
+from openfisca_france.data.erf.aggregates import build_erf_aggregates
 import pandas as pd
 try:
     import xlwt
-    from src.countries.france.XL import XLtable
+    from openfisca_france.XL import XLtable
 except:
     pass
 

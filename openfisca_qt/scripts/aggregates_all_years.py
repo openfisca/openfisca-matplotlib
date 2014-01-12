@@ -13,7 +13,7 @@ from openfisca_qt.plugins.survey.aggregates import Aggregates
 from openfisca_qt.plugins.survey.inequality import Inequality
 from pandas import ExcelWriter, ExcelFile
 import os
-from src.countries.france.data.sources.config import destination_dir
+from openfisca_france.data.sources.config import destination_dir
 
 
 fname_all = "aggregates_inflated_loyers.xlsx"
