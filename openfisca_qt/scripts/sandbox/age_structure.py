@@ -90,7 +90,7 @@ def build_from_insee( directory = None, verbose=False):
         df = df.dropna(axis=0)
         df.set_value(106,u"âge", 105)
         df = df.set_index(u"âge")
-        df = df.drop(df.index[90], axis=0)
+        df.drop(df.index[90], axis=0, inplace=True)
         df.index.name = u"âge"
         df = df.reset_index()
         if verbose:
@@ -128,7 +128,7 @@ def build_comparison():
     print insee
 #    for year in range(2006,2010):
     print openfisca.head()
-    openfisca = openfisca.drop(0, axis=0)
+    openfisca.drop(0, axis=0, inplace=True)
     openfisca.reset_index(inplace=True)
     from pandas import DataFrame
     print (openfisca.sum() - insee.sum())/insee.sum()

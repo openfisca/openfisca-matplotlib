@@ -202,10 +202,10 @@ class Calibration(object):
             if len(mods) != len(target.keys()):
                 drop_indices = [ (varname, mod) for mod in target.keys()]
                 if source == 'input':
-                    self.input_margins_df = self.input_margins_df.drop(drop_indices)
+                    self.input_margins_df.drop(drop_indices, inplace=True)
                     self.input_margins_df.index.names = ['var','mod']
                 if source == 'output':
-                    self.output_margins_df = self.output_margins_df.drop(drop_indices)
+                    self.output_margins_df.drop(drop_indices, inplace=True)
                     self.output_margins_df.index.names = ['var','mod']
                 return
 

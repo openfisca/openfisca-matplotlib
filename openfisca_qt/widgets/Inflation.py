@@ -176,7 +176,7 @@ class InflationWidget(QDialog):
                 a = df_a1.get_value(case, 'amount')
                 if a is not NaN:
                     amount += a
-            df_a1 = df_a1.drop(declar_vars_list, axis = 0)
+            df_a1.drop(declar_vars_list, axis = 0, inplace=True)
             row = DataFrame(dict(amount = [amount]), index = [of_var] )
             df_a = df_a.append(row)
 
@@ -198,7 +198,7 @@ class InflationWidget(QDialog):
 
         for varname in self.vars_df.index:
             if varname not in self.inputs.column_by_name:
-                self.vars_df = self.vars_df.drop(varname)
+                self.vars_df.drop(varname, inplace=True)
                 continue
 
             w = self.weights

@@ -108,7 +108,8 @@ def compar_num_table():
         # export to csv to run compar in R
         dir_name = destination_dir + 'en1' +'.csv'
         tab = simu.output_table.table
-        tab = tab.drop(['idfam_fam','idfam_foy','idfam_men','idfoy_fam','idfoy_foy','idfoy_men','idmen_men','idmen_fam','idmen_foy','wprm_foy','wprm_fam'],axis=1)
+        tab.drop(['idfam_fam','idfam_foy','idfam_men','idfoy_fam','idfoy_foy','idfoy_men','idmen_men','idmen_fam','idmen_foy','wprm_foy','wprm_fam'],
+                        axis=1, inplace=True)
         renam ={}
         ent = 'ind'
         renam['wprm_'+ent] = 'wprm'

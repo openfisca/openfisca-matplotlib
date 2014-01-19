@@ -45,7 +45,7 @@ for yr in years:
         for x in tab_type.descr:
             if x[1] == '|b1' :
                 to_remote = to_remote + [x[0]]
-        tab = tab.drop(to_remote, axis=1 )
+        tab.drop(to_remote, axis=1, inplace=True)
         tab_type = tab.to_records(index=False).dtype
         survey_table = survey.createTable('/survey_'+yr,'table',tab_type)
         survey_table.append(tab.to_records(index=False))
