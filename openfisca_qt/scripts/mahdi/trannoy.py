@@ -33,7 +33,6 @@ openfisca_france.init_country()
 
 from openfisca_core.simulations import ScenarioSimulation, SurveySimulation
 
-param_file = os.path.join(os.path.dirname(model.PARAM_FILE), 'param_actu_IPP.xml')
 
 # destination_dir = "c:/users/utilisateur/documents/"
 # fname_all = "aggregates_inflated_loyers.xlsx"
@@ -42,62 +41,66 @@ param_file = os.path.join(os.path.dirname(model.PARAM_FILE), 'param_actu_IPP.xml
 def test_case(year, save = False):
 
     country = 'france'
-    salaires_nets = 1120.43*12
+    salaires_nets = 1120.43 * 12
     nmen = 20
     nmax = 3
 
     for reforme in [False, True]:
         simulation = ScenarioSimulation()
-        simulation.set_config(year = year, 
-                              param_file = param_file,
-                              reforme=reforme,
+        simulation.set_config(year = year,
+                              reforme = reforme,
                               nmen = nmen,
-                              maxrev = salaires_nets*nmax,
+                              maxrev = salaires_nets * nmax,
                               x_axis = 'sali')
-        
+
         # Adding a husband/wife on the same tax sheet (foyer)
-        simulation.scenario.addIndiv(1, datetime.date(1975,1,1), 'conj', 'part') 
+        simulation.scenario.addIndiv(1, datetime.date(1975, 1, 1), 'conj', 'part')
     #     simulation.scenario.addIndiv(2, datetime(2000,1,1).date(), 'pac', 'enf')
     #     simulation.scenario.addIndiv(3, datetime(2000,1,1).date(), 'pac', 'enf')
-        
+
         # Loyers set statut d'occupation
-        simulation.scenario.menage[0].update({"loyer": 1120.43/3}) 
+        simulation.scenario.menage[0].update({"loyer": 1120.43 / 3})
         simulation.scenario.menage[0].update({"so": 4})
-    
+
         simulation.set_param()
         simulation.P.ir.autre.charge_loyer.active = 1
         simulation.P.ir.autre.charge_loyer.plaf = 1000
-        simulation.P.ir.autre.charge_loyer.plaf_nbp = 0 
-    
-        reduc = 0
+        simulation.P.ir.autre.charge_loyer.plaf_nbp = 0
+        print simulation.P
+        print type(simulation.P)
+        reduc = .2
         print simulation.P.ir.bareme
         print simulation.P.ir.bareme.nb
         for i in range(2, simulation.P.ir.bareme.nb):
-            simulation.P.ir.bareme.setSeuil(i, simulation.P.ir.bareme.seuils[i]*(1-reduc) )
-    
+            simulation.P.ir.bareme.setSeuil(i, simulation.P.ir.bareme.seuils[i] * (1 - reduc))
+
         print simulation.P.ir.bareme
         print simulation.P.ir.bareme.nb
-    
-        df = simulation.get_results_dataframe()
+
+        if simulation.reforme is True:
+            df = simulation.get_results_dataframe(difference = True)
+        else:
+            df = simulation.get_results_dataframe()
         print df.to_string()
-        
-        #Save example to excel
+
+        # Save example to excel
         if save:
             destination_dir = "c:/users/utilisateur/documents/"
-            fname = "Trannoy_reforme.%s" %"xls"    
-            
             if reforme:
-                df.to_excel(destination_dir  + fname, sheet_name="difference")
+                fname = destination_dir + "Trannoy_reforme_new_diff.%s" % "xlsx"
+                print "Saving " + fname
+                df.to_excel(fname, sheet_name = "difference")
             else:
-                df.to_excel(destination_dir  + fname, sheet_name="Trannoy")
-
+                fname = destination_dir + "Trannoy_reforme_new.%s" % "xlsx"
+                print "Saving " + fname
+                df.to_excel(fname, sheet_name = "Trannoy")
 
 
 def survey_case(year):
 
 #        fname = "Agg_%s.%s" %(str(yr), "xls")
     simulation = SurveySimulation()
-    simulation.set_config(year = year, num_table=1, reforme=True)
+    simulation.set_config(year = year, num_table = 1, reforme = True)
     simulation.set_param()
     simulation.P.ir.autre.charge_loyer.plaf = 500
     simulation.P.ir.autre.charge_loyer.active = 1
@@ -111,7 +114,7 @@ def survey_case(year):
     print simulation.P.ir.bareme
     print simulation.P.ir.bareme.nb
     for i in range(2, simulation.P.ir.bareme.nb):
-        simulation.P.ir.bareme.setSeuil(i, simulation.P.ir.bareme.seuils[i]*(1-reduc) )
+        simulation.P.ir.bareme.setSeuil(i, simulation.P.ir.bareme.seuils[i] * (1 - reduc))
 
     print simulation.P.ir.bareme
     print simulation.P.ir.bareme.nb
