@@ -41,9 +41,9 @@ from openfisca_core.simulations import ScenarioSimulation, SurveySimulation
 def test_case(year, save = False):
 
     country = 'france'
-    salaires_nets = 1120.43 * 12
-    nmen = 20
-    nmax = 3
+    salaires_nets = 30000
+    nmen = 3
+    nmax = 1
 
     for reforme in [False, True]:
         simulation = ScenarioSimulation()
@@ -59,7 +59,7 @@ def test_case(year, save = False):
     #     simulation.scenario.addIndiv(3, datetime(2000,1,1).date(), 'pac', 'enf')
 
         # Loyers set statut d'occupation
-        simulation.scenario.menage[0].update({"loyer": 1120.43 / 3})
+        simulation.scenario.menage[0].update({"loyer": 2000})
         simulation.scenario.menage[0].update({"so": 4})
 
         simulation.set_param()
@@ -68,7 +68,7 @@ def test_case(year, save = False):
         simulation.P.ir.autre.charge_loyer.plaf_nbp = 0
         print simulation.P
         print type(simulation.P)
-        reduc = .2
+        reduc = 0
         print simulation.P.ir.bareme
         print simulation.P.ir.bareme.nb
         for i in range(2, simulation.P.ir.bareme.nb):
