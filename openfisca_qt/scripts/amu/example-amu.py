@@ -80,7 +80,6 @@ def case_study(year = 2013):
     df_reform = simulation.get_results_dataframe()
     print df_reform.to_string()
 
-
     # Many other variables are accessible
     # Input variables
     print 'list of input variables : %s \n' % simulation.input_var_list
