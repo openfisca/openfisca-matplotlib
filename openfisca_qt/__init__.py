@@ -14,7 +14,7 @@
 """
 
 
-from openfisca_core import __version__
+#from openfisca_core import __version__
 
 
 __project_url__ = "http://www.openfisca.fr/"
