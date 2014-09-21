@@ -70,12 +70,12 @@ def test_case(year, save = False):
         print type(simulation.P)
         reduc = 0
         print simulation.P.ir.bareme
-        print simulation.P.ir.bareme.nb
-        for i in range(2, simulation.P.ir.bareme.nb):
-            simulation.P.ir.bareme.setSeuil(i, simulation.P.ir.bareme.seuils[i] * (1 - reduc))
+        print len(simulation.P.ir.bareme.thresholds)
+        for i in range(2, len(simulation.P.ir.bareme.thresholds)):
+            simulation.P.ir.bareme.setSeuil(i, simulation.P.ir.bareme.thresholds[i] * (1 - reduc))
 
         print simulation.P.ir.bareme
-        print simulation.P.ir.bareme.nb
+        print len(simulation.P.ir.bareme.thresholds)
 
         if simulation.reforme is True:
             df = simulation.get_results_dataframe(difference = True)
@@ -112,12 +112,12 @@ def survey_case(year):
     # Bareme threshold reduction in pct
     reduc = .1
     print simulation.P.ir.bareme
-    print simulation.P.ir.bareme.nb
-    for i in range(2, simulation.P.ir.bareme.nb):
-        simulation.P.ir.bareme.setSeuil(i, simulation.P.ir.bareme.seuils[i] * (1 - reduc))
+    print len(simulation.P.ir.bareme.thresholds)
+    for i in range(2, len(simulation.P.ir.bareme.thresholds)):
+        simulation.P.ir.bareme.setSeuil(i, simulation.P.ir.bareme.thresholds[i] * (1 - reduc))
 
     print simulation.P.ir.bareme
-    print simulation.P.ir.bareme.nb
+    print len(simulation.P.ir.bareme.thresholds)
     simulation.compute()
 
 # Compute aggregates

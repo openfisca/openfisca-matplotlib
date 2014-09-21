@@ -290,7 +290,7 @@ class BaremeDialog(QDialog, Ui_BaremeDialog):
         self.connect(self.add_btn, SIGNAL('clicked()'), self.add_tranche)
         self.connect(self.rmv_btn, SIGNAL('clicked()'), self.rmv_tranche)
 
-        if self._bareme.nb <= 1:
+        if len(self._bareme.thresholds) <= 1:
             self.rmv_btn.setEnabled(False)
 
     def add_tranche(self):
@@ -302,7 +302,7 @@ class BaremeDialog(QDialog, Ui_BaremeDialog):
         Removes last bareme tranche
         '''
         self._marModel.removeRows(0, 1)
-        if self._bareme.nb == 1:
+        if len(self._bareme.thresholds) == 1:
             self.rmv_btn.setEnabled(False)
 
 class MarModel(QAbstractTableModel):
@@ -312,7 +312,7 @@ class MarModel(QAbstractTableModel):
         self._bareme = bareme
 
     def rowCount(self, parent):
-        return self._bareme.nb
+        return len(self._bareme.thresholds)
 
     def columnCount(self, parent):
         return 2
@@ -333,11 +333,11 @@ class MarModel(QAbstractTableModel):
             if column == 0 :
                 if (self._bareme.unit is not None) and (role == Qt.DisplayRole):
 
-                    return to_qvariant( str(self._bareme.seuils[row]) + ' ' + self._bareme.unit)
+                    return to_qvariant( str(self._bareme.thresholds[row]) + ' ' + self._bareme.unit)
                 else:
-                    return to_qvariant(self._bareme.seuils[row])
+                    return to_qvariant(self._bareme.thresholds[row])
             if column == 1 :
-                return to_qvariant(self._bareme.taux[row])
+                return to_qvariant(self._bareme.rates[row])
 
 
         if role == Qt.TextAlignmentRole:
@@ -346,12 +346,12 @@ class MarModel(QAbstractTableModel):
 
     def insertRows(self, row, count, parent = QModelIndex() ):
         self.beginInsertRows(parent, row, row)
-        if self._bareme.nb == 0:
+        if len(self._bareme.thresholds) == 0:
             s = 0
             t = 0
         else:
-            s = self._bareme.seuils[-1] + 1000
-            t = self._bareme.taux[-1]
+            s = self._bareme.thresholds[-1] + 1000
+            t = self._bareme.rates[-1]
 
         self._bareme.addTranche(s ,t)
         self._bareme.marToMoy()
@@ -391,7 +391,7 @@ class MoyModel(QSortFilterProxyModel):
 #        self.setDynamicSortFilter(True)
 
     def rowCount(self, parent):
-        return self._bareme.nb
+        return len(self._bareme.thresholds)
 
     def data(self, index, role = Qt.DisplayRole ):
         row = index.row()
@@ -399,10 +399,10 @@ class MoyModel(QSortFilterProxyModel):
         if role == Qt.DisplayRole or role == Qt.EditRole:
             if column == 0 :
                 if self._bareme.unit is not None and role == Qt.DisplayRole:
-                    return to_qvariant( str(self._bareme.seuilsM[row]) + ' ' + self._bareme.unit)
+                    return to_qvariant( str(self._bareme.thresholdsM[row]) + ' ' + self._bareme.unit)
                 else:
-                    return to_qvariant( str(self._bareme.seuilsM[row]))
-            if column == 1 : return to_qvariant(self._bareme.tauxM[row])
+                    return to_qvariant( str(self._bareme.thresholdsM[row]))
+            if column == 1 : return to_qvariant(self._bareme.ratesM[row])
 
         if role == Qt.TextAlignmentRole:
             return Qt.AlignRight
