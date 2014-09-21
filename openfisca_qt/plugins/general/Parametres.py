@@ -25,7 +25,6 @@ This file is part of openFisca.
 import os
 
 from openfisca_core import model
-from openfisca_core.parameters import XmlReader, Tree2Object
 
 from ...gui.baseconfig import get_translation
 from ...gui.qt.QtCore import SIGNAL, QDate
@@ -114,6 +113,7 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
 
 
         self.label.setText(u"Date : %s" %( str(self._date)) )
+        TODO  # Obsolete: Use openfica_core.legislations functions instead.
         self._reader = XmlReader(self._file, self._date)
         self._rootNode = self._reader.tree
         self._rootNode.rmv_empty_code()
@@ -132,6 +132,7 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
         self.uiTree.setItemDelegate(delegate)
 
     def getParam(self, defaut = False):
+        TODO  # Obsolete: Use openfica_core.legislations functions instead.
         obj = Tree2Object(self._rootNode, defaut)
         obj.datesim = self._date
         return obj
@@ -161,6 +162,7 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
         fileName = QFileDialog.getOpenFileName(self,
                                                _("Open a reform"), reformes_dir, u"Paramètres OpenFisca (*.ofp)")
         if not fileName == '':
+            TODO  # Obsolete: Use openfica_core.legislations functions instead.
             try:
                 loader = XmlReader(str(fileName))
                 self.set_option('datesim',str(loader._date))
