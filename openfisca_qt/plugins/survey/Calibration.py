@@ -29,7 +29,7 @@ import os
 from numpy import logical_not, unique
 from openfisca_core import model
 from openfisca_core.calmar import calmar
-from openfisca_core.columns import EnumCol, BoolCol, AgesCol, DateCol, BoolPresta, IntPresta
+from openfisca_core.columns import EnumCol, BoolCol, AgeCol, DateCol, IntCol
 from pandas import read_csv, DataFrame, concat
 from PyQt4.QtCore import SIGNAL, Qt, QSize
 from PyQt4.QtGui import (QLabel, QHBoxLayout, QVBoxLayout, QPushButton, QComboBox,
@@ -47,7 +47,7 @@ from .. import OpenfiscaPluginWidget, PluginConfigPage
 
 
 _ = get_translation('openfisca_qt')
-MODCOLS = [EnumCol, BoolCol, BoolPresta, IntPresta, AgesCol, DateCol]
+MODCOLS = [EnumCol, BoolCol, IntCol, AgeCol, DateCol]
 
 
 class Calibration(object):
@@ -217,13 +217,13 @@ class Calibration(object):
             else:
                 res[u'modalités'] = [mod for mod in mods]
                 res['mod'] = mods
-        elif isinstance(varcol, BoolCol) or isinstance(varcol, BoolPresta):
+        elif isinstance(varcol, BoolCol):
             res[u'modalités'] = bool(mods)
             res['mod']        = mods
-        elif isinstance(varcol, IntPresta):
+        elif isinstance(varcol, IntCol):
             res[u'modalités'] = mods
             res['mod']        = mods
-        elif isinstance(varcol, AgesCol):
+        elif isinstance(varcol, AgeCol):
             res[u'modalités'] = mods
             res['mod'] = mods
         else:
@@ -811,7 +811,7 @@ class CalibrationWidget(OpenfiscaPluginWidget):
 #        for varname, varcol in datatable.column_by_name.iteritems():
 #            value = datatable.get_value(varname, inputs.index['men'])
 #
-#            if isinstance(varcol , BoolPresta):
+#            if isinstance(varcol , BoolCol):
 #                self.margins._output_vars[varname] = {}
 #                self.margins._output_vars[varname][True]  = sum(w*(value == True))
 #                self.margins._output_vars[varname][False] = sum(w*(value == False))
