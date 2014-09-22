@@ -8,7 +8,7 @@
 # (see openfisca/__init__.py for details)
 
 
-from openfisca_core import model
+#from openfisca_core import model
 
 from ..gui.qt.QtCore import QAbstractTableModel, Qt, QString, SIGNAL, QModelIndex
 from ..gui.qt.compat import to_qvariant, from_qvariant
@@ -35,7 +35,7 @@ class CustomDelegate(QStyledItemDelegate):
             del self.delegates[column]
 
     def sizeHint(self, option, index):
-        return QStyledItemDelegate.sizeHint(self, option, index )
+        return QStyledItemDelegate.sizeHint(self, option, index)
 
     def paint(self, painter, option, index):
         delegate = self.delegates.get(index.column())
@@ -83,12 +83,9 @@ class ValueColumnDelegate(QStyledItemDelegate):
         self._parent = parent
 
     def paint(self, painter, option, index):
-        currency = model.CURRENCY
-
+        currency = self._parent.main.tax_benefit_system.CURRENCY
         year = "an"  # TODO: localization
         years = "ans"
-
-
         painter.save()
         if index.isValid():
             style = self.parent().style()
@@ -145,9 +142,7 @@ class ValueColumnDelegate(QStyledItemDelegate):
         painter.restore()
 
     def createEditor(self, parent, option, index):
-
-        currency = model.CURRENCY
-
+        currency = self._parent.main.tax_benefit_system.CURRENCY
         node = index.internalPointer()
         if node.type_info == 'CODE':
             if node.value_format == 'percent':
@@ -165,7 +160,7 @@ class ValueColumnDelegate(QStyledItemDelegate):
             if node.value_type == 'monetary':
                 unit = currency
             value = node._value
-            value.marToMoy()
+            value.marginal_to_average()
             self.baremeDialog = BaremeDialog(value, self._parent, unit = unit)
             self.connect(editor, SIGNAL('clicked()'), self.runBaremeDialog)
             self.connect(self.baremeDialog, SIGNAL('accepted()'), self.accepted)
@@ -336,15 +331,13 @@ class MarModel(QAbstractTableModel):
                     return to_qvariant( str(self._bareme.thresholds[row]) + ' ' + self._bareme.unit)
                 else:
                     return to_qvariant(self._bareme.thresholds[row])
-            if column == 1 :
+            if column == 1:
                 return to_qvariant(self._bareme.rates[row])
-
 
         if role == Qt.TextAlignmentRole:
             return Qt.AlignRight
 
-
-    def insertRows(self, row, count, parent = QModelIndex() ):
+    def insertRows(self, row, count, parent = QModelIndex()):
         self.beginInsertRows(parent, row, row)
         if len(self._bareme.thresholds) == 0:
             s = 0
@@ -353,15 +346,15 @@ class MarModel(QAbstractTableModel):
             s = self._bareme.thresholds[-1] + 1000
             t = self._bareme.rates[-1]
 
-        self._bareme.addTranche(s ,t)
-        self._bareme.marToMoy()
+        self._bareme.add_bracket(s, t)
+        self._bareme.marginal_to_average()
         self.endInsertRows()
         return True
 
-    def removeRows(self, row, count, parent = QModelIndex() ):
+    def removeRows(self, row, count, parent = QModelIndex()):
         self.beginRemoveRows(parent, row, row)
-        self._bareme.rmvTranche()
-        self._bareme.marToMoy()
+        self._bareme.remove_bracket()
+        self._bareme.marginal_to_average()
         self.endRemoveRows()
         return True
 
@@ -369,9 +362,11 @@ class MarModel(QAbstractTableModel):
         if role == Qt.EditRole:
             row = index.row()
             column = index.column()
-            if column == 0 : self._bareme.setSeuil(row, from_qvariant(value))
-            if column == 1 : self._bareme.setTaux(row, from_qvariant(value))
-            self._bareme.marToMoy()
+            if column == 0:
+                self._bareme.set_thresholdl(row, from_qvariant(value))
+            if column == 1:
+                self._bareme.set_rate(row, from_qvariant(value))
+            self._bareme.marginal_to_average()
             self.dataChanged.emit(index, index)
             return True
         return False
@@ -399,10 +394,10 @@ class MoyModel(QSortFilterProxyModel):
         if role == Qt.DisplayRole or role == Qt.EditRole:
             if column == 0 :
                 if self._bareme.unit is not None and role == Qt.DisplayRole:
-                    return to_qvariant( str(self._bareme.thresholdsM[row]) + ' ' + self._bareme.unit)
+                    return to_qvariant( str(self._bareme.thresholds_average[row]) + ' ' + self._bareme.unit)
                 else:
-                    return to_qvariant( str(self._bareme.thresholdsM[row]))
-            if column == 1 : return to_qvariant(self._bareme.ratesM[row])
+                    return to_qvariant( str(self._bareme.thresholds_average[row]))
+            if column == 1 : return to_qvariant(self._bareme.rates_average[row])
 
         if role == Qt.TextAlignmentRole:
             return Qt.AlignRight
@@ -414,11 +409,11 @@ class MoyModel(QSortFilterProxyModel):
             if column == 0 :
                 if row == self.rowCount(QModelIndex())-1:
                     return False
-                self._bareme.setSeuilM(row, from_qvariant(value))
+                self._bareme.set_threshold_averageM(row, from_qvariant(value))
             if column == 1 :
-                self._bareme.setTauxM(row, from_qvariant(value))
+                self._bareme.set_rate_average(row, from_qvariant(value))
 
-            self._bareme.moyToMar()
+            self._bareme.average_to_marginal()
             self.dataChanged.emit(index, index)
             return True
         return False

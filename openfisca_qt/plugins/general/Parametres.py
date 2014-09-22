@@ -24,7 +24,9 @@ This file is part of openFisca.
 
 import os
 
-from openfisca_core import model
+
+from openfisca_core.parameters import XmlReader, Tree2Object
+
 
 from ...gui.baseconfig import get_translation
 from ...gui.qt.QtCore import SIGNAL, QDate
@@ -81,38 +83,35 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
     CONF_SECTION = 'parameters'
     CONFIGWIDGET_CLASS = ParametersConfigPage
 
-    def __init__(self, parent = None):
+    def __init__(self, parent = None, tax_benefit_system = None):
         super(ParamWidget, self).__init__(parent)
+        assert tax_benefit_system is not None
         self.setupUi(self)
         self.setLayout(self.verticalLayout)
-
         self.__parent = parent
-
         self.connect(self.save_btn, SIGNAL("clicked()"), self.saveXml)
         self.connect(self.open_btn, SIGNAL("clicked()"), self.loadXml)
         self.connect(self.reset_btn, SIGNAL("clicked()"), self.reset)
-
-        self.initialize()
-
+        self.initialize(tax_benefit_system = tax_benefit_system)
 
     #------ Public API ---------------------------------------------
 
-    def reset(self):
-        self.initialize()
+    def reset(self, tax_benefit_system = None):
+        self.initialize(tax_benefit_system = tax_benefit_system)
         self.changed()
 
     def changed(self):
         self.emit(SIGNAL('changed()'))
 
-    def initialize(self):
-        self._file = model.PARAM_FILE
+    def initialize(self, tax_benefit_system):
+
+        self._file = tax_benefit_system.PARAM_FILE
 
         value = self.get_option('datesim')
         from datetime import datetime
-        self._date = datetime.strptime(value ,"%Y-%m-%d").date()
 
-
-        self.label.setText(u"Date : %s" %( str(self._date)) )
+        self._date = datetime.strptime(value, "%Y-%m-%d").date()
+        self.label.setText(u"Date : {}".format(str(self._date)))
         TODO  # Obsolete: Use openfica_core.legislations functions instead.
         self._reader = XmlReader(self._file, self._date)
         self._rootNode = self._reader.tree
@@ -123,9 +122,9 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
 
         self.uiTree.setModel(self._model)
         self.selectionModel = self.uiTree.selectionModel()
-        self.uiTree.setColumnWidth(0,230)
-        self.uiTree.setColumnWidth(1,70)
-        self.uiTree.setColumnWidth(2,70)
+        self.uiTree.setColumnWidth(0, 230)
+        self.uiTree.setColumnWidth(1, 70)
+        self.uiTree.setColumnWidth(2, 70)
         delegate = CustomDelegate(self)
         delegate.insertColumnDelegate(1, ValueColumnDelegate(self))
         delegate.insertColumnDelegate(2, ValueColumnDelegate(self))
@@ -154,7 +153,6 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
 #                    self, "Erreur", u"Impossible d'enregistrer le fichier : " + str(e),
 #                    QMessageBox.Ok, QMessageBox.NoButton)
 
-
     def loadXml(self):
         reformes_dir = self.get_option('reformes_dir', default=None)
         if reformes_dir is None:
@@ -165,7 +163,7 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
             TODO  # Obsolete: Use openfica_core.legislations functions instead.
             try:
                 loader = XmlReader(str(fileName))
-                self.set_option('datesim',str(loader._date))
+                self.set_option('datesim', str(loader._date))
                 self.initialize()
                 self._rootNode.load(loader.tree)
                 self.changed()
@@ -186,11 +184,6 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
         if 'datesim' in options:
             self.reset()
 
-
-
-
-
-
     #------ OpenfiscaPluginWidget API ---------------------------------------------
 
     def get_plugin_title(self):
@@ -200,7 +193,6 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
         is more flexible here than using a class attribute
         """
         return _("Legislative parameters")
-
 
     def get_plugin_icon(self):
         """

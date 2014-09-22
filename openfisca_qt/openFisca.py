@@ -48,7 +48,7 @@ if is_module_installed('IPython.frontend.qt', '>=0.13'):
 
 ## Check requirements
 from openfisca_qt.gui import requirements
-requirements.check_path()
+#requirements.check_path()  # TODO: Fix this
 requirements.check_qt()
 #
 ## Windows platforms only: support for hiding the attached console window
@@ -94,28 +94,45 @@ except ImportError:
     OnlineHelp = None  # analysis:ignore
 
 
-from openfisca_core import model
-from openfisca_core.simulations import SurveySimulation, ScenarioSimulation
-from openfisca_qt import __version__, __project_url__, __forum_url__, widgets
+#from openfisca_core import model
+#from openfisca_core.simulations import SurveySimulation, ScenarioSimulation
+from openfisca_france.scenarios import Scenario
+from openfisca_france.surveys import SurveyScenario
 
+__version__ = pkg_resources.require("openfisca-core")[0].version
+
+
+from openfisca_qt import  __project_url__, __forum_url__, widgets
 from openfisca_qt.plugins.general.Parametres import ParamWidget
 from openfisca_qt.plugins.scenario.graph import ScenarioGraphWidget
 from openfisca_qt.plugins.scenario.table import ScenarioTableWidget
 from openfisca_qt.plugins.survey.survey_explorer import SurveyExplorerWidget
 #from openfisca_qt.plugins.survey.aggregates import AggregatesWidget
 from openfisca_qt.plugins.survey.distribution import DistributionWidget
-from openfisca_qt.plugins.survey.inequality import InequalityWidget
+#from openfisca_qt.plugins.survey.inequality import InequalityWidget
 from openfisca_qt.plugins.survey.Calibration import CalibrationWidget
 
-from openfisca_qt.gui.utils.qthelpers import (create_action, add_actions, get_std_icon,
-                                       create_module_bookmark_actions,
-                                       create_bookmark_action,
-                                       create_program_action, DialogManager,
-                                       keybinding, qapplication,
-                                       create_python_script_action, file_uri)
+from openfisca_qt.gui.utils.qthelpers import (
+    add_actions,
+    create_action,
+    create_bookmark_action,
+    create_module_bookmark_actions,
+    create_program_action,
+    create_python_script_action,
+    DialogManager,
+    file_uri,
+    get_std_icon,
+    keybinding, qapplication,
+    )
 
-from openfisca_qt.gui.baseconfig import (get_conf_path, _, get_module_data_path,
-                                  get_module_source_path, STDOUT, STDERR)
+from openfisca_qt.gui.baseconfig import (
+    _,
+    get_conf_path,
+    get_module_data_path,
+    get_module_source_path,
+    STDERR,
+    STDOUT,
+    )
 
 from openfisca_qt.gui.config import get_icon, get_image_path, get_shortcut
 from openfisca_qt.gui.config import CONF, EDIT_EXT
@@ -224,7 +241,6 @@ class MainWindow(QMainWindow):
         self.init_workdir = options.working_directory
         self.debug = options.debug
 
-
         self.debug_print("Start of MainWindow constructor")
 
         self.setStyleSheet(STYLESHEET)
@@ -258,8 +274,8 @@ class MainWindow(QMainWindow):
                                               "and quit application"))
 
         # Plugins
-        self.scenario_simulation = None
-        self.survey_simulation = None
+        self.scenario = None
+        self.survey_scenario = None
 
         self.onlinehelp     = None
         self.parameters     = None
@@ -364,7 +380,7 @@ class MainWindow(QMainWindow):
         self.current_quick_layout = None
         self.previous_layout_settings = None
         self.last_plugin = None
-        self.fullscreen_flag = None # isFullscreen does not work as expected
+        self.fullscreen_flag = None  # isFullscreen does not work as expected
         # The following flag remember the maximized state even when
         # the window is in fullscreen mode:
         self.maximized_flag = None
@@ -375,18 +391,19 @@ class MainWindow(QMainWindow):
         self.apply_settings()
         self.debug_print("End of MainWindow constructor")
 
-
     def parameters_changed(self):
         """
         Actions to perform after parameters are changed
         """
         self.debug_print("Entering parameters_changed")
         P, P_default = self.parameters.getParam(), self.parameters.getParam(defaut = True)
-        self.scenario_simulation.set_param(P, P_default)
+#        TODO: include a reform here
+        self.reform = None
+#        self.scenario.set_param(P, P_default)
         self.composition.set_reform(reform = False)
 
         if not self.survey_explorer.get_option('bareme_only'):
-            self.survey_simulation.set_param(P, P_default)
+            self.survey_scenario.set_param(P, P_default)
             self.survey_explorer.set_reform(reform = False)
             self.survey_explorer.action_compute.setEnabled(True)
         self.debug_print("Exiting parameters_changed")
@@ -542,13 +559,18 @@ class MainWindow(QMainWindow):
 #        self.action_calibrate = create_action(self, u'Caler les poids', shortcut = 'CTRL+K', icon = 'scale22.png', triggered = self.calibrate)
 #        self.action_inflate = create_action(self, u'Inflater les montants', shortcut = 'CTRL+I', icon = 'scale22.png', triggered = self.inflate)
 
+
+        TaxBenefitSystem = openfisca_france.init_country() # TODO: change this
+        tax_benefit_system_class = TaxBenefitSystem
         # Parameters widget
         if CONF.get('parameters', 'enable'):
             self.set_splash(_("Loading Parameters..."))
-            self.parameters = ParamWidget(self)
+            self.parameters = ParamWidget(self, tax_benefit_system_class)
             self.parameters.register_plugin()
 
         # Test case widgets
+        self.tax_benefit_system = tax_benefit_system = tax_benefit_system_class()
+        self.scenario = tax_benefit_system.new_scenario()
         self.register_test_case_widgets()
 
         # Survey Widgets
@@ -682,10 +704,11 @@ class MainWindow(QMainWindow):
         # Test case widgets
 
         self.set_splash(_("Loading Test case composer ..."))
-        self.scenario_simulation = ScenarioSimulation()
-        datesim = CONF.get('parameters', 'datesim')
-        self.scenario_simulation.set_config(datesim=datesim)
-        self.composition = widgets.CompositionWidget(self.scenario_simulation, parent=self)
+        value = CONF.get('parameters', 'datesim')
+        from datetime import datetime
+        datesim = datetime.strptime(value, "%Y-%m-%d").date()
+        self.scenario.year = datesim.year
+        self.composition = widgets.CompositionWidget(self.scenario, parent=self)
         self.composition.register_plugin()
 
         # Scenario Graph widget
@@ -703,11 +726,15 @@ class MainWindow(QMainWindow):
         if self.test_case_toolbar is not None:
             self.test_case_toolbar.clear()
         else:
-            self.test_case_toolbar = self.create_toolbar(_("Survey toolbar"),
-                                           "survey_toolbar")
+            self.test_case_toolbar = self.create_toolbar(
+                _("Survey toolbar"),
+                "survey_toolbar"
+                )
 
         add_actions(self.test_case_toolbar, self.test_case_toolbar_actions)
-        self.test_case_plugins = [ self.composition, self.test_case_graph, self.test_case_table ]
+        self.test_case_plugins = [
+            self.composition, self.test_case_graph, self.test_case_table
+            ]
         self.splash.hide()
 
     def register_survey_widgets(self):
@@ -718,17 +745,17 @@ class MainWindow(QMainWindow):
         self.survey_explorer = SurveyExplorerWidget(self)
         self.set_splash(_("Loading SurveyExplorer..."))
         self.survey_explorer.register_plugin()
-        self.survey_plugins =  [ self.survey_explorer]
+        self.survey_plugins = [self.survey_explorer]
 
         if CONF.get('survey', 'bareme_only') is False:
             self.debug_print("Register survey widgets")
-            self.survey_simulation = SurveySimulation()
+            self.survey_scenario = SurveyScenario()
             self.survey_explorer.initialize()
             self.survey_explorer.load_data()
-            self.survey_simulation.set_config()
-            self.survey_simulation.set_param()
+            self.survey_scenario.set_config()
+            self.survey_scenario.set_param()
 
-            if self.survey_simulation.input_table is None:
+            if self.survey_scenario.input_table is None:
                 self.debug_print("No survey data, dont load survey plugins")
                 return
 
@@ -737,7 +764,7 @@ class MainWindow(QMainWindow):
                 self.set_splash(_("Loading calibration widget ..."))
                 self.calibration = CalibrationWidget(self)
                 self.calibration.register_plugin()
-                self.survey_plugins  += [ self.calibration]
+                self.survey_plugins += [self.calibration]
 
 #            # Aggregates widget
 #            if CONF.get('aggregates', 'enable'):
@@ -751,24 +778,25 @@ class MainWindow(QMainWindow):
                 self.set_splash(_("Loading distribution widget ..."))
                 self.distribution = DistributionWidget(self)
                 self.distribution.register_plugin()
-                self.survey_plugins  += [ self.distribution]
+                self.survey_plugins += [self.distribution]
 
-            # Inequality widget
-            if CONF.get('inequality', 'enable'):
-                self.set_splash(_("Loading inequality widget ..."))
-                self.inequality = InequalityWidget(self)
-                self.inequality.register_plugin()
-                self.survey_plugins  += [ self.inequality]
+#            # Inequality widget
+#            if CONF.get('inequality', 'enable'):
+#                self.set_splash(_("Loading inequality widget ..."))
+#                self.inequality = InequalityWidget(self)
+#                self.inequality.register_plugin()
+#                self.survey_plugins  += [ self.inequality]
 
         # Creates survey_toolbar if needed
         if self.survey_toolbar is not None:
             self.survey_toolbar.clear()
         else:
-            self.survey_toolbar = self.create_toolbar(_("Survey toolbar"),
-                                           "survey_toolbar")
+            self.survey_toolbar = self.create_toolbar(
+                _("Survey toolbar"),
+                "survey_toolbar",
+                )
         add_actions(self.survey_toolbar, self.survey_toolbar_actions)
         self.splash.hide()
-
 
     def post_visible_setup(self):
         """
@@ -798,17 +826,16 @@ class MainWindow(QMainWindow):
         default: if True, do not restore inner layout
         """
         get_func = CONF.get_default if default else CONF.get
-        window_size = get_func(section, prefix+'size')
-        prefs_dialog_size = get_func(section, prefix+'prefs_dialog_size')
+        window_size = get_func(section, prefix + 'size')
+        prefs_dialog_size = get_func(section, prefix + 'prefs_dialog_size')
         if default:
             hexstate = None
         else:
-            hexstate = get_func(section, prefix+'state', None)
-        pos = get_func(section, prefix+'position')
-        is_maximized =  get_func(section, prefix+'is_maximized')
-        is_fullscreen = get_func(section, prefix+'is_fullscreen')
-        return hexstate, window_size, prefs_dialog_size, pos, is_maximized, \
-               is_fullscreen
+            hexstate = get_func(section, prefix + 'state', None)
+        pos = get_func(section, prefix + 'position')
+        is_maximized = get_func(section, prefix + 'is_maximized')
+        is_fullscreen = get_func(section, prefix + 'is_fullscreen')
+        return hexstate, window_size, prefs_dialog_size, pos, is_maximized, is_fullscreen
 
     def get_window_settings(self):
         """
@@ -930,7 +957,7 @@ class MainWindow(QMainWindow):
                     self.survey_explorer.dockwidget.show()
 
         if recompute_test_case is True:
-            self.composition.set_simulation(self.scenario_simulation)
+            self.composition.set_scenario(self.scenario)
             self.composition.compute()
         self.test_case_graph.dockwidget.raise_()
 

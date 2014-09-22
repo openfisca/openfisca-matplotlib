@@ -23,7 +23,8 @@ import os
 import sys
 
 # Local imports
-from openfisca_core import __version__
+import pkg_resources  # part of setuptools
+__version__ = pkg_resources.require("openfisca-core")[0].version
 
 #==============================================================================
 # Debug helpers

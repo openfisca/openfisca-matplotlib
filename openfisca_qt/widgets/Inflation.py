@@ -219,7 +219,6 @@ class InflationWidget(QDialog):
         list_coeffs.remove(u"demo")
         demo = self.coeffs_df.get_value(u"demo", "value")
 
-
         for coeff in list_coeffs:
             if coeff not in self.actualisation_vars:
                 print coeff + ' not in actualisation vars, continuing'
@@ -244,11 +243,10 @@ class InflationWidget(QDialog):
             self.rmv_var(varname)
             target = df.get_value(varname, "cible")
             if varname in table:
-                x = sum(table[varname]*table['wprm'])/target
-                if x>0:
-                    self.add_var2(varname, target=target, inflator = 1.0/x)
+                x = sum(table[varname] * table['wprm']) / target
+                if x > 0:
+                    self.add_var2(varname, target=target, inflator = 1.0 / x)
             self.inflated()
-
 
     def build_actualisation_groups(self, filename = None):
         '''
@@ -265,42 +263,42 @@ class InflationWidget(QDialog):
 
         vars = dict()
         for coeff in coeff_list:
-            vars[coeff] = list(df[ df['coeff']==coeff ]['var'])
+            vars[coeff] = list(df[df['coeff'] == coeff]['var'])
 
         self.actualisation_vars = vars
         self.coeffs_df = store['names']
-        self.coeffs_df['coeff'] = self.coeffs_df['coeff'].str.replace(' ','') # remove spaces
-
-
-
-        yr = 1*self.survey_year
+        self.coeffs_df['coeff'] = self.coeffs_df['coeff'].str.replace(' ', '')  # remove spaces
+        yr = 1 * self.survey_year
         self.coeffs_df['value'] = 1
         while yr < self.datesim_year:
             if yr in self.coeffs_df.columns:
                 factor = self.coeffs_df[yr]
             else:
-                factor =    1
-            self.coeffs_df['value'] = self.coeffs_df['value']*factor
+                factor = 1
+            self.coeffs_df['value'] = self.coeffs_df['value'] * factor
             yr += 1
 
         self.coeffs_df.set_index(['coeff'], inplace = True)
         store.close()
-
 
     def add_var(self):
         '''
         Adds a variable to the targets
         '''
         # variables_list = sorted(list(set(self.inputs.column_by_name)-set(self.frame_vars_list)))
-        variables_list = sorted(list(set(self.target_vars_list)-set(self.frame_vars_list)))
-        varnames = self.get_name_label_dict(variables_list) # {varname: varlabel}
-
+        variables_list = sorted(list(set(self.target_vars_list) - set(self.frame_vars_list)))
+        varnames = self.get_name_label_dict(variables_list)  # {varname: varlabel}
         if varnames:
-            varlabel, ok = QInputDialog.getItem(self.parent(), "Ajouter une variable", "Nom de la variable",
-                                       sorted(varnames.keys()))
+            varlabel, ok = QInputDialog.getItem(
+                self.parent(), "Ajouter une variable", "Nom de la variable",
+                sorted(varnames.keys())
+                )
         else:
-            QMessageBox.critical(self, "Erreur", u"Toutes les variables sont déja présentes dans la table" ,
-                QMessageBox.Ok, QMessageBox.NoButton)
+            QMessageBox.critical(
+                self,
+                "Erreur", u"Toutes les variables sont déja présentes dans la table",
+                QMessageBox.Ok, QMessageBox.NoButton
+                )
             return
 
         insertion = ok and not(varlabel.isEmpty()) and (varlabel in sorted(varnames.keys()))
@@ -310,7 +308,7 @@ class InflationWidget(QDialog):
             df = self.vars_df
             target = df.get_value(varname, "cible")
             self.add_var2(varname, target = target)
-            self.inflation_targets_changed() # targets_changed
+            self.inflation_targets_changed()  # targets_changed
 
     def add_var2(self, varname, target=None, inflator = None):
         '''
@@ -323,17 +321,15 @@ class InflationWidget(QDialog):
         value = self.inputs.get_value(varname, index = idx)
 
         label = varcol.label
-        res = DataFrame(index = [varname], data = {'var'   : varname})
-        total = (value*w).sum()
+        res = DataFrame(index = [varname], data = {'var': varname})
+        total = (value * w).sum()
         res['total initial'] = total
 
         if inflator is None:
             self.vars_df.set_value(varname, 'total initial', total)
             inflator = 1
-
-        res['inflateur'] = 100*inflator
-        res[u'total inflaté'] = inflator*total
-
+        res['inflateur'] = 100 * inflator
+        res[u'total inflaté'] = inflator * total
         if label is not None:
             res['variable'] = label
         else:
@@ -342,12 +338,10 @@ class InflationWidget(QDialog):
         if target is not None:
             res['cible'] = target
 
-
         if self.frame is None:
             self.frame = res
         else:
             self.frame = concat([self.frame, res])
-
 
     def rmv_var(self, varname = None):
         '''
@@ -356,15 +350,17 @@ class InflationWidget(QDialog):
         if varname is None:
             vars_in_table = self.frame_vars_list
             varnames = self.get_name_label_dict(vars_in_table)
-            varlabel, ok = QInputDialog.getItem(self.parent(), "Retirer une variable", "Nom de la variable",
-                                           sorted(varnames.keys()))
+            varlabel, ok = QInputDialog.getItem(
+                self.parent(), "Retirer une variable", "Nom de la variable",
+                sorted(varnames.keys())
+                )
             varname = varnames[varlabel]
             deletion = ok and not(varlabel.isEmpty())
         else:
             if varname in self.frame['var']:
                 deletion = True
         if deletion:
-            df =  self.frame
+            df = self.frame
             cleaned = df[df['var'] != varname]
             self.frame = cleaned
         self.inflation_targets_changed()
@@ -409,8 +405,6 @@ class InflationWidget(QDialog):
             self.coeff_view.set_dataframe(df)
         self.coeff_view.reset()
 
-
-
     def get_name_label_dict(self, variables_list):
         '''
         Builds a dict with label as keys and varname as value
@@ -423,9 +417,7 @@ class InflationWidget(QDialog):
                     varnames[_fromUtf8(varcol.label)] = varname
                 else:
                     varnames[_fromUtf8(varname)] = varname
-
         return varnames
-
 
     def accept(self):
         '''
@@ -442,7 +434,7 @@ class InflationWidget(QDialog):
         for coeff, varname in self.actualisation_vars.iteritems():
             inflator = df.get_value(coeff, "value")
             if varname in table:
-                table[varname] = inflator*table[varname]
+                table[varname] = inflator * table[varname]
 
         self.parent().emit(SIGNAL('inflated()'))
 

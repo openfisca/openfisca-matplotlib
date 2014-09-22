@@ -58,8 +58,13 @@ setup(
     include_package_data = True,
     install_requires = [
         'OpenFisca-Core >= 0.2dev',
-        'pandas >= 0.13.0' 
+        'pandas >= 0.13.0'
         ],
     packages = find_packages(),
+    message_extractors = {
+        'openfisca_qt': [
+            ('**.py', 'python', None),
+            ],
+        },
     zip_safe = False,
     )

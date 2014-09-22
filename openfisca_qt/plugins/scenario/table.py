@@ -18,18 +18,18 @@ import locale
 import os
 
 import numpy as np
-from openfisca_core import model
 from pandas import DataFrame, ExcelWriter
+#from openfisca_core import model
 
 from ...gui.config import get_icon
 from ...gui.baseconfig import get_translation
 from ...gui.qt.compat import to_qvariant
 from ...gui.qt.QtCore import QAbstractItemModel, QModelIndex, Qt
-from ...gui.qt.QtGui import  QFileDialog, QMessageBox, QWidget, QAbstractItemView, QVBoxLayout
+from ...gui.qt.QtGui import QFileDialog, QMessageBox, QWidget, QAbstractItemView, QVBoxLayout
 from ...gui.qthelpers import OfTreeView
 from ...gui.utils.qthelpers import create_action
 from .. import OpenfiscaPluginWidget
-
+from ..utils import OutNode
 
 _ = get_translation('openfisca_qt')
 locale.setlocale(locale.LC_ALL, '')
@@ -67,21 +67,24 @@ class ScenarioTableWidget(OpenfiscaPluginWidget):
     def clearModel(self):
         self.treeView.setModel(None)
 
-    def updateTable(self, simulation):
+    def updateTable(self, scenario):
         '''
         Updates table
         '''
-        data = simulation.data
-        dataDefault = simulation.data_default
+        data = OutNode.create_from_scenario_decomposition_json(scenario, decomposiiton_json = None)
+        dataDefault = data  # TODO: fix this
 
         if dataDefault is None:
             dataDefault = data
 
-        mode = simulation.mode
-        x_axis = simulation.x_axis
-        for axe in model.x_axes.itervalues():
-            if axe.name == x_axis:
-                x_axis_typ_tot = axe.typ_tot_default
+        mode = scenario.mode
+        x_axis = scenario.x_axis
+        print scenario.x_axis
+        for axe in self.main.composition.XAXIS_PROPERTIES.itervalues():
+            print axe
+
+            if axe['name'] == x_axis:
+                x_axis_typ_tot = axe['typ_tot_default']
                 break
 
         headers = dataDefault[x_axis_typ_tot]
@@ -225,9 +228,8 @@ class ScenarioTableWidget(OpenfiscaPluginWidget):
         Update Scenario Table
         '''
         # set the table model to None before changing data
-        if self.main.scenario_simulation.data is not None:
-            self.clearModel()
-            self.updateTable(self.main.scenario_simulation)
+        self.clearModel()
+        self.updateTable(self.main.scenario)
 
     def closing_plugin(self, cancelable=False):
         """

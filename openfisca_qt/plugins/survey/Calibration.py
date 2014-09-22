@@ -27,7 +27,7 @@ from __future__ import division
 import os
 
 from numpy import logical_not, unique
-from openfisca_core import model
+#from openfisca_core import model
 from openfisca_core.calmar import calmar
 from openfisca_core.columns import EnumCol, BoolCol, AgeCol, DateCol, IntCol
 from pandas import read_csv, DataFrame, concat

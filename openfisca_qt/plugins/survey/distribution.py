@@ -23,9 +23,10 @@ This file is part of openFisca.
 from __future__ import division
 
 import numpy as np
-from openfisca_core import model
-from openfisca_core.simulations import SurveySimulation
 from pandas import DataFrame, merge
+
+#from openfisca_core import model
+from openfisca_france.surveys import SurveyScenario
 
 from ...gui.baseconfig import get_translation
 from ...gui.qt.compat import from_qvariant

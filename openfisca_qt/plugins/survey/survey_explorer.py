@@ -148,21 +148,22 @@ class SurveyExplorerWidget(OpenfiscaPluginWidget):
         """
         Initialize widget
         """
-        # Set survey_simulation
+        # Set survey_scenario
 
-        if (not self.get_option('enable')) or (self.main.survey_simulation is None):
+        if (not self.get_option('enable')) or (self.main.survey_scenario is None):
             return
 
-        simulation = self.main.survey_simulation
+        survey_scenario= self.main.survey_scenario
         value = CONF.get('parameters', 'datesim')
         datesim = datetime.strptime(value ,"%Y-%m-%d").date()
         reforme = self.get_option('reform')
         year = datesim.year
-        simulation.set_config(year = year, reforme = reforme)
+        survey_scenario.year = year
+        #, reforme = reforme)
 #        survey_filename = self.get_option('data_file')
 #        if path.isfile(survey_filename):
 #            simulation.set_config(survey_filename = survey_filename)
-        self.simulation = simulation
+        self.survey_scenario = survey_scenario
 
     def load_data(self):
         simulation = self.main.survey_simulation

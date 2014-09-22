@@ -31,19 +31,22 @@ from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle, FancyArrow
 from matplotlib.ticker import FuncFormatter
 import numpy as np
-from openfisca_core import model
+
+#from openfisca_core import model
 
 from ...gui.baseconfig import get_translation
 from ...gui.config import get_icon
 from ...gui.qt.compat import (to_qvariant, getsavefilename)
-from ...gui.qt.QtCore import (QAbstractItemModel, QModelIndex, Qt,
-                          SIGNAL, QSize, QString)
-from ...gui.qt.QtGui import (QColor, QVBoxLayout, QDialog,
-                         QMessageBox, QTreeView, QIcon, QPixmap, QHBoxLayout,
-                         QPushButton)
+from ...gui.qt.QtCore import (
+    QAbstractItemModel, QModelIndex, Qt, SIGNAL, QSize, QString,
+    )
+from ...gui.qt.QtGui import (
+    QColor, QVBoxLayout, QDialog, QMessageBox, QTreeView, QIcon, QPixmap, QHBoxLayout, QPushButton,
+    )
 from ...gui.utils.qthelpers import create_action
 from ...gui.views.ui_graph import Ui_Graph
 from .. import OpenfiscaPluginWidget
+from ..utils import OutNode
 
 
 _ = get_translation('openfisca_qt')
@@ -248,20 +251,24 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
         label = event.artist._label
         self.setToolTip(label)
 
-    def updateGraph(self, simulation):
+    def updateGraph(self, scenario):
         """
         Update the graph according to simulation
         """
-        self.simulation = simulation
-        data = simulation.data
-        dataDefault = simulation.data_default
-        reforme = simulation.reforme
-        mode = simulation.mode
-        x_axis = simulation.scenario.x_axis
+        self.scenario = scenario
+        print scenario
+        # TODO: link the decompsotion with parameters
+        data = OutNode.create_from_scenario_decomposition_json(scenario, decomposiiton_json = None)
+
+        dataDefault = data # TODO: data_default
+        reforme = scenario.reforme = False # TODO: fix this
+        mode = scenario.mode = "castype" # TODO: "castype" ou "bareme"
+        x_axis = scenario.x_axis = "sal" # TODO change this too
         self.data = data
         self.dataDefault = dataDefault
         self.data.setLeavesVisible()
 
+        print data
         data['revdisp'].visible = 1
         if mode == 'bareme':  # TODO: make this country-totals specific
             for rev in ['salsuperbrut', 'salbrut', 'chobrut', 'rstbrut']:
@@ -274,9 +281,10 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
 
         self.populate_absBox(x_axis, mode)
 
-        for axe in model.x_axes.itervalues():
-            if axe.name == x_axis:
-                self.graph_x_axis = axe.typ_tot_default
+        for axe in self.main.composition.XAXIS_PROPERTIES.itervalues():
+
+            if axe['name'] == x_axis:
+                self.graph_x_axis = axe['typ_tot_default']
                 break
         self.updateGraph2()
 
@@ -284,9 +292,9 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
 
         ax = self.mplwidget.axes
         ax.clear()
-
-        mode = self.simulation.mode
-        reforme = self.simulation.reforme
+        currency = self.main.tax_benefit_system.CURRENCY
+        mode = self.scenario.mode
+        reforme = self.scenario.reforme
 
         if mode == 'castype':
             drawWaterfall(self.data, ax)
@@ -294,7 +302,7 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
             if self.taux:
                 drawTaux(self.data, ax, self.graph_x_axis, reforme, self.dataDefault)
             else:
-                drawBareme(self.data, ax, self.graph_x_axis, reforme, self.dataDefault, self.legend)
+                drawBareme(self.data, ax, self.graph_x_axis, reforme, self.dataDefault, self.legend, currency = currency)
 
         self.mplwidget.draw()
 
@@ -324,7 +332,7 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
         mode = self.simulation.mode
         if mode == "bareme":
             text =  self.absBox.currentText()
-            for axe in model.x_axes.itervalues():
+            for axe in self.main.composition.XAXIS_PROPERTIES.itervalues():
                 for key, label in axe.typ_tot.iteritems():
                     if text == label:
                         self.graph_x_axis = key
@@ -391,14 +399,19 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
         Note: these actions will be enabled when plugin's dockwidget is visible
               and they will be disabled when it's hidden
         """
-        self.save_action = create_action(self, _("Save &graph"),
-                icon='filesave.png', tip=_("Save test case graph"),
-                triggered=self.save_figure)
-        self.register_shortcut(self.save_action, context="Graph",
-                               name=_("Save test case graph"), default="Ctrl+G")
-
-        self.file_menu_actions = [self.save_action,]
-
+        self.save_action = create_action(
+            self, _("Save &graph"),
+            icon = 'filesave.png',
+            tip = _("Save test case graph"),
+            triggered = self.save_figure
+            )
+        self.register_shortcut(
+            self.save_action,
+            context = "Graph",
+            name =_("Save test case graph"),
+            default = "Ctrl+G"
+            )
+        self.file_menu_actions = [self.save_action]
         self.main.file_menu_actions += self.file_menu_actions
 
         return self.file_menu_actions
@@ -409,13 +422,11 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
         """
         self.main.add_dockwidget(self)
 
-
     def refresh_plugin(self):
         '''
         Update Graph
         '''
-        if self.main.scenario_simulation.data is not None:
-            self.updateGraph(self.main.scenario_simulation)
+        self.updateGraph(self.main.scenario)
 
     def closing_plugin(self, cancelable=False):
         """
@@ -432,7 +443,7 @@ def draw_simulation_bareme(simulation, ax, graph_x_axis = None, legend = False, 
     """
     reforme = simulation.reforme
     alter = (simulation.alternative_scenario is not None)
-
+    currency = self.main.tax_benefit_system.CURRENCY
     simulation.compute()
     data = simulation.data
     data_default = simulation.data_default
@@ -442,9 +453,9 @@ def draw_simulation_bareme(simulation, ax, graph_x_axis = None, legend = False, 
     if graph_x_axis is None:
         graph_x_axis = 'sal'
     if not alter:
-        drawBareme(data, ax, graph_x_axis, reforme, data_default, legend)
+        drawBareme(data, ax, graph_x_axis, reforme, data_default, legend, currecncy = currency)
     else:
-        drawBaremeCompareHouseholds(data, ax, graph_x_axis, data_default, legend, position = position)
+        drawBaremeCompareHouseholds(data, ax, graph_x_axis, data_default, legend, currecny = currency, position = position)
 
 
 def draw_simulation_taux(simulation, ax, graph_x_axis = None, legend = True):
@@ -535,7 +546,7 @@ def drawWaterfall(data, ax):
     ax.set_ylim((m, 1.05*M))
 
 
-def drawBareme(data, ax, x_axis, reforme = False, dataDefault = None, legend = True ):
+def drawBareme(data, ax, x_axis, reforme = False, dataDefault = None, legend = True, currency = ""):
     '''
     Draws bareme
     '''
@@ -551,7 +562,6 @@ def drawBareme(data, ax, x_axis, reforme = False, dataDefault = None, legend = T
     NMEN = len(xdata.vals)
     xlabel = xdata.desc
     ax.set_xlabel(xlabel)
-    currency = model.CURRENCY
     ax.set_ylabel(prefix + u"Revenu disponible (" + currency + " par an)")
     ax.set_xlim(np.amin(xdata.vals), np.amax(xdata.vals))
     if not reforme:
@@ -578,7 +588,7 @@ def drawBareme(data, ax, x_axis, reforme = False, dataDefault = None, legend = T
         createLegend(ax)
 
 
-def drawBaremeCompareHouseholds(data, ax, x_axis, dataDefault = None, legend = True , position = 2):
+def drawBaremeCompareHouseholds(data, ax, x_axis, dataDefault = None, legend = True , currency = "", position = 2):
     '''
     Draws bareme
     '''
@@ -592,44 +602,42 @@ def drawBaremeCompareHouseholds(data, ax, x_axis, dataDefault = None, legend = T
     NMEN = len(xdata.vals)
     xlabel = xdata.desc
     ax.set_xlabel(xlabel)
-    ax.set_ylabel(prefix + u"Revenu disponible (" + model.CURRENCY + " par an)")
+    ax.set_ylabel(prefix + u"Revenu disponible (" + currency + " par an)")
     ax.set_xlim(np.amin(xdata.vals), np.amax(xdata.vals))
     ax.plot(xdata.vals, np.zeros(NMEN), color = 'black', label = 'x_axis')
-
-    code_list =  ['af', 'cf', 'ars', 'rsa', 'aefa', 'psa', 'logt', 'irpp', 'ppe', 'revdisp']
-
+    code_list = ['af', 'cf', 'ars', 'rsa', 'aefa', 'psa', 'logt', 'irpp', 'ppe', 'revdisp']
 
     def drawNode(node, prv):
-
         minimum = 0
         maximum = 0
         prev = prv + 0
 #        if np.any(node.vals != 0) and node.visible and node.code != 'root' and node.code in code_list:
         if np.any(node.vals != 0) and node.code != 'root' and node.code in code_list:
             node.visible = True
-            r,g,b = node.color
-            col = (r/255, g/255, b/255)
+            r, g, b = node.color
+            col = (r / 255, g / 255, b / 255)
             if node.typevar == 2:
                 a = ax.plot(xdata.vals, node.vals, color = col, linewidth = 2, label = prefix + node.desc)
             else:
-                a = ax.fill_between(xdata.vals, prev + node.vals, prev, color = col, linewidth = 0.2, edgecolor = 'black', picker = True)
+                a = ax.fill_between(xdata.vals, prev + node.vals, prev, color = col, linewidth = 0.2,
+                                    edgecolor = 'black', picker = True)
                 a.set_label(prefix + node.desc)
         for child in node.children:
             drawNode(child, prev)
             prev += child.vals
             minimum = min([np.amin(prev), minimum])
             maximum = max([np.amax(prev), maximum])
-        return minimum, maximum*1.1
+        return minimum, maximum * 1.1
 
     prv = np.zeros(NMEN)
     minimum, maximum = drawNode(data, prv)
-    ax.set_ylim(minimum, maximum )
+    ax.set_ylim(minimum, maximum)
 
     if legend:
         createLegend(ax, position = position)
 
 
-def drawBaremeCompareHouseholds2(data, ax, x_axis, dataDefault = None, legend = True , position = 2):
+def drawBaremeCompareHouseholds2(data, ax, x_axis, dataDefault = None, legend = True, currency = "", position = 2):
     '''
     Draws bareme
     '''
@@ -643,32 +651,31 @@ def drawBaremeCompareHouseholds2(data, ax, x_axis, dataDefault = None, legend = 
     NMEN = len(xdata.vals)
     xlabel = xdata.desc
     ax.set_xlabel(xlabel)
-    ax.set_ylabel(prefix + u"Revenu disponible (" + model.CURRENCY + " par an)")
+    ax.set_ylabel(prefix + u"Revenu disponible (" + currency + " par an)")
     ax.set_xlim(np.amin(xdata.vals), np.amax(xdata.vals))
     ax.plot(xdata.vals, np.zeros(NMEN), color = 'black', label = 'x_axis')
-
-    node_list =  ['af', 'cf', 'ars', 'rsa', 'aefa', 'psa', 'logt', 'irpp', 'ppe', 'revdisp']
-
+    node_list = ['af', 'cf', 'ars', 'rsa', 'aefa', 'psa', 'logt', 'irpp', 'ppe', 'revdisp']
     prv = np.zeros(NMEN)
 
     for nod in node_list:
         node = data[nod]
         prev = prv + 0
-        r,g,b = node.color
-        col = (r/255, g/255, b/255)
+        r, g, b = node.color
+        col = (r / 255, g / 255, b / 255)
         if node.typevar == 2:
             a = ax.plot(xdata.vals, node.vals, color = col, linewidth = 2, label = prefix + node.desc)
         else:
-            a = ax.fill_between(xdata.vals, prev + node.vals, prev, color = col, linewidth = 0.2, edgecolor = 'black', picker = True)
+            a = ax.fill_between(xdata.vals, prev + node.vals, prev, color = col, linewidth = 0.2,
+                                edgecolor = 'black', picker = True)
             a.set_label(prefix + node.desc)
         prv += node.vals
-
 
     if legend:
         createLegend(ax, position = position)
 
+
 def percentFormatter(x, pos=0):
-    return '%1.0f%%' %(x)
+    return '%1.0f%%' % (x)
 
 
 def drawTaux(data, ax, x_axis, reforme = False, dataDefault = None, legend = True):
@@ -696,8 +703,8 @@ def drawTaux(data, ax, x_axis, reforme = False, dataDefault = None, legend = Tru
 
     RD = dataDefault['revdisp'].vals
     div = RB*(RB != 0) + (RB == 0)
-    taumoy = (1 - RD/div)*100
-    taumar = 100*(1 - (RD[:-1]-RD[1:])/(RB[:-1]-RB[1:]))
+    taumoy = (1 - RD / div) * 100
+    taumar = 100 * (1 - (RD[:-1]-RD[1:]) / (RB[:-1]-RB[1:]))
 
     ax.hold(True)
     ax.set_xlim(np.amin(xdata.vals), np.amax(xdata.vals))
