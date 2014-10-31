@@ -258,7 +258,11 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
         self.scenario = scenario
         print scenario
         # TODO: link the decompsotion with parameters
-        data = OutNode.create_from_scenario_decomposition_json(scenario, decomposiiton_json = None)
+        data = OutNode.create_from_scenario_decomposition_json(
+            scenario = scenario,
+            simulation = None,
+            decomposiiton_json = None
+            )
 
         dataDefault = data # TODO: data_default
         reforme = scenario.reforme = False # TODO: fix this
@@ -268,7 +272,6 @@ class ScenarioGraphWidget(OpenfiscaPluginWidget, Ui_Graph):
         self.dataDefault = dataDefault
         self.data.setLeavesVisible()
 
-        print data
         data['revdisp'].visible = 1
         if mode == 'bareme':  # TODO: make this country-totals specific
             for rev in ['salsuperbrut', 'salbrut', 'chobrut', 'rstbrut']:
@@ -483,38 +486,41 @@ def draw_simulation_waterfall(simulation, ax):
     drawWaterfall(data, ax)
 
 
-def drawWaterfall(data, ax):
+def drawWaterfall(data, ax, currency = None):
 
     ax.figure.subplots_adjust(bottom = 0.15, right = 0.95, top = 0.95, left = 0.1)
     barwidth = 0.8
     number = [0]
     patches = []
-    codes  = []
+    codes = []
     shortnames = []
 
     def drawNode(node, prv):
-        if node.code == 'nivvie':
-            return
         prev = prv + 0
         val = node.vals[0]
         bot = prev
         for child in node.children:
             drawNode(child, prev)
             prev += child.vals[0]
-        if (val != 0) and node.visible and node.code != 'root':
-            r,g,b = node.color
-            a = FancyArrow(number[0] + barwidth/2, bot , 0, val, width = barwidth,
-                           fc = (r/255,g/255,b/255), linewidth = 0.5, edgecolor = 'black',
-                           label = node.desc, picker = True, length_includes_head=True,
-                           head_width=barwidth, head_length=abs(val/15))
-            a.top = bot + max(0,val)
-            a.absci = number[0] + 0
+        if (val != 0) and node.visible:
+            r, g, b = node.color
+            arrow = FancyArrow(
+                number[0] + barwidth / 2, bot, 0, val,
+                width = barwidth,
+                fc = (r / 255, g / 255, b / 255), linewidth = 0.5, edgecolor = 'black',
+                label = node.desc, picker = True, length_includes_head = True,
+                head_width = barwidth,
+                head_length = abs(val / 15),
+                )
+            arrow.top = bot + max(0, val)
+            arrow.absci = number[0] + 0
 #            a = Rectangle((number[0], bot), barwidth, val, fc = node.color, linewidth = 0.5, edgecolor = 'black', label = node.desc, picker = True)
-            a.value = round(val)
-            patches.append(a)
+            arrow.value = round(val)
+            patches.append(arrow)
             codes.append(node.code)
             shortnames.append(node.shortname)
             number[0] += 1
+
     prv = 0
     drawNode(data, prv)
     for patch in patches:
@@ -522,13 +528,12 @@ def drawWaterfall(data, ax):
 
     n = len(patches)
     abscisses = np.arange(n)
-
-    xlim = (-barwidth*0.5,n-1+barwidth*1.5)
+    xlim = (- barwidth * 0.5, n - 1 + barwidth * 1.5)
     ax.hold(True)
-    ax.plot(xlim, [0,0], color = 'black')
+    ax.plot(xlim, [0, 0], color = 'black')
     ax.set_xticklabels(shortnames, rotation = '45')
-    ax.set_xticks(abscisses + barwidth/2)
-    ax.set_xlim((-barwidth/2, n-1+barwidth*1.5))
+    ax.set_xticks(abscisses + barwidth / 2)
+    ax.set_xlim((-barwidth / 2, n - 1 + barwidth * 1.5))
     ticks = ax.get_xticklines()
     for tick in ticks:
         tick.set_visible(False)
@@ -536,56 +541,72 @@ def drawWaterfall(data, ax):
     for rect in patches:
         x = rect.absci
         y = rect.top
-        val = '%d' % rect.value
+        val = u'{} {}'.format(int(rect.value), currency)
         width = barwidth
-        if rect.value>=0: col = 'black'
-        else: col = 'red'
-        ax.text(x + width/2, y + 1, val, horizontalalignment='center',
-                 verticalalignment='bottom', color= col, weight = 'bold')
+        if rect.value >= 0:
+            col = 'black'
+        else:
+            col = 'red'
+        ax.text(x + width / 2, y + 1, val, horizontalalignment = 'center',
+                verticalalignment = 'bottom', color= col, weight = 'bold')
     m, M = ax.get_ylim()
-    ax.set_ylim((m, 1.05*M))
+    ax.set_ylim((m, 1.05 * M))
 
 
-def drawBareme(data, ax, x_axis, reforme = False, dataDefault = None, legend = True, currency = ""):
+def drawBareme(data, axes, x_axis, reform = False, reference_data = None, legend = True, currency = None):
     '''
     Draws bareme
     '''
-    if dataDefault == None:
-        dataDefault = data
-    ax.figure.subplots_adjust(bottom = 0.09, top = 0.95, left = 0.11, right = 0.95)
-    if reforme:
+    if reference_data is None:
+        reference_data = data
+    axes.figure.subplots_adjust(bottom = 0.09, top = 0.95, left = 0.11, right = 0.95)
+    if reform:
         prefix = 'Variation '
     else:
         prefix = ''
-    ax.hold(True)
-    xdata = dataDefault[x_axis]
-    NMEN = len(xdata.vals)
-    xlabel = xdata.desc
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(prefix + u"Revenu disponible (" + currency + " par an)")
-    ax.set_xlim(np.amin(xdata.vals), np.amax(xdata.vals))
-    if not reforme:
-        ax.set_ylim(np.amin(xdata.vals), np.amax(xdata.vals))
-    ax.plot(xdata.vals, np.zeros(NMEN), color = 'black', label = 'x_axis')
+    axes.hold(True)
+    x_axis_data = reference_data[x_axis]
+    n_points = len(x_axis_data.vals)
+    xlabel = x_axis_data.desc
+    axes.set_xlabel(xlabel)
+    axes.set_ylabel(prefix + u"{} ({} par an)".format(data.code, currency))
+    axes.set_xlim(np.amin(x_axis_data.vals), np.amax(x_axis_data.vals))
+    if not reform:
+        axes.set_ylim(np.amin(x_axis_data.vals), np.amax(x_axis_data.vals))
+    axes.plot(x_axis_data.vals, np.zeros(n_points), color = 'black', label = 'x_axis')
 
     def drawNode(node, prv):
         prev = prv + 0
-        if np.any(node.vals != 0) and node.visible and node.code != 'root':
-            r,g,b = node.color
-            col = (r/255, g/255, b/255)
+        if np.any(node.vals != 0) and node.visible:
+            r, g, b = node.color
+            col = (r / 255, g / 255, b / 255)
             if node.typevar == 2:
-                a = ax.plot(xdata.vals, node.vals, color = col, linewidth = 2, label = prefix + node.desc)
+                a = axes.plot(
+                    x_axis_data.vals,
+                    node.vals,
+                    color = col,
+                    linewidth = 2,
+                    label = prefix + node.desc,
+                    )
             else:
-                a = ax.fill_between(xdata.vals, prev + node.vals, prev, color = col, linewidth = 0.2, edgecolor = 'black', picker = True)
+                a = axes.fill_between(
+                    x_axis_data.vals,
+                    prev + node.vals,
+                    prev,
+                    color = col,
+                    linewidth = 0.2,
+                    edgecolor = 'black',
+                    picker = True,
+                    )
                 a.set_label(prefix + node.desc)
         for child in node.children:
             drawNode(child, prev)
             prev += child.vals
 
-    prv = np.zeros(NMEN)
+    prv = np.zeros(n_points)
     drawNode(data, prv)
     if legend:
-        createLegend(ax)
+        createLegend(axes)
 
 
 def drawBaremeCompareHouseholds(data, ax, x_axis, dataDefault = None, legend = True , currency = "", position = 2):

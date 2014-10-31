@@ -29,7 +29,11 @@ import os
 from numpy import logical_not, unique
 #from openfisca_core import model
 from openfisca_core.calmar import calmar
+<<<<<<< Updated upstream
 from openfisca_core.columns import EnumCol, BoolCol, AgeCol, DateCol, IntCol
+=======
+from openfisca_core.columns import EnumCol, BoolCol, AgeCol, DateCol
+>>>>>>> Stashed changes
 from pandas import read_csv, DataFrame, concat
 from PyQt4.QtCore import SIGNAL, Qt, QSize
 from PyQt4.QtGui import (QLabel, QHBoxLayout, QVBoxLayout, QPushButton, QComboBox,
@@ -47,7 +51,11 @@ from .. import OpenfiscaPluginWidget, PluginConfigPage
 
 
 _ = get_translation('openfisca_qt')
+<<<<<<< Updated upstream
 MODCOLS = [EnumCol, BoolCol, IntCol, AgeCol, DateCol]
+=======
+MODCOLS = [EnumCol, BoolCol, AgeCol, DateCol]
+>>>>>>> Stashed changes
 
 
 class Calibration(object):

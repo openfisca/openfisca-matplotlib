@@ -23,16 +23,14 @@ This file is part of openFisca.
 from __future__ import division
 
 
-import os
 import numpy as np
-import xml
 
-from openfisca_core import decompositions, decompositionsxml
-from openfisca_web_api import conv
+
+from openfisca_core import decompositions
 
 
 class OutNode(object):
-    def __init__(self, code, desc, shortname = '', vals = 0, color = (0, 0, 0), typevar = 0, parent = None):
+    def __init__(self, code = '', desc = '', shortname = '', vals = 0, color = (0, 0, 0), typevar = 0, parent = None):
         self.parent = parent
         self.children = []
         self.code = code
@@ -69,7 +67,7 @@ class OutNode(object):
     def setLeavesVisible(self):
         for child in self.children:
             child.setLeavesVisible()
-        if (self.children and (self.code != 'revdisp')) or (self.code == 'nivvie'):
+        if self.children:
             self.visible = 0
         else:
             self.visible = 1
@@ -82,13 +80,13 @@ class OutNode(object):
             return a
         return False
 
-    def hideAll(self):
-        if self.code == 'revdisp':
+    def hideAll(self, keep = ['revdisp']):
+        if self.code in keep:
             self.visible = 1
         else:
             self.visible = 0
         for child in self.children:
-            child.hideAll()
+            child.hideAll(keep = keep)
 
     def setHidden(self, changeParent = True):
         # les siblings doivent être dans le même
@@ -167,98 +165,81 @@ class OutNode(object):
         yield self
 
     @classmethod
-    def create_from_scenario_decomposition_json(cls, scenario, decomposiiton_json, trace = False):
-        simulation = scenario.new_simulation()
-        tax_benefit_system = scenario.tax_benefit_system
-        # TODO: handle properly default decomposition
-        if decomposiiton_json is None:
-            decomposition_tree = xml.etree.ElementTree.parse(
-                os.path.join(
-                    tax_benefit_system.DECOMP_DIR,
-                    "decomp.xml"
-                    )
-                )
-            decomposition_xml_json = conv.check(decompositionsxml.xml_decomposition_to_json)(
-                decomposition_tree.getroot()
-                )
-            decomposition_xml_json = conv.check(decompositionsxml.make_validate_node_xml_json(tax_benefit_system))(
-                decomposition_xml_json)
-            decomposition_json = decompositionsxml.transform_node_xml_json_to_json(decomposition_xml_json)
+    def init_from_decomposition_json(
+            cls,
+            scenario = None,
+            simulation = None,
+            decomposiiton_json = None,
+            trace = False,
+            ):
+        assert scenario is not None or simulation is not None
+        if simulation is None:
+            simulation = scenario.new_simulation()
 
-        self = cls('root', 'root')
         # Compute for all decomposition nodes
+        root_node = decompositions.calculate(simulation, decomposiiton_json)
 
-        for node in decompositions.iter_decomposition_nodes(decomposition_json, children_first = True):
-            children = node.get('children')
-            if children:
-                node['values'] = map(lambda *l: sum(l), *(
-                    child['values']
-                    for child in children
-                    ))
-            else:
-                node['values'] = values = []
-                holder = simulation.compute(node['code'])
-                column = holder.column
-                values.extend(
-                    column.transform_value_to_json(value)
-                    for value in holder.new_test_case_array().tolist()
-                    )
-
-        root_node = decomposition_json
-
-        def convert_to_out_node(out_node, node):
-            out_node.code = node['code']
-            out_node.desc = node['name']
-            if 'color' in node:
-                out_node.cols = node['color']
-            else:
-                out_node.cols = [0, 0, 0]
-            out_node.short = node['short_name']
-            out_node.typv = 0
-            if 'type' in node:
-                out_node.typv = node['type']
-            out_node.setVals(np.array(node['values']))
-
-            if node.get('children'):
-                for child in node.get('children'):
-                    code = child['code']
-                    desc = child['name']
-                    if 'color' in child:
-                        cols = child['color']
-                    else:
-                        cols = [0, 0, 0]
-                    short = child['short_name']
-                    typv = 0
-                    if 'type' in child:
-                        typv = child['type']
-                    child_out_node = OutNode(code, desc, color = cols, typevar = typv, shortname = short)
-                    out_node.addChild(child_out_node)
-                    convert_to_out_node(child_out_node, child)
-            else:
-                if node['code'] in tax_benefit_system.column_by_name:
-                    return
-                else:
-                    raise Exception('%s is not a variable of the tax_benefit_system' % tree.code)
-
-
+        self = cls()
         convert_to_out_node(self, root_node)
         return self
+
+
+def convert_to_out_node(out_node, node):
+    out_node.code = node['code']
+    out_node.desc = node['name']
+    if 'color' in node:
+        out_node.cols = node['color']
+    else:
+        out_node.cols = [0, 0, 0]
+    out_node.shortname = node['short_name']
+    out_node.typv = 0
+    if 'type' in node:
+        out_node.typv = node['type']
+
+    if node.get('children'):
+        for child in node.get('children'):
+            code = child['code']
+            desc = child['name']
+            if 'color' in child:
+                cols = child['color']
+            else:
+                cols = [0, 0, 0]
+            shortname = child['short_name']
+            typv = 0
+            if 'type' in child:
+                typv = child['type']
+            child_out_node = OutNode(
+                code,
+                desc,
+                color = cols,
+                typevar = typv,
+                shortname = shortname)
+            out_node.addChild(child_out_node)
+            convert_to_out_node(child_out_node, child)
+    else:
+        out_node.setVals(np.array(node['values']))
+        return
+
+
 
 
 if __name__ == '__main__':
     import openfisca_france
     import datetime
+    from openfisca_core import periods
     year = 2013
+    period = periods.period("year", year)
     TaxBenefitSystem = openfisca_france.init_country()
     tax_benefit_system = TaxBenefitSystem()
     scenario = tax_benefit_system.new_scenario().init_single_entity(
         parent1 = dict(
             birth = datetime.date(year - 40, 1, 1),
-            sali = 50000),
-        year = year,
+            sali = 0,
+            ),
+        period = period,
         )
-    tree = OutNode.create_from_scenario_decomposition_json(scenario, decomposiiton_json = None)
-    print tree
+    tree = OutNode.init_from_decomposition_json(scenario = scenario, decomposiiton_json = None)
 
+    print tree['revdisp']
 
 

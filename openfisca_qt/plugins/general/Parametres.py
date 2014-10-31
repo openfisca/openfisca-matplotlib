@@ -109,10 +109,10 @@ class ParamWidget(OpenfiscaPluginWidget, Ui_Parametres):
 
         value = self.get_option('datesim')
         from datetime import datetime
-
         self._date = datetime.strptime(value, "%Y-%m-%d").date()
         self.label.setText(u"Date : {}".format(str(self._date)))
-        TODO  # Obsolete: Use openfica_core.legislations functions instead.
+#        TODO  # Obsolete: Use openfica_core.legislations functions instead.
+
         self._reader = XmlReader(self._file, self._date)
         self._rootNode = self._reader.tree
         self._rootNode.rmv_empty_code()
