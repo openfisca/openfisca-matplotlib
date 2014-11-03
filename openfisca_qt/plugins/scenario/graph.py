@@ -707,6 +707,7 @@ def drawTaux(data, ax, x_axis, reforme = False, dataDefault = None, legend = Tru
         dataDefault = data
 
     print "x_axis :", x_axis
+
     # TODO: the following is an ugly fix which is not general enough
     if x_axis == "rev_cap_brut":
         typ_rev = 'superbrut'

@@ -188,22 +188,21 @@ def convert_to_out_node(out_node, node):
     out_node.code = node['code']
     out_node.desc = node['name']
     if 'color' in node:
-        out_node.cols = node['color']
+        out_node.color = node['color']
     else:
-        out_node.cols = [0, 0, 0]
+        out_node.color = [0, 0, 0]
     out_node.shortname = node['short_name']
     out_node.typv = 0
     if 'type' in node:
         out_node.typv = node['type']
-
     if node.get('children'):
         for child in node.get('children'):
             code = child['code']
             desc = child['name']
             if 'color' in child:
-                cols = child['color']
+                color = child['color']
             else:
-                cols = [0, 0, 0]
+                color = [0, 0, 0]
             shortname = child['short_name']
             typv = 0
             if 'type' in child:
@@ -211,7 +210,7 @@ def convert_to_out_node(out_node, node):
             child_out_node = OutNode(
                 code,
                 desc,
-                color = cols,
+                color = color,
                 typevar = typv,
                 shortname = shortname)
             out_node.addChild(child_out_node)
@@ -219,8 +218,6 @@ def convert_to_out_node(out_node, node):
     else:
         out_node.setVals(np.array(node['values']))
         return
-
-
 
 
 if __name__ == '__main__':
@@ -239,7 +236,4 @@ if __name__ == '__main__':
         period = period,
         )
     tree = OutNode.init_from_decomposition_json(scenario = scenario, decomposiiton_json = None)
-
-    print tree['revdisp']
-
 

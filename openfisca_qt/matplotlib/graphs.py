@@ -41,16 +41,16 @@ def draw_waterfall(simulation, axes, visible = None):
     drawWaterfall(data, axes, currency)
 
 
-def draw_bareme(simulation, axes, x_axis, reform_simulation = None, visible_lines = None, hide_all = False):
+def draw_bareme(simulation, axes, x_axis, reference_simulation = None, visible_lines = None, hide_all = False):
     currency = simulation.tax_benefit_system.CURRENCY
     is_reform = False
-    if reform_simulation is not None:
+    if simulation is not None and reference_simulation is not None:
         data = OutNode.init_from_decomposition_json(
-            simulation = reform_simulation,
+            simulation = simulation,
             decomposiiton_json = None,
             )
         reference_data = OutNode.init_from_decomposition_json(
-            simulation = simulation,
+            simulation = reference_simulation,
             decomposiiton_json = None,
             )
         is_reform = True
@@ -67,7 +67,7 @@ def draw_bareme(simulation, axes, x_axis, reform_simulation = None, visible_line
             data[code].visible = 1
             data[code].typevar = 2
     data[x_axis].setHidden(changeParent = True)
-    if reform_simulation is not None and hide_all is True:
+    if is_reform and hide_all is True:
         data.hideAll()
     axes.clear()
     drawBareme(
@@ -79,3 +79,51 @@ def draw_bareme(simulation, axes, x_axis, reform_simulation = None, visible_line
         reference_data = reference_data,
         currency = currency
         )
+
+
+def draw_rates(simulation, axes, x_axis = None, y_axis = None, reference_simulation = None, legend = True):
+    assert x_axis is not None
+    assert y_axis is not None
+    from openfisca_core.rates import average_rate, marginal_rate
+    varying = simulation.calculate(x_axis)
+    target = simulation.calculate(y_axis)
+    avg_rate = average_rate(target, varying)
+    marg_rate = marginal_rate(target, varying)
+    print avg_rate
+    axes.hold(True)
+    import numpy as np
+    axes.set_xlim(np.amin(varying), np.amax(varying))
+    axes.set_ylabel(r"$\left(1 - \frac{RevDisponible}{RevInitial} \right)\ et\ \left(1 - \frac{d (RevDisponible)}{d (RevInitial)}\right)$")
+    axes.set_ylabel(r"$\left(1 - \frac{RevDisponible}{RevInitial} \right)\ et\ \left(1 - \frac{d (RevDisponible)}{d (RevInitial)}\right)$")
+    axes.plot(varying, 100*avg_rate, label = u"Taux moyen d'imposition", linewidth = 2)
+    axes.plot(varying[1:], 100*marg_rate, label = u"Taux marginal d'imposition", linewidth = 2)
+    axes.set_ylim(0, 100)
+
+    from matplotlib.ticker import FuncFormatter
+    axes.yaxis.set_major_formatter(FuncFormatter(percentFormatter))
+    if legend:
+        createLegend(axes)
+
+
+def percentFormatter(x, pos=0):
+    return '%1.0f%%' % (x)
+
+
+def createLegend(ax, position = 2):
+    '''
+    Creates legend
+    '''
+    from matplotlib.lines import Line2D
+    from matplotlib.patches import Rectangle
+
+    p = []
+    l = []
+    for collec in ax.collections:
+        if collec._visible:
+            p.insert(0, Rectangle((0, 0), 1, 1, fc = collec._facecolors[0], linewidth = 0.5, edgecolor = 'black' ))
+            l.insert(0, collec._label)
+    for line in ax.lines:
+        if line._visible and (line._label != 'x_axis'):
+            p.insert(0, Line2D([0,1],[.5,.5],color = line._color))
+            l.insert(0, line._label)
+    ax.legend(p,l, loc= position, prop = {'size':'medium'})

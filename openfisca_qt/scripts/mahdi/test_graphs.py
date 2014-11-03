@@ -25,7 +25,6 @@
 from __future__ import division
 
 
-import copy
 import datetime
 import sys
 
@@ -74,19 +73,37 @@ def waterfall():
 
 
 def bareme():
-    simulation, reform_simulation = create_simulation(bareme = True)
+    reform_simulation, reference_simulation = create_simulation(bareme = True)
 
     app = QApplication(sys.argv)
     win = ApplicationWindow()
     axes = win.mplwidget.axes
-    simulation.calculate('revdisp')
+    reference_simulation.calculate('revdisp')
     reform_simulation.calculate('revdisp')
     graphs.draw_bareme(
-        simulation = simulation,
+        simulation = reform_simulation,
         axes = axes,
         x_axis = 'sal',
-        reform_simulation = reform_simulation,
+        reference_simulation = reference_simulation,
         visible_lines = ['revdisp'])
+    win.resize(1400, 700)
+    win.mplwidget.draw()
+    win.show()
+    sys.exit(app.exec_())
+
+
+def rates():
+    reform_simulation, reference_simulation = create_simulation(bareme = True)
+    app = QApplication(sys.argv)
+    win = ApplicationWindow()
+    axes = win.mplwidget.axes
+    graphs.draw_rates(
+        simulation = reform_simulation,
+        axes = axes,
+        x_axis = 'sali',
+        y_axis = 'revdisp',
+        reference_simulation = reference_simulation,
+        )
     win.resize(1400, 700)
     win.mplwidget.draw()
     win.show()
@@ -174,7 +191,6 @@ def create_simulation(year = 2014, bareme = False):
         legislation_json = reform_legislation_json,
         reference = tax_benefit_system
         )
-
     parent1 = dict(
         birth = datetime.date(year - 40, 1, 1),
         sali = 10000 if bareme is False else None,
@@ -190,28 +206,28 @@ def create_simulation(year = 2014, bareme = False):
         )
     axes = [
         dict(
-            count = 100,
+            count = 200,
             name = 'sali',
-            max = 30000,
+            max = 300000,
             min = 0,
             ),
         ]
     scenario = reform.new_scenario().init_single_entity(
         axes = axes if bareme else None,
-        menage = menage,
+#        menage = menage,
         parent1 = parent1,
 #        parent2 = parent2,
         period = periods.period('year', year),
         )
-    simulation = scenario.new_simulation(debug = True, reference = True)
+    reference_simulation = scenario.new_simulation(debug = True, reference = True)
     reform_simulation = scenario.new_simulation(debug = True)
 
-    return simulation, reform_simulation
+    return reform_simulation, reference_simulation
 
 
 if __name__ == '__main__':
-#    survey_case(2010)
+
 #    bareme_compare_household()
 #   waterfall()
-    bareme()
-
+#    bareme()
+    rates()
