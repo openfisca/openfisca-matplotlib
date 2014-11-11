@@ -553,7 +553,8 @@ def drawWaterfall(data, ax, currency = None):
     ax.set_ylim((m, 1.05 * M))
 
 
-def drawBareme(data, axes, x_axis, reform = False, reference_data = None, legend = True, currency = None):
+def drawBareme(data, axes, x_axis, reform = False, reference_data = None,
+               legend = True, currency = None, legend_position = 2):
     '''
     Draws bareme
     '''
@@ -606,7 +607,7 @@ def drawBareme(data, axes, x_axis, reform = False, reference_data = None, legend
     prv = np.zeros(n_points)
     drawNode(data, prv)
     if legend:
-        createLegend(axes)
+        createLegend(axes, position = legend_position)
 
 
 def drawBaremeCompareHouseholds(data, ax, x_axis, dataDefault = None, legend = True , currency = "", position = 2):

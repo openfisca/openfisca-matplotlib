@@ -41,8 +41,11 @@ def draw_waterfall(simulation, axes, visible = None):
     drawWaterfall(data, axes, currency)
 
 
-def draw_bareme(simulation, axes, x_axis, reference_simulation = None, visible_lines = None, hide_all = False):
+def draw_bareme(simulation, axes, x_axis, reference_simulation = None,
+                visible_lines = None, hide_all = False, legend_position = None):
     currency = simulation.tax_benefit_system.CURRENCY
+    if legend_position is None:
+        legend_position = 2
     is_reform = False
     if simulation is not None and reference_simulation is not None:
         data = OutNode.init_from_decomposition_json(
@@ -77,7 +80,8 @@ def draw_bareme(simulation, axes, x_axis, reference_simulation = None, visible_l
         reform = is_reform,
         legend = True,
         reference_data = reference_data,
-        currency = currency
+        currency = currency,
+        legend_position = legend_position,
         )
 
 
@@ -95,8 +99,8 @@ def draw_rates(simulation, axes, x_axis = None, y_axis = None, reference_simulat
     axes.set_xlim(np.amin(varying), np.amax(varying))
     axes.set_ylabel(r"$\left(1 - \frac{RevDisponible}{RevInitial} \right)\ et\ \left(1 - \frac{d (RevDisponible)}{d (RevInitial)}\right)$")
     axes.set_ylabel(r"$\left(1 - \frac{RevDisponible}{RevInitial} \right)\ et\ \left(1 - \frac{d (RevDisponible)}{d (RevInitial)}\right)$")
-    axes.plot(varying, 100*avg_rate, label = u"Taux moyen d'imposition", linewidth = 2)
-    axes.plot(varying[1:], 100*marg_rate, label = u"Taux marginal d'imposition", linewidth = 2)
+    axes.plot(varying, 100 * avg_rate, label = u"Taux moyen d'imposition", linewidth = 2)
+    axes.plot(varying[1:], 100 * marg_rate, label = u"Taux marginal d'imposition", linewidth = 2)
     axes.set_ylim(0, 100)
 
     from matplotlib.ticker import FuncFormatter
@@ -105,7 +109,7 @@ def draw_rates(simulation, axes, x_axis = None, y_axis = None, reference_simulat
         createLegend(axes)
 
 
-def percentFormatter(x, pos=0):
+def percentFormatter(x, pos = 0):
     return '%1.0f%%' % (x)
 
 
@@ -120,10 +124,10 @@ def createLegend(ax, position = 2):
     l = []
     for collec in ax.collections:
         if collec._visible:
-            p.insert(0, Rectangle((0, 0), 1, 1, fc = collec._facecolors[0], linewidth = 0.5, edgecolor = 'black' ))
+            p.insert(0, Rectangle((0, 0), 1, 1, fc = collec._facecolors[0], linewidth = 0.5, edgecolor = 'black'))
             l.insert(0, collec._label)
     for line in ax.lines:
         if line._visible and (line._label != 'x_axis'):
-            p.insert(0, Line2D([0,1],[.5,.5],color = line._color))
+            p.insert(0, Line2D([0, 1], [.5, .5], color = line._color))
             l.insert(0, line._label)
-    ax.legend(p,l, loc= position, prop = {'size':'medium'})
+    ax.legend(p, l, loc = position, prop = {'size': 'medium'})
