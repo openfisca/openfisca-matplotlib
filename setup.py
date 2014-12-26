@@ -24,7 +24,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-"""QT GUI for OpenFisca -- a versatile microsimulation free software"""
+"""Matplotlib graphs for OpenFisca -- a versatile microsimulation free software"""
 
 
 from setuptools import setup, find_packages
@@ -43,8 +43,8 @@ doc_lines = __doc__.split('\n')
 
 
 setup(
-    name = 'OpenFisca-QT',
-    version = '0.2dev',
+    name = 'OpenFisca-Matplotlib',
+    version = '0.4dev',
 
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
@@ -53,16 +53,15 @@ setup(
     keywords = 'benefit microsimulation social tax',
     license = 'http://www.fsf.org/licensing/licenses/agpl-3.0.html',
     long_description = '\n'.join(doc_lines[2:]),
-    url = 'https://github.com/openfisca/openfisca-qt',
+    url = 'https://github.com/openfisca/openfisca-matplotlib',
 
     include_package_data = True,
     install_requires = [
-        'OpenFisca-Core >= 0.2dev',
-        'pandas >= 0.13.0'
+        'OpenFisca-Core >= 0.4dev',
         ],
     packages = find_packages(),
     message_extractors = {
-        'openfisca_qt': [
+        'openfisca_matplotlib': [
             ('**.py', 'python', None),
             ],
         },
