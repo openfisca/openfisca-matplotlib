@@ -23,7 +23,6 @@ This file is part of µSim.
 """
 
 from distutils.core import setup
-import py2exe
 import matplotlib
 import os
 import glob
