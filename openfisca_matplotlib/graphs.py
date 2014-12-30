@@ -35,11 +35,11 @@ from openfisca_core.rates import average_rate, marginal_rate
 from openfisca_matplotlib.utils import OutNode
 
 
-def draw_waterfall(simulation, axes, visible = None):
+def draw_waterfall(simulation, axes, decomposiiton_json = None, visible = None):
     currency = simulation.tax_benefit_system.CURRENCY
     data = OutNode.init_from_decomposition_json(
         simulation = simulation,
-        decomposiiton_json = None,
+        decomposiiton_json = decomposiiton_json,
         )
     data.setLeavesVisible()
     if visible is not None:
@@ -49,7 +49,7 @@ def draw_waterfall(simulation, axes, visible = None):
     draw_waterfall_from_node_data(data, axes, currency)
 
 
-def draw_bareme(simulation, axes, x_axis, reference_simulation = None,
+def draw_bareme(simulation, axes, x_axis, reference_simulation = None, decomposiiton_json = None,
                 visible_lines = None, hide_all = False, legend_position = None):
     currency = simulation.tax_benefit_system.CURRENCY
     if legend_position is None:
@@ -58,18 +58,18 @@ def draw_bareme(simulation, axes, x_axis, reference_simulation = None,
     if simulation is not None and reference_simulation is not None:
         data = OutNode.init_from_decomposition_json(
             simulation = simulation,
-            decomposiiton_json = None,
+            decomposiiton_json = decomposiiton_json,
             )
         reference_data = OutNode.init_from_decomposition_json(
             simulation = reference_simulation,
-            decomposiiton_json = None,
+            decomposiiton_json = decomposiiton_json,
             )
         is_reform = True
         data.difference(reference_data)
     else:
         data = OutNode.init_from_decomposition_json(
             simulation = simulation,
-            decomposiiton_json = None,
+            decomposiiton_json = decomposiiton_json,
             )
         reference_data = None
     data.setLeavesVisible()
