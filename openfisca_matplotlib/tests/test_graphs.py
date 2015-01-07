@@ -79,7 +79,7 @@ def bareme():
     graphs.draw_bareme(
         simulation = reform_simulation,
         axes = axes,
-        x_axis = 'sal',
+        x_axis = 'salbrut',
         visible_lines = ['revdisp'])
     win.resize(1400, 700)
     win.mplwidget.draw()
@@ -95,7 +95,7 @@ def rates():
     graphs.draw_rates(
         simulation = reform_simulation,
         axes = axes,
-        x_axis = 'sali',
+        x_axis = 'sal',
         y_axis = 'revdisp',
         reference_simulation = reference_simulation,
         )
@@ -130,11 +130,11 @@ def bareme_compare_household():
 def create_simulation2(year = 2014, bareme = False):
     parent1 = dict(
         birth = datetime.date(year - 40, 1, 1),
-        sali = 4000 if bareme is False else None,
+        sal = 4000 if bareme is False else None,
         )
     parent2 = dict(
         birth = datetime.date(year - 40, 1, 1),
-        sali = 1000,
+        sal = 1000,
         )
     # Adding a husband/wife on the same tax sheet (foyer)
     menage = dict(
@@ -144,7 +144,7 @@ def create_simulation2(year = 2014, bareme = False):
     axes = [
         dict(
             count = 100,
-            name = 'sali',
+            name = 'salbrut',
             max = 30000,
             min = 0,
             ),
@@ -188,11 +188,11 @@ def create_simulation(year = 2014, bareme = False):
         )
     parent1 = dict(
         birth = datetime.date(year - 40, 1, 1),
-        sali = 10000 if bareme is False else None,
+        salbrut = 10000 if bareme is False else None,
         )
 #    parent2 = dict(
 #        birth = datetime.date(year - 40, 1, 1),
-#        sali = 0,
+#        salbrut = 0,
 #        )
     # Adding a husband/wife on the same tax sheet (foyer)
     menage = dict(
@@ -202,7 +202,7 @@ def create_simulation(year = 2014, bareme = False):
     axes = [
         dict(
             count = 200,
-            name = 'sali',
+            name = 'salbrut',
             max = 300000,
             min = 0,
             ),
