@@ -46,7 +46,17 @@ def test():
         decomposition_json = None,
         reference_simulation = reference_simulation,
         )
-    print data_frame
+    return data_frame
+
+
+def test_bareme():
+    reform_simulation, reference_simulation = create_simulation(bareme = True)
+    data_frame = data_frame_from_decomposition_json(
+        reform_simulation,
+        decomposition_json = None,
+        reference_simulation = reference_simulation,
+        )
+    return data_frame
 
 
 def test_remove_null():
@@ -56,7 +66,7 @@ def test_remove_null():
         decomposition_json = None,
         reference_simulation = reference_simulation,
         remove_null = True)
-    print data_frame
+    return data_frame
 
 
 def test_fiche_de_paie():
@@ -67,16 +77,18 @@ def test_fiche_de_paie():
         )
 
     decomposition_json = get_decomposition_json(xml_file_path, tax_benefit_system)
-    print xml_file_path
     data_frame = data_frame_from_decomposition_json(
         reform_simulation,
         decomposition_json = decomposition_json,
         reference_simulation = reference_simulation,
         remove_null = True)
-    print data_frame
+    return data_frame
 
 
 if __name__ == '__main__':
-    test()
-    test_remove_null()
-    test_fiche_de_paie()
+#    test()
+    df = test_bareme()
+#   df = test_remove_null()
+#   df = test_fiche_de_paie()
+    print df
+    print df.description()

@@ -45,7 +45,8 @@ def data_frame_from_decomposition_json(simulation, decomposition_json = None, re
     data_frame = pd.DataFrame(data_dict).T
     data_frame = data_frame.reindex(index)
 
-    data_frame.columns = ["valeur"]
+    if len(data_frame.columns) == 1:
+        data_frame.columns = ["valeur"]
     if remove_null:
         data_frame = data_frame[data_frame.valeur != 0]
     data_frame.index.name = "variable"
