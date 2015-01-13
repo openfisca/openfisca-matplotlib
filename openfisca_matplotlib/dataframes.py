@@ -30,11 +30,11 @@ from openfisca_matplotlib.utils import OutNode
 
 def data_frame_from_decomposition_json(simulation, decomposition_json = None, reference_simulation = None,
                                        remove_null = False):
-    currency = simulation.tax_benefit_system.CURRENCY
+    currency = simulation.tax_benefit_system.CURRENCY # TODO : put an option to add currency, for now useless
     data = OutNode.init_from_decomposition_json(
         simulation = simulation,
         decomposiiton_json = decomposition_json,
-        )
+    )
     data_dict = dict()
     index = []
     for row in data:
@@ -48,8 +48,8 @@ def data_frame_from_decomposition_json(simulation, decomposition_json = None, re
     if len(data_frame.columns) == 1:
         data_frame.columns = ["valeur"]
     if remove_null:
-        data_frame = data_frame[data_frame.valeur != 0]
+        data_frame = data_frame[data_frame.values != 0]
     data_frame.index.name = "variable"
+    data_frame["index"] = data_frame.index
+    data_frame.drop_duplicates(cols='index', take_last=True, inplace=True)
     return data_frame
-
-
