@@ -85,10 +85,22 @@ def test_fiche_de_paie():
     return data_frame
 
 
+def test_fiche_de_paie_bareme(bareme=True):
+    reform_simulation, reference_simulation = create_simulation(bareme=bareme)
+    xml_file_path = os.path.join(
+        tax_benefit_system.DECOMP_DIR,
+        "fiche_de_paie_decomposition.xml"
+        )
+    decomposition_json = get_decomposition_json(xml_file_path, tax_benefit_system)
+    data_frame = data_frame_from_decomposition_json(
+        reference_simulation,
+        decomposition_json = decomposition_json,
+        remove_null = True)
+    return data_frame
+
+
 if __name__ == '__main__':
 #    test()
-    df = test_bareme()
 #   df = test_remove_null()
-#   df = test_fiche_de_paie()
+    df = test_fiche_de_paie_bareme()
     print df
-    print df.description()

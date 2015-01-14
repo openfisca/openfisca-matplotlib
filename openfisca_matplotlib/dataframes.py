@@ -44,12 +44,16 @@ def data_frame_from_decomposition_json(simulation, decomposition_json = None, re
 
     data_frame = pd.DataFrame(data_dict).T
     data_frame = data_frame.reindex(index)
-
+    data_frame.index.name = "variable"
     if len(data_frame.columns) == 1:
         data_frame.columns = ["valeur"]
     if remove_null:
-        data_frame = data_frame[data_frame.values != 0]
-    data_frame.index.name = "variable"
-    data_frame["index"] = data_frame.index
-    data_frame.drop_duplicates(cols='index', take_last=True, inplace=True)
+        variables_to_remove = []
+        for variable in data_frame.index:
+            if (data_frame.loc[variable] == 0).all():
+                print variable
+                variables_to_remove.append(variable)
+
+        data_frame.drop(variables_to_remove, inplace = True)
+
     return data_frame

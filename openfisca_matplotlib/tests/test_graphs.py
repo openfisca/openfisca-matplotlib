@@ -79,7 +79,7 @@ def bareme():
     graphs.draw_bareme(
         simulation = reform_simulation,
         axes = axes,
-        x_axis = 'salbrut',
+        x_axis = 'salaire_de_base',
         visible_lines = ['revdisp'])
     win.resize(1400, 700)
     win.mplwidget.draw()
@@ -144,7 +144,7 @@ def create_simulation2(year = 2014, bareme = False):
     axes = [
         dict(
             count = 100,
-            name = 'salbrut',
+            name = 'salaire_de_base',
             max = 30000,
             min = 0,
             ),
@@ -188,11 +188,12 @@ def create_simulation(year = 2014, bareme = False):
         )
     parent1 = dict(
         birth = datetime.date(year - 40, 1, 1),
-        salbrut = 10000 if bareme is False else None,
+        salaire_de_base = 10000 if bareme is False else None,
+        type_sal = 0,
         )
 #    parent2 = dict(
 #        birth = datetime.date(year - 40, 1, 1),
-#        salbrut = 0,
+#        salaire_de_base = 0,
 #        )
     # Adding a husband/wife on the same tax sheet (foyer)
     menage = dict(
@@ -202,7 +203,7 @@ def create_simulation(year = 2014, bareme = False):
     axes = [
         dict(
             count = 200,
-            name = 'salbrut',
+            name = 'salaire_de_base',
             max = 300000,
             min = 0,
             ),
