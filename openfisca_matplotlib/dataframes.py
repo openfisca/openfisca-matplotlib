@@ -51,7 +51,6 @@ def data_frame_from_decomposition_json(simulation, decomposition_json = None, re
         variables_to_remove = []
         for variable in data_frame.index:
             if (data_frame.loc[variable] == 0).all():
-                print variable
                 variables_to_remove.append(variable)
 
         data_frame.drop(variables_to_remove, inplace = True)
