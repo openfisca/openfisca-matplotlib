@@ -28,18 +28,22 @@ import numpy as np
 
 from matplotlib.lines import Line2D
 from matplotlib.patches import FancyArrow, Rectangle
+import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 
-from openfisca_core.rates import average_rate, marginal_rate
 
+from openfisca_core.rates import average_rate, marginal_rate
 from openfisca_matplotlib.utils import OutNode
 
 
-def draw_waterfall(simulation, axes, decomposiiton_json = None, visible = None):
+def draw_waterfall(simulation, axes = None, decomposition_json = None, visible = None):
+    if axes is None:
+        fig = plt.figure()
+        axes = fig.gca()
     currency = simulation.tax_benefit_system.CURRENCY
     data = OutNode.init_from_decomposition_json(
         simulation = simulation,
-        decomposiiton_json = decomposiiton_json,
+        decomposition_json = decomposition_json,
         )
     data.setLeavesVisible()
     if visible is not None:
@@ -49,8 +53,11 @@ def draw_waterfall(simulation, axes, decomposiiton_json = None, visible = None):
     draw_waterfall_from_node_data(data, axes, currency)
 
 
-def draw_bareme(simulation, axes, x_axis, reference_simulation = None, decomposiiton_json = None,
+def draw_bareme(simulation, axes = None, x_axis = None, reference_simulation = None, decomposition_json = None,
                 visible_lines = None, hide_all = False, legend_position = None):
+    if axes is None:
+        fig = plt.figure()
+        axes = fig.gca()
     currency = simulation.tax_benefit_system.CURRENCY
     if legend_position is None:
         legend_position = 2
@@ -58,18 +65,18 @@ def draw_bareme(simulation, axes, x_axis, reference_simulation = None, decomposi
     if simulation is not None and reference_simulation is not None:
         data = OutNode.init_from_decomposition_json(
             simulation = simulation,
-            decomposiiton_json = decomposiiton_json,
+            decomposition_json = decomposition_json,
             )
         reference_data = OutNode.init_from_decomposition_json(
             simulation = reference_simulation,
-            decomposiiton_json = decomposiiton_json,
+            decomposition_json = decomposition_json,
             )
         is_reform = True
         data.difference(reference_data)
     else:
         data = OutNode.init_from_decomposition_json(
             simulation = simulation,
-            decomposiiton_json = decomposiiton_json,
+            decomposition_json = decomposition_json,
             )
         reference_data = None
     data.setLeavesVisible()
@@ -93,7 +100,10 @@ def draw_bareme(simulation, axes, x_axis, reference_simulation = None, decomposi
         )
 
 
-def draw_rates(simulation, axes, x_axis = None, y_axis = None, reference_simulation = None, legend = True):
+def draw_rates(simulation, axes = None, x_axis = None, y_axis = None, reference_simulation = None, legend = True):
+    if axes is None:
+        fig = plt.figure()
+        axes = fig.gca()
     assert x_axis is not None
     assert y_axis is not None
     varying = simulation.calculate(x_axis)
@@ -201,6 +211,7 @@ def draw_waterfall_from_node_data(data, ax, currency = None):
                 verticalalignment = 'bottom', color= col, weight = 'bold')
     m, M = ax.get_ylim()
     ax.set_ylim((m, 1.05 * M))
+
 
 
 def draw_bareme_from_node_data(data, axes, x_axis, reform = False, reference_data = None,

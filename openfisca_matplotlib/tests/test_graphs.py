@@ -224,6 +224,6 @@ def create_simulation(year = 2014, bareme = False):
 if __name__ == '__main__':
 
 #    bareme_compare_household()
-#   waterfall()
+   waterfall()
 #   bareme()
-    rates()
+#    rates()

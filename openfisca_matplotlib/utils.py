@@ -169,7 +169,7 @@ class OutNode(object):
             cls,
             scenario = None,
             simulation = None,
-            decomposiiton_json = None,
+            decomposition_json = None,
             trace = False,
             ):
         assert scenario is not None or simulation is not None
@@ -177,7 +177,7 @@ class OutNode(object):
             simulation = scenario.new_simulation()
 
         # Compute for all decomposition nodes
-        root_node = decompositions.calculate(simulation, decomposiiton_json)
+        root_node = decompositions.calculate(simulation, decomposition_json)
 
         self = cls()
         convert_to_out_node(self, root_node)
@@ -235,5 +235,5 @@ if __name__ == '__main__':
             ),
         period = period,
         )
-    tree = OutNode.init_from_decomposition_json(scenario = scenario, decomposiiton_json = None)
+    tree = OutNode.init_from_decomposition_json(scenario = scenario, decomposition_json = None)
 
