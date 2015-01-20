@@ -54,7 +54,7 @@ def draw_waterfall(simulation, axes = None, decomposition_json = None, visible =
 
 
 def draw_bareme(simulation, axes = None, x_axis = None, reference_simulation = None, decomposition_json = None,
-                visible_lines = None, hide_all = False, legend_position = None):
+                visible_lines = None, hide_all = False, legend = True, legend_position = None):
     if axes is None:
         fig = plt.figure()
         axes = fig.gca()
@@ -93,7 +93,7 @@ def draw_bareme(simulation, axes = None, x_axis = None, reference_simulation = N
         axes,
         x_axis,
         reform = is_reform,
-        legend = True,
+        legend = legend,
         reference_data = reference_data,
         currency = currency,
         legend_position = legend_position,
@@ -110,7 +110,6 @@ def draw_rates(simulation, axes = None, x_axis = None, y_axis = None, reference_
     target = simulation.calculate(y_axis)
     avg_rate = average_rate(target, varying)
     marg_rate = marginal_rate(target, varying)
-    print avg_rate
     axes.hold(True)
     axes.set_xlim(np.amin(varying), np.amax(varying))
     axes.set_ylabel(r"$\left(1 - \frac{RevDisponible}{RevInitial} \right)\ et\ \left(1 - \frac{d (RevDisponible)}{d (RevInitial)}\right)$")

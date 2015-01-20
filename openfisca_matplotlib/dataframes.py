@@ -33,12 +33,12 @@ def data_frame_from_decomposition_json(simulation, decomposition_json = None, re
     currency = simulation.tax_benefit_system.CURRENCY # TODO : put an option to add currency, for now useless
     data = OutNode.init_from_decomposition_json(
         simulation = simulation,
-        decomposiiton_json = decomposition_json,
-    )
+        decomposition_json = decomposition_json,
+        )
     data_dict = dict()
     index = []
     for row in data:
-        if not row.desc in ('root'):
+        if row.desc not in ('root'):
             index.append(row.desc)
             data_dict[row.desc] = row.vals
 
