@@ -100,7 +100,7 @@ def test_fiche_de_paie_bareme(bareme=True):
 
 
 if __name__ == '__main__':
-#    test()
-#   df = test_remove_null()
+    # test()
+    # df = test_remove_null()
     df = test_fiche_de_paie_bareme()
     print df

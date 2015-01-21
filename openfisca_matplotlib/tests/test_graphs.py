@@ -37,7 +37,6 @@ from openfisca_matplotlib import graphs
 
 TaxBenefitSystem = openfisca_france.init_country()
 tax_benefit_system = TaxBenefitSystem()
-print tax_benefit_system.DECOMP_DIR
 
 
 class ApplicationWindow(QMainWindow):
@@ -106,7 +105,7 @@ def rates():
 
 
 def bareme_compare_household():
-    simulation_1p, simulation_2p = create_simulation2()
+    simulation_1p, simulation_2p = create_simulation2(bareme = True)
 
     app = QApplication(sys.argv)
     win = ApplicationWindow()
@@ -210,7 +209,7 @@ def create_simulation(year = 2014, bareme = False):
         ]
     scenario = reform.new_scenario().init_single_entity(
         axes = axes if bareme else None,
-#        menage = menage,
+        menage = menage,
         parent1 = parent1,
 #        parent2 = parent2,
         period = periods.period('year', year),
@@ -223,7 +222,7 @@ def create_simulation(year = 2014, bareme = False):
 
 if __name__ == '__main__':
 
-#    bareme_compare_household()
-   waterfall()
+    bareme_compare_household()
+#   waterfall()
 #   bareme()
 #    rates()

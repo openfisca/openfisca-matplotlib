@@ -170,6 +170,7 @@ class OutNode(object):
             scenario = None,
             simulation = None,
             decomposition_json = None,
+            period = None,
             trace = False,
             ):
         assert scenario is not None or simulation is not None

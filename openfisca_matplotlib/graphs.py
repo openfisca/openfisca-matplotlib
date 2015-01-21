@@ -36,7 +36,7 @@ from openfisca_core.rates import average_rate, marginal_rate
 from openfisca_matplotlib.utils import OutNode
 
 
-def draw_waterfall(simulation, axes = None, decomposition_json = None, visible = None):
+def draw_waterfall(simulation, axes = None, decomposition_json = None, period = None, visible = None):
     if axes is None:
         fig = plt.figure()
         axes = fig.gca()
@@ -44,6 +44,7 @@ def draw_waterfall(simulation, axes = None, decomposition_json = None, visible =
     data = OutNode.init_from_decomposition_json(
         simulation = simulation,
         decomposition_json = decomposition_json,
+        period = period,
         )
     data.setLeavesVisible()
     if visible is not None:
@@ -54,7 +55,7 @@ def draw_waterfall(simulation, axes = None, decomposition_json = None, visible =
 
 
 def draw_bareme(simulation, axes = None, x_axis = None, reference_simulation = None, decomposition_json = None,
-                visible_lines = None, hide_all = False, legend = True, legend_position = None):
+                visible_lines = None, hide_all = False, legend = True, legend_position = None, period = None):
     if axes is None:
         fig = plt.figure()
         axes = fig.gca()
@@ -66,10 +67,12 @@ def draw_bareme(simulation, axes = None, x_axis = None, reference_simulation = N
         data = OutNode.init_from_decomposition_json(
             simulation = simulation,
             decomposition_json = decomposition_json,
+            period = period,
             )
         reference_data = OutNode.init_from_decomposition_json(
             simulation = reference_simulation,
             decomposition_json = decomposition_json,
+            period = period,
             )
         is_reform = True
         data.difference(reference_data)
@@ -77,6 +80,7 @@ def draw_bareme(simulation, axes = None, x_axis = None, reference_simulation = N
         data = OutNode.init_from_decomposition_json(
             simulation = simulation,
             decomposition_json = decomposition_json,
+            period = period,
             )
         reference_data = None
     data.setLeavesVisible()
@@ -84,10 +88,15 @@ def draw_bareme(simulation, axes = None, x_axis = None, reference_simulation = N
         for code in visible_lines:
             data[code].visible = 1
             data[code].typevar = 2
+
+    print reference_data[x_axis].vals
+    print len(data[x_axis].vals)
+
     data[x_axis].setHidden(changeParent = True)
     if is_reform and hide_all is True:
         data.hideAll()
     axes.clear()
+
     draw_bareme_from_node_data(
         data,
         axes,
@@ -100,14 +109,15 @@ def draw_bareme(simulation, axes = None, x_axis = None, reference_simulation = N
         )
 
 
-def draw_rates(simulation, axes = None, x_axis = None, y_axis = None, reference_simulation = None, legend = True):
+def draw_rates(simulation, axes = None, x_axis = None, y_axis = None, reference_simulation = None, legend = True,
+               period = None):
     if axes is None:
         fig = plt.figure()
         axes = fig.gca()
     assert x_axis is not None
     assert y_axis is not None
-    varying = simulation.calculate(x_axis)
-    target = simulation.calculate(y_axis)
+    varying = simulation.calculate(x_axis, period = period)
+    target = simulation.calculate(y_axis, period = period)
     avg_rate = average_rate(target, varying)
     marg_rate = marginal_rate(target, varying)
     axes.hold(True)
@@ -212,9 +222,16 @@ def draw_waterfall_from_node_data(data, ax, currency = None):
     ax.set_ylim((m, 1.05 * M))
 
 
-
-def draw_bareme_from_node_data(data, axes, x_axis, reform = False, reference_data = None,
-                               legend = True, currency = None, legend_position = 2):
+def draw_bareme_from_node_data(
+        data,
+        axes,
+        x_axis,
+        reference_data = None,
+        reform = False,
+        legend = True,
+        currency = None,
+        legend_position = 2
+        ):
     '''
     Draws bareme
     '''
@@ -228,6 +245,9 @@ def draw_bareme_from_node_data(data, axes, x_axis, reform = False, reference_dat
     axes.hold(True)
     x_axis_data = reference_data[x_axis]
     n_points = len(x_axis_data.vals)
+    print x_axis
+    print x_axis_data.vals
+    print n_points
     xlabel = x_axis_data.desc
     axes.set_xlabel(xlabel)
     axes.set_ylabel(prefix + u"{} ({} par an)".format(data.code, currency))
@@ -277,7 +297,7 @@ def draw_bareme_comparing_households_from_node_data(
     Draws bareme
     '''
     if dataDefault is None:
-        raise Exception('drawBaremeCompareHouseHolds: dataDefault must be defined')
+        raise Exception('draw_bareme_comparing_households_from_node_data: dataDefault must be defined')
 
     ax.figure.subplots_adjust(bottom = 0.09, top = 0.95, left = 0.11, right = 0.95)
     prefix = 'Variation '
@@ -298,10 +318,23 @@ def draw_bareme_comparing_households_from_node_data(
         r, g, b = node.color
         col = (r / 255, g / 255, b / 255)
         if node.typevar == 2:
-            a = ax.plot(xdata.vals, node.vals, color = col, linewidth = 2, label = prefix + node.desc)
+            a = ax.plot(
+                xdata.vals,
+                node.vals,
+                color = col,
+                linewidth = 2,
+                label = prefix + node.desc,
+                )
         else:
-            a = ax.fill_between(xdata.vals, prev + node.vals, prev, color = col, linewidth = 0.2,
-                                edgecolor = 'black', picker = True)
+            a = ax.fill_between(
+                xdata.vals,
+                prev + node.vals,
+                prev,
+                color = col,
+                linewidth = 0.2,
+                edgecolor = 'black',
+                picker = True
+                )
             a.set_label(prefix + node.desc)
         prv += node.vals
 
