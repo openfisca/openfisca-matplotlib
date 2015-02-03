@@ -89,8 +89,6 @@ def draw_bareme(simulation, axes = None, x_axis = None, reference_simulation = N
             data[code].visible = 1
             data[code].typevar = 2
 
-    print reference_data[x_axis].vals
-    print len(data[x_axis].vals)
 
     data[x_axis].setHidden(changeParent = True)
     if is_reform and hide_all is True:
@@ -245,9 +243,6 @@ def draw_bareme_from_node_data(
     axes.hold(True)
     x_axis_data = reference_data[x_axis]
     n_points = len(x_axis_data.vals)
-    print x_axis
-    print x_axis_data.vals
-    print n_points
     xlabel = x_axis_data.desc
     axes.set_xlabel(xlabel)
     axes.set_ylabel(prefix + u"{} ({} par an)".format(data.code, currency))
