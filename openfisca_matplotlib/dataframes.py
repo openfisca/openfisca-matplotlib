@@ -25,17 +25,16 @@
 
 import pandas as pd
 
+from openfisca_core import decompositions
 from openfisca_matplotlib.utils import OutNode
 
 
 def data_frame_from_decomposition_json(simulation, decomposition_json = None, reference_simulation = None,
-                                       period = None, remove_null = False):
-    currency = simulation.tax_benefit_system.CURRENCY # TODO : put an option to add currency, for now useless
-    data = OutNode.init_from_decomposition_json(
-        simulation = simulation,
-        decomposition_json = decomposition_json,
-        period = period,
-        )
+        remove_null = False):
+    # currency = simulation.tax_benefit_system.CURRENCY # TODO : put an option to add currency, for now useless
+    if decomposition_json is None:
+        decomposition_json = decompositions.get_decomposition_json(simulation.tax_benefit_system)
+    data = OutNode.init_from_decomposition_json(simulation, decomposition_json)
     data_dict = dict()
     index = []
     for row in data:

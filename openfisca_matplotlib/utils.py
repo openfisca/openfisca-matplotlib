@@ -165,21 +165,9 @@ class OutNode(object):
         yield self
 
     @classmethod
-    def init_from_decomposition_json(
-            cls,
-            scenario = None,
-            simulation = None,
-            decomposition_json = None,
-            period = None,
-            trace = False,
-            ):
-        assert scenario is not None or simulation is not None
-        if simulation is None:
-            simulation = scenario.new_simulation()
-
-        # Compute for all decomposition nodes
-        root_node = decompositions.calculate(simulation, decomposition_json)
-
+    def init_from_decomposition_json(cls, simulation, decomposition_json):
+        simulations = [simulation]
+        root_node = decompositions.calculate(simulations, decomposition_json)
         self = cls()
         convert_to_out_node(self, root_node)
         return self
@@ -236,5 +224,6 @@ if __name__ == '__main__':
             ),
         period = period,
         )
-    tree = OutNode.init_from_decomposition_json(scenario = scenario, decomposition_json = None)
-
+    simulation = scenario.new_simulation()
+    decomposition_json = decompositions.get_decomposition_json(tax_benefit_system)
+    tree = OutNode.init_from_decomposition_json(simulation, decomposition_json)

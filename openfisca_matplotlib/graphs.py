@@ -32,20 +32,19 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 
 
+from openfisca_core import decompositions
 from openfisca_core.rates import average_rate, marginal_rate
 from openfisca_matplotlib.utils import OutNode
 
 
-def draw_waterfall(simulation, axes = None, decomposition_json = None, period = None, visible = None):
+def draw_waterfall(simulation, axes = None, decomposition_json = None, visible = None):
     if axes is None:
         fig = plt.figure()
         axes = fig.gca()
+    if decomposition_json is None:
+        decomposition_json = decompositions.get_decomposition_json(simulation.tax_benefit_system)
     currency = simulation.tax_benefit_system.CURRENCY
-    data = OutNode.init_from_decomposition_json(
-        simulation = simulation,
-        decomposition_json = decomposition_json,
-        period = period,
-        )
+    data = OutNode.init_from_decomposition_json(simulation, decomposition_json)
     data.setLeavesVisible()
     if visible is not None:
         for code in visible:
@@ -55,40 +54,30 @@ def draw_waterfall(simulation, axes = None, decomposition_json = None, period = 
 
 
 def draw_bareme(simulation, axes = None, x_axis = None, reference_simulation = None, decomposition_json = None,
-                visible_lines = None, hide_all = False, legend = True, legend_position = None, period = None):
+                visible_lines = None, hide_all = False, legend = True, legend_position = None):
     if axes is None:
         fig = plt.figure()
         axes = fig.gca()
+    if decomposition_json is None:
+        decomposition_json = decompositions.get_decomposition_json(simulation.tax_benefit_system)
     currency = simulation.tax_benefit_system.CURRENCY
     if legend_position is None:
         legend_position = 2
     is_reform = False
+
     if simulation is not None and reference_simulation is not None:
-        data = OutNode.init_from_decomposition_json(
-            simulation = simulation,
-            decomposition_json = decomposition_json,
-            period = period,
-            )
-        reference_data = OutNode.init_from_decomposition_json(
-            simulation = reference_simulation,
-            decomposition_json = decomposition_json,
-            period = period,
-            )
+        data = OutNode.init_from_decomposition_json(simulation, decomposition_json)
+        reference_data = OutNode.init_from_decomposition_json(reference_simulation, decomposition_json)
         is_reform = True
         data.difference(reference_data)
     else:
-        data = OutNode.init_from_decomposition_json(
-            simulation = simulation,
-            decomposition_json = decomposition_json,
-            period = period,
-            )
+        data = OutNode.init_from_decomposition_json(simulation, decomposition_json)
         reference_data = None
     data.setLeavesVisible()
     if visible_lines is not None:
         for code in visible_lines:
             data[code].visible = 1
             data[code].typevar = 2
-
 
     data[x_axis].setHidden(changeParent = True)
     if is_reform and hide_all is True:
@@ -335,4 +324,3 @@ def draw_bareme_comparing_households_from_node_data(
 
     if legend:
         create_legend(ax, position = position)
-
