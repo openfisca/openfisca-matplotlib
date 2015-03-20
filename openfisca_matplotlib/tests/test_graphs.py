@@ -138,7 +138,7 @@ def create_simulation2(year = 2014, bareme = False):
     # Adding a husband/wife on the same tax sheet (foyer)
     menage = dict(
         loyer = 1000,
-        so = 4,
+        statut_occupation = 4,
         )
     axes = [
         dict(
@@ -197,7 +197,7 @@ def create_simulation(year = 2014, bareme = False):
     # Adding a husband/wife on the same tax sheet (foyer)
     menage = dict(
         loyer = 1000,
-        so = 4,
+        statut_occupation = 4,
         )
     axes = [
         dict(
