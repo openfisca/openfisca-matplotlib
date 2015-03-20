@@ -179,12 +179,12 @@ def create_simulation(year = 2014, bareme = False):
         value = 1,
         )
 
-    reform = reforms.Reform(
-        name = u'IR_100_tranche_1',
-        label = u"Imposition à 100% dès le premier euro et jusqu'à la fin de la 1ère tranche",
+    Reform = reforms.make_reform(
+        name =  u"Imposition à 100% dès le premier euro et jusqu'à la fin de la 1ère tranche",
         legislation_json = reform_legislation_json,
         reference = tax_benefit_system
         )
+    reform = Reform()
     parent1 = dict(
         birth = datetime.date(year - 40, 1, 1),
         salaire_de_base = 10000 if bareme is False else None,

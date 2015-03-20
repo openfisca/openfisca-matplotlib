@@ -76,7 +76,7 @@ def test_fiche_de_paie():
         "fiche_de_paie_decomposition.xml"
         )
 
-    decomposition_json = get_decomposition_json(xml_file_path, tax_benefit_system)
+    decomposition_json = get_decomposition_json(tax_benefit_system, xml_file_path)
     data_frame = data_frame_from_decomposition_json(
         reform_simulation,
         decomposition_json = decomposition_json,
@@ -91,7 +91,7 @@ def test_fiche_de_paie_bareme(bareme=True):
         tax_benefit_system.DECOMP_DIR,
         "fiche_de_paie_decomposition.xml"
         )
-    decomposition_json = get_decomposition_json(xml_file_path, tax_benefit_system)
+    decomposition_json = get_decomposition_json(tax_benefit_system, xml_file_path)
     data_frame = data_frame_from_decomposition_json(
         reference_simulation,
         decomposition_json = decomposition_json,
