@@ -127,7 +127,7 @@ class OutNode(object):
             return self
         for child in self.children:
             val = child[key]
-            if not val is None:
+            if val is not None:
                 return val
 
     def log(self, tabLevel=-1):
