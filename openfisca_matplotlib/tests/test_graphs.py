@@ -78,7 +78,7 @@ def bareme():
     graphs.draw_bareme(
         simulation = reform_simulation,
         axes = axes,
-        x_axis = 'salaire_de_base',
+        x_axis = 'salaire_brut',
         visible_lines = ['revdisp'])
     win.resize(1400, 700)
     win.mplwidget.draw()
@@ -211,7 +211,7 @@ def create_simulation(year = 2014, bareme = False):
         axes = axes if bareme else None,
         menage = menage,
         parent1 = parent1,
-#        parent2 = parent2,
+        # parent2 = parent2,
         period = periods.period('year', year),
         )
     reference_simulation = scenario.new_simulation(debug = True, reference = True)
@@ -222,7 +222,7 @@ def create_simulation(year = 2014, bareme = False):
 
 if __name__ == '__main__':
 
-    bareme_compare_household()
+#    bareme_compare_household()
 #   waterfall()
-#   bareme()
+   bareme()
 #    rates()
