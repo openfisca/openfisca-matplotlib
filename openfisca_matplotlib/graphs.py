@@ -43,7 +43,11 @@ def draw_waterfall(simulation, axes = None, decomposition_json = None, visible =
         axes = fig.gca()
     if decomposition_json is None:
         decomposition_json = decompositions.get_decomposition_json(simulation.tax_benefit_system)
-    currency = simulation.tax_benefit_system.CURRENCY
+    try:
+        currency = simulation.tax_benefit_system.CURRENCY
+    except:
+        currency = simulation.tax_benefit_system.reference.CURRENCY
+
     data = OutNode.init_from_decomposition_json(simulation, decomposition_json)
     data.setLeavesVisible()
     if visible is not None:
@@ -60,7 +64,10 @@ def draw_bareme(simulation, axes = None, x_axis = None, reference_simulation = N
         axes = fig.gca()
     if decomposition_json is None:
         decomposition_json = decompositions.get_decomposition_json(simulation.tax_benefit_system)
-    currency = simulation.tax_benefit_system.CURRENCY
+    try:
+        currency = simulation.tax_benefit_system.CURRENCY
+    except:
+        currency = simulation.tax_benefit_system.reference.CURRENCY
     if legend_position is None:
         legend_position = 2
     is_reform = False

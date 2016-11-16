@@ -1,27 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-# OpenFisca -- A versatile microsimulation software
-# By: OpenFisca Team <contact@openfisca.fr>
-#
-# Copyright (C) 2011, 2012, 2013, 2014 OpenFisca Team
-# https://github.com/openfisca
-#
-# This file is part of OpenFisca.
-#
-# OpenFisca is free software; you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# OpenFisca is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 from __future__ import division
 
 
@@ -30,13 +9,15 @@ import sys
 
 from PyQt4.Qt import QMainWindow, QApplication
 
-from openfisca_core import periods, reforms
-import openfisca_france
+from openfisca_core import periods
+from openfisca_france import FranceTaxBenefitSystem
+from openfisca_france.tests.reforms.test_parametric_reform import ir_100_tranche_1
+
+
 from openfisca_matplotlib.widgets.matplotlibwidget import MatplotlibWidget
 from openfisca_matplotlib import graphs
 
-TaxBenefitSystem = openfisca_france.init_country()
-tax_benefit_system = TaxBenefitSystem()
+tax_benefit_system = FranceTaxBenefitSystem()
 
 
 class ApplicationWindow(QMainWindow):
@@ -78,7 +59,7 @@ def bareme():
     graphs.draw_bareme(
         simulation = reform_simulation,
         axes = axes,
-        x_axis = 'salaire_brut',
+        x_axis = 'salaire_de_base',
         visible_lines = ['revdisp'])
     win.resize(1400, 700)
     win.mplwidget.draw()
@@ -94,7 +75,7 @@ def rates():
     graphs.draw_rates(
         simulation = reform_simulation,
         axes = axes,
-        x_axis = 'sal',
+        x_axis = 'salaire_de_base',
         y_axis = 'revdisp',
         reference_simulation = reference_simulation,
         )
@@ -116,7 +97,7 @@ def bareme_compare_household():
     graphs.draw_bareme(
         simulation = simulation_2p,
         axes = axes,
-        x_axis = 'sal',
+        x_axis = 'salaire_de_base',
         reference_simulation = simulation_1p,
         visible_lines = ['revdisp'],
         )
@@ -128,17 +109,17 @@ def bareme_compare_household():
 
 def create_simulation2(year = 2014, bareme = False):
     parent1 = dict(
-        birth = datetime.date(year - 40, 1, 1),
-        sal = 4000 if bareme is False else None,
+        date_naissance = datetime.date(year - 40, 1, 1),
+        salaire_de_base = 4000 if bareme is False else None,
         )
     parent2 = dict(
-        birth = datetime.date(year - 40, 1, 1),
-        sal = 1000,
+        date_naissance = datetime.date(year - 40, 1, 1),
+        salaire_de_base = 1000,
         )
     # Adding a husband/wife on the same tax sheet (foyer)
     menage = dict(
         loyer = 1000,
-        statut_occupation = 4,
+        statut_occupation_logement = 4,
         )
     axes = [
         dict(
@@ -170,34 +151,20 @@ def create_simulation2(year = 2014, bareme = False):
 
 def create_simulation(year = 2014, bareme = False):
 
-    simulation_period = periods.period('year', year)
-    reference_legislation_json = tax_benefit_system.legislation_json
-    reform_legislation_json = reforms.update_legislation(
-        legislation_json = reference_legislation_json,
-        path = ('children', 'ir', 'children', 'bareme', 'slices', 0, 'rate'),
-        period = simulation_period,
-        value = 1,
-        )
-
-    Reform = reforms.make_reform(
-        name =  u"Imposition à 100% dès le premier euro et jusqu'à la fin de la 1ère tranche",
-        legislation_json = reform_legislation_json,
-        reference = tax_benefit_system
-        )
-    reform = Reform()
+    reform = ir_100_tranche_1(tax_benefit_system)
     parent1 = dict(
-        birth = datetime.date(year - 40, 1, 1),
+        date_naissance = datetime.date(year - 40, 1, 1),
         salaire_de_base = 10000 if bareme is False else None,
-        type_sal = 0,
+        categorie_salarie = 0,
         )
 #    parent2 = dict(
-#        birth = datetime.date(year - 40, 1, 1),
+#        date_naissance = datetime.date(year - 40, 1, 1),
 #        salaire_de_base = 0,
 #        )
     # Adding a husband/wife on the same tax sheet (foyer)
     menage = dict(
         loyer = 1000,
-        statut_occupation = 4,
+        statut_occupation_logement = 4,
         )
     axes = [
         dict(
@@ -222,7 +189,7 @@ def create_simulation(year = 2014, bareme = False):
 
 if __name__ == '__main__':
 
-#    bareme_compare_household()
-#   waterfall()
-   bareme()
-#    rates()
+    # bareme_compare_household()
+    # waterfall()
+    # bareme()
+    rates()
