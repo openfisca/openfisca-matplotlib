@@ -7,7 +7,10 @@ from __future__ import division
 import datetime
 import sys
 
-from PyQt4.Qt import QMainWindow, QApplication
+try:
+    from PyQt4.Qt import QMainWindow, QApplication
+except ImportError:
+    from PySide.QtGui import QMainWindow, QApplication
 
 from openfisca_core import periods
 from openfisca_france import FranceTaxBenefitSystem
