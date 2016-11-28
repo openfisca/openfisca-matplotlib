@@ -186,13 +186,11 @@ def create_simulation(year = 2014, bareme = False):
         )
     reference_simulation = scenario.new_simulation(debug = True, reference = True)
     reform_simulation = scenario.new_simulation(debug = True)
-
     return reform_simulation, reference_simulation
 
 
 if __name__ == '__main__':
-
-    # bareme_compare_household()
-    # waterfall()
-    # bareme()
+    # bareme_compare_household()
+    # waterfall()
+    # bareme()
     rates()

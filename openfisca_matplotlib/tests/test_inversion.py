@@ -89,10 +89,10 @@ def net_plot(revenu, count = 11, max_revenu = 5000, min_revenu = 0):
         **single_entity_kwargs).new_simulation(debug = True)
 
     smic_horaire = simulation.legislation_at(period.start).cotsoc.gen.smic_h_b
-    smic_mensuel =  smic_horaire * 35 * 52 / 12
+    smic_mensuel = smic_horaire * 35 * 52 / 12
     brut = simulation.get_holder(brut_name).array
-    simulation.get_or_new_holder('contrat_de_travail').array =  brut < smic_mensuel # temps plein ou temps partiel
-    simulation.get_or_new_holder('heures_remunerees_volume').array =  brut // smic_horaire # temps plein ou temps partiel
+    simulation.get_or_new_holder('contrat_de_travail').array = brut < smic_mensuel  # temps plein ou temps partiel
+    simulation.get_or_new_holder('heures_remunerees_volume').array = brut // smic_horaire  # temps plein ou partiel
 
     net = simulation.calculate(net_name)
 
@@ -102,13 +102,12 @@ def net_plot(revenu, count = 11, max_revenu = 5000, min_revenu = 0):
 
     inverse_simulation.get_holder(brut_name).delete_arrays()
     inverse_simulation.get_or_new_holder(net_name).array = net.copy()
-    inverse_simulation.get_or_new_holder('contrat_de_travail').array =  brut < smic_mensuel # temps plein ou temps partiel
-    inverse_simulation.get_or_new_holder('heures_remunerees_volume').array =  (
-        (brut // smic_horaire)  * (brut < smic_mensuel)
+    inverse_simulation.get_or_new_holder('contrat_de_travail').array = brut < smic_mensuel  # temps plein ou partiel
+    inverse_simulation.get_or_new_holder('heures_remunerees_volume').array = (
+        (brut // smic_horaire) * (brut < smic_mensuel)
         )
-
-    print inverse_simulation.get_or_new_holder('contrat_de_travail').array
-    print inverse_simulation.get_or_new_holder('heures_remunerees_volume').array
+    print(inverse_simulation.get_or_new_holder('contrat_de_travail').array)
+    print(inverse_simulation.get_or_new_holder('heures_remunerees_volume').array)
 
     new_brut = inverse_simulation.calculate(brut_name)
     pyplot.subplot(2, 1, 1)

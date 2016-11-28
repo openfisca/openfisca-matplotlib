@@ -1,0 +1,66 @@
+openfisca_matplotlib.tests.test_dataframes.test ... ERROR
+
+======================================================================
+ERROR: openfisca_matplotlib.tests.test_dataframes.test
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/dist-packages/nose/case.py", line 197, in runTest
+    self.test(*self.arg)
+  File "/home/benjello/openfisca/openfisca-matplotlib/openfisca_matplotlib/tests/test_dataframes.py", line 24, in test
+    reference_simulation = reference_simulation,
+  File "/home/benjello/openfisca/openfisca-matplotlib/openfisca_matplotlib/dataframes.py", line 16, in data_frame_from_decomposition_json
+    decomposition_json = decompositions.get_decomposition_json(simulation.tax_benefit_system)
+  File "/home/benjello/openfisca/openfisca-core/openfisca_core/decompositions.py", line 40, in get_decomposition_json
+    xml_file_path = os.path.join(tax_benefit_system.DECOMP_DIR, tax_benefit_system.DEFAULT_DECOMP_FILE)
+  File "/usr/lib/python2.7/posixpath.py", line 68, in join
+    if b.startswith('/'):
+AttributeError: 'NoneType' object has no attribute 'startswith'
+
+----------------------------------------------------------------------
+Ran 1 test in 15.879s
+
+FAILED (errors=1)
+openfisca_matplotlib.tests.test_dataframes.test ... ERROR
+
+======================================================================
+ERROR: openfisca_matplotlib.tests.test_dataframes.test
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/dist-packages/nose/case.py", line 197, in runTest
+    self.test(*self.arg)
+  File "/home/benjello/openfisca/openfisca-matplotlib/openfisca_matplotlib/tests/test_dataframes.py", line 24, in test
+    reference_simulation = reference_simulation,
+  File "/home/benjello/openfisca/openfisca-matplotlib/openfisca_matplotlib/dataframes.py", line 16, in data_frame_from_decomposition_json
+    decomposition_json = decompositions.get_decomposition_json(simulation.tax_benefit_system)
+  File "/home/benjello/openfisca/openfisca-core/openfisca_core/decompositions.py", line 40, in get_decomposition_json
+    xml_file_path = os.path.join(tax_benefit_system.DECOMP_DIR, tax_benefit_system.DEFAULT_DECOMP_FILE)
+  File "/usr/lib/python2.7/posixpath.py", line 68, in join
+    if b.startswith('/'):
+AttributeError: 'NoneType' object has no attribute 'startswith'
+
+----------------------------------------------------------------------
+Ran 1 test in 6.691s
+
+FAILED (errors=1)
+openfisca_matplotlib.tests.test_dataframes.test ... ERROR
+
+======================================================================
+ERROR: openfisca_matplotlib.tests.test_dataframes.test
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/dist-packages/nose/case.py", line 197, in runTest
+    self.test(*self.arg)
+  File "/home/benjello/openfisca/openfisca-matplotlib/openfisca_matplotlib/tests/test_dataframes.py", line 24, in test
+    reference_simulation = reference_simulation,
+  File "/home/benjello/openfisca/openfisca-matplotlib/openfisca_matplotlib/dataframes.py", line 16, in data_frame_from_decomposition_json
+    decomposition_json = decompositions.get_decomposition_json(simulation.tax_benefit_system)
+  File "/home/benjello/openfisca/openfisca-core/openfisca_core/decompositions.py", line 40, in get_decomposition_json
+    xml_file_path = os.path.join(tax_benefit_system.DECOMP_DIR, tax_benefit_system.DEFAULT_DECOMP_FILE)
+  File "/usr/lib/python2.7/posixpath.py", line 68, in join
+    if b.startswith('/'):
+AttributeError: 'NoneType' object has no attribute 'startswith'
+
+----------------------------------------------------------------------
+Ran 1 test in 8.053s
+
+FAILED (errors=1)

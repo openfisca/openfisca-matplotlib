@@ -16,8 +16,6 @@ Derived from 'embedding_in_pyqt4.py':
 Copyright © 2005 Florent Rougon, 2006 Darren Dale
 """
 
-__version__ = "1.0.0"
-
 try:
     from PyQt4.QtGui import QSizePolicy
     from PyQt4.QtCore import QSize
@@ -29,6 +27,9 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as Canvas
 from matplotlib.figure import Figure
 
 from matplotlib import rcParams
+
+__version__ = "1.0.0"
+
 rcParams['font.size'] = 9
 
 
@@ -97,10 +98,6 @@ class MatplotlibWidget(Canvas):
         return QSize(10, 10)
 
 
-
-#===============================================================================
-#   Example
-#===============================================================================
 if __name__ == '__main__':
     import sys
     from PyQt4.QtGui import QMainWindow, QApplication

@@ -1,27 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-# OpenFisca -- A versatile microsimulation software
-# By: OpenFisca Team <contact@openfisca.fr>
-#
-# Copyright (C) 2011, 2012, 2013, 2014 OpenFisca Team
-# https://github.com/openfisca
-#
-# This file is part of OpenFisca.
-#
-# OpenFisca is free software; you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
-#
-# OpenFisca is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Affero General Public License for more details.
-#
-# You should have received a copy of the GNU Affero General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 from __future__ import division
 
 import numpy as np
@@ -116,8 +95,10 @@ def draw_rates(simulation, axes = None, x_axis = None, y_axis = None, reference_
     marg_rate = marginal_rate(target, varying)
     axes.hold(True)
     axes.set_xlim(np.amin(varying), np.amax(varying))
-    axes.set_ylabel(r"$\left(1 - \frac{RevDisponible}{RevInitial} \right)\ et\ \left(1 - \frac{d (RevDisponible)}{d (RevInitial)}\right)$")
-    axes.set_ylabel(r"$\left(1 - \frac{RevDisponible}{RevInitial} \right)\ et\ \left(1 - \frac{d (RevDisponible)}{d (RevInitial)}\right)$")
+    axes.set_ylabel(
+        r"$\left(1 - \frac{RevDisponible}{RevInitial} \right)\ et\ \left(1 - \frac{d (RevDisponible)}{d (RevInitial)}\right)$")
+    axes.set_ylabel(
+        r"$\left(1 - \frac{RevDisponible}{RevInitial} \right)\ et\ \left(1 - \frac{d (RevDisponible)}{d (RevInitial)}\right)$")
     axes.plot(varying, 100 * avg_rate, label = u"Taux moyen d'imposition", linewidth = 2)
     axes.plot(varying[1:], 100 * marg_rate, label = u"Taux marginal d'imposition", linewidth = 2)
     axes.set_ylim(0, 100)
@@ -177,7 +158,16 @@ def draw_waterfall_from_node_data(data, ax, currency = None):
                 )
             arrow.top = bot + max(0, val)
             arrow.absci = number[0] + 0
-#            a = Rectangle((number[0], bot), barwidth, val, fc = node.color, linewidth = 0.5, edgecolor = 'black', label = node.desc, picker = True)
+            # a = Rectangle(
+            #   (number[0], bot),
+            #   barwidth,
+            #   val,
+            #   fc = node.color,
+            #   linewidth = 0.5,
+            #   edgecolor = 'black',
+            #   label = node.desc,
+            #   picker = True
+            #   )
             arrow.value = round(val)
             patches.append(arrow)
             codes.append(node.code)
