@@ -35,7 +35,9 @@ setup(
 
     include_package_data = True,
     install_requires = [
+        'matplotlib',
         'OpenFisca-France >= 6.0.1',
+        'PySide',
         ],
     packages = find_packages(),
     message_extractors = {
