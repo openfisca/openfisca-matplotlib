@@ -1,25 +1,18 @@
-OpenFisca
-=========
+# OpenFisca Survey Manager
 
-OpenFisca (beta) is a versatile microsimulation free software.
-It includes a framework to microsiumalte any socio-fiscal system.
-The graphical user interface allows the user to compute and display
-all these taxes and benefits for any type of household. 
-The impact of any modification in the legislation can also be computed 
-and displayed.
-When plugged on a survey, OpenFisca can also compute the budgetary consequences 
-of a reform and its distributionnal impact.
-The current version implements a large set of taxes, social benefits
-and housing provision for France for the last 10 years.
-Informations are available on www.openfisca.fr
+[![Build Status via Travis CI](https://travis-ci.org/openfisca/openfisca-matplotlib.svg?branch=travis)](https://travis-ci.org/openfisca/openfisca-matplotlib)
 
+## Presentation
 
-How to contribute to OpenFisca (beta) ? 
+[OpenFisca](http://www.openfisca.fr/) is a versatile microsimulation free software.
 
-OpenFisca (beta) is a FLOSS project wich code is distributed 
-under the GPL licence version 3 or later (see license.txt). 
-The source code is freely available and still undergoes heavy development.
-Feel free to join the OpenFisca developpment team on GitHub 
-(https://github.com/openfisca/openfisca) or to contact us at
-contact@openfisca.fr.
+This is the source code to draw some interesting graphs using OpenFisca.
 
+## Contribute
+
+OpenFisca is a free software project.
+Its source code is distributed under the [GNU Affero General Public Licence](http://www.gnu.org/licenses/agpl.html)
+version 3 or later (see COPYING).
+
+Feel free to join the OpenFisca development team on [GitHub](https://github.com/openfisca) or contact us by email at
+contact@openfisca.fr
