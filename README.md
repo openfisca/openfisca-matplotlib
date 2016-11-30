@@ -1,4 +1,4 @@
-# OpenFisca Survey Manager
+# OpenFisca Matplotlib
 
 [![Build Status via Travis CI](https://travis-ci.org/openfisca/openfisca-matplotlib.svg?branch=travis)](https://travis-ci.org/openfisca/openfisca-matplotlib)
 
