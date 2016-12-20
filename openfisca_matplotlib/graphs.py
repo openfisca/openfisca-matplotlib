@@ -290,7 +290,7 @@ def draw_bareme_comparing_households_from_node_data(
     ax.set_ylabel(prefix + u"Revenu disponible (" + currency + " par an)")
     ax.set_xlim(np.amin(xdata.vals), np.amax(xdata.vals))
     ax.plot(xdata.vals, np.zeros(NMEN), color = 'black', label = 'x_axis')
-    node_list = ['af', 'cf', 'ars', 'rsa', 'aefa', 'psa', 'logt', 'irpp', 'ppe', 'revdisp']
+    node_list = ['af', 'cf', 'ars', 'rsa', 'aefa', 'psa', 'logt', 'irpp', 'ppe', 'revenu_disponible']
     prv = np.zeros(NMEN)
 
     for nod in node_list:

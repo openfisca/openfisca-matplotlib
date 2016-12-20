@@ -80,7 +80,7 @@ class OutNode(object):
             return a
         return False
 
-    def hideAll(self, keep = ['revdisp']):
+    def hideAll(self, keep = ['revenu_disponible']):
         if self.code in keep:
             self.visible = 1
         else:
