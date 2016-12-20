@@ -8,3 +8,4 @@ openfisca_crash.log
 *.egg-info
 *.pyc
 *~
+tags
