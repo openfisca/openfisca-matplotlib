@@ -37,6 +37,7 @@ setup(
     install_requires = [
         'matplotlib',
         'OpenFisca-France >= 6.0.1',
+        'pandas',
         'PySide',
         ],
     packages = find_packages(),
