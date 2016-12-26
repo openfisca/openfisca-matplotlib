@@ -9,3 +9,4 @@ openfisca_crash.log
 *.pyc
 *~
 .spyproject
+.noseids

@@ -14,7 +14,7 @@ except ImportError:
 
 from openfisca_core import periods
 from openfisca_france import FranceTaxBenefitSystem
-from openfisca_france.tests.reforms.test_parametric_reform import ir_100_tranche_1
+from openfisca_matplotlib.tests.test_parametric_reform import ir_100_tranche_1
 
 
 from openfisca_matplotlib.widgets.matplotlibwidget import MatplotlibWidget
@@ -40,7 +40,7 @@ def waterfall():
     axes = win.mplwidget.axes
     title = "Mon titre"
     axes.set_title(title)
-    simulation.calculate('revdisp')
+    simulation.calculate('revenu_disponible')
     graphs.draw_waterfall(
         simulation = simulation,
         axes = axes,
@@ -57,13 +57,13 @@ def bareme():
     app = QApplication(sys.argv)
     win = ApplicationWindow()
     axes = win.mplwidget.axes
-    reference_simulation.calculate('revdisp')
-    reform_simulation.calculate('revdisp')
+    reference_simulation.calculate('revenu_disponible')
+    reform_simulation.calculate('revenu_disponible')
     graphs.draw_bareme(
         simulation = reform_simulation,
         axes = axes,
-        x_axis = 'salaire_de_base',
-        visible_lines = ['revdisp'])
+        x_axis = 'salaire_brut',  # instead of salaire_de_base
+        visible_lines = ['revenu_disponible'])
     win.resize(1400, 700)
     win.mplwidget.draw()
     win.show()
@@ -79,7 +79,7 @@ def rates():
         simulation = reform_simulation,
         axes = axes,
         x_axis = 'salaire_de_base',
-        y_axis = 'revdisp',
+        y_axis = 'revenu_disponible',
         reference_simulation = reference_simulation,
         )
     win.resize(1400, 700)
@@ -95,14 +95,14 @@ def bareme_compare_household():
     win = ApplicationWindow()
     axes = win.mplwidget.axes
 
-    simulation_1p.calculate('revdisp')
-    simulation_2p.calculate('revdisp')
+    simulation_1p.calculate('revenu_disponible')
+    simulation_2p.calculate('revenu_disponible')
     graphs.draw_bareme(
         simulation = simulation_2p,
         axes = axes,
         x_axis = 'salaire_de_base',
         reference_simulation = simulation_1p,
-        visible_lines = ['revdisp'],
+        visible_lines = ['revenu_disponible'],
         )
     win.resize(1400, 700)
     win.mplwidget.draw()
@@ -192,5 +192,5 @@ def create_simulation(year = 2014, bareme = False):
 if __name__ == '__main__':
     # bareme_compare_household()
     # waterfall()
-    # bareme()
-    rates()
+    bareme()
+    # rates()
