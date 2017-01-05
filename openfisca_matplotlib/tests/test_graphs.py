@@ -14,7 +14,7 @@ except ImportError:
 
 from openfisca_core import periods
 from openfisca_france import FranceTaxBenefitSystem
-from openfisca_france.tests.reforms.test_parametric_reform import ir_100_tranche_1
+from openfisca_matplotlib.tests.test_parametric_reform import ir_100_tranche_1
 
 
 from openfisca_matplotlib.widgets.matplotlibwidget import MatplotlibWidget
@@ -62,7 +62,7 @@ def bareme():
     graphs.draw_bareme(
         simulation = reform_simulation,
         axes = axes,
-        x_axis = 'salaire_de_base',
+        x_axis = 'salaire_brut',  # instead of salaire_de_base
         visible_lines = ['revenu_disponible'])
     win.resize(1400, 700)
     win.mplwidget.draw()
@@ -192,5 +192,5 @@ def create_simulation(year = 2014, bareme = False):
 if __name__ == '__main__':
     # bareme_compare_household()
     # waterfall()
-    # bareme()
-    rates()
+    bareme()
+    # rates()

@@ -48,16 +48,10 @@ def test_remove_null():
 
 def test_fiche_de_paie():
     reform_simulation, reference_simulation = create_simulation()
-    try:
-        xml_file_path = os.path.join(
-            tax_benefit_system.DECOMP_DIR,
-            "fiche_de_paie_decomposition.xml"
-            )
-    except:
-        xml_file_path = os.path.join(
-            tax_benefit_system.reference.DECOMP_DIR,
-            "fiche_de_paie_decomposition.xml"
-            )
+    xml_file_path = os.path.join(
+        os.path.dirname(tax_benefit_system.decomposition_file_path),
+        "fiche_de_paie_decomposition.xml"
+        )
     decomposition_json = get_decomposition_json(tax_benefit_system, xml_file_path)
     data_frame = data_frame_from_decomposition_json(
         reform_simulation,
@@ -69,16 +63,10 @@ def test_fiche_de_paie():
 
 def test_fiche_de_paie_bareme(bareme=True):
     reform_simulation, reference_simulation = create_simulation(bareme=bareme)
-    try:
-        xml_file_path = os.path.join(
-            tax_benefit_system.DECOMP_DIR,
-            "fiche_de_paie_decomposition.xml"
-            )
-    except:
-        xml_file_path = os.path.join(
-            tax_benefit_system.reference.DECOMP_DIR,
-            "fiche_de_paie_decomposition.xml"
-            )
+    xml_file_path = os.path.join(
+        os.path.dirname(tax_benefit_system.decomposition_file_path),
+        "fiche_de_paie_decomposition.xml"
+        )
     decomposition_json = get_decomposition_json(tax_benefit_system, xml_file_path)
     data_frame = data_frame_from_decomposition_json(
         reference_simulation,

@@ -22,7 +22,7 @@ doc_lines = __doc__.split('\n')
 
 setup(
     name = 'OpenFisca-Matplotlib',
-    version = '0.5b1',
+    version = '0.6',
 
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',
@@ -37,6 +37,7 @@ setup(
     install_requires = [
         'matplotlib',
         'OpenFisca-France >= 6.0.1',
+        'pandas',
         'PySide',
         ],
     packages = find_packages(),

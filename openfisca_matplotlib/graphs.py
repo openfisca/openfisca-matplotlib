@@ -37,7 +37,7 @@ def draw_waterfall(simulation, axes = None, decomposition_json = None, visible =
 
 
 def draw_bareme(simulation, axes = None, x_axis = None, reference_simulation = None, decomposition_json = None,
-                visible_lines = None, hide_all = False, legend = True, legend_position = None):
+        visible_lines = None, hide_all = False, legend = True, legend_position = None):
     if axes is None:
         fig = plt.figure()
         axes = fig.gca()
