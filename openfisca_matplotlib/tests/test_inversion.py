@@ -6,10 +6,15 @@ from __future__ import division
 import datetime
 
 from openfisca_core import periods
-from openfisca_france.reforms import inversion_revenus
-from openfisca_france.tests.base import assert_near, tax_benefit_system
+from openfisca_france.tests.base import assert_near, tax_benefit_system, get_cached_reform
 
 from matplotlib import pyplot
+
+
+tax_benefit_system = get_cached_reform(
+    reform_key = 'inversion_directe_salaires',
+    tax_benefit_system = tax_benefit_system,
+    )
 
 
 def brut_plot(revenu, count = 11, max_revenu = 5000, min_revenu = 0):
@@ -25,8 +30,8 @@ def brut_plot(revenu, count = 11, max_revenu = 5000, min_revenu = 0):
         inversible_name = 'rsti'
     elif revenu == 'salaire':
         brut_name = 'salaire_de_base'
-        imposable_name = 'sal'
-        inversible_name = 'sali'
+        imposable_name = 'salaire_imposable'
+        inversible_name = 'salaire_imposable_pour_inversion'
     else:
         return
 
@@ -37,8 +42,9 @@ def brut_plot(revenu, count = 11, max_revenu = 5000, min_revenu = 0):
             date_naissance = datetime.date(year - 40, 1, 1),
             ),
         )
+    print single_entity_kwargs
     simulation = tax_benefit_system.new_scenario().init_single_entity(
-        **single_entity_kwargs).new_simulation(debug = True)
+        **single_entity_kwargs).new_simulation()
     brut = simulation.get_holder(brut_name).array
     imposable = simulation.calculate(imposable_name)
 
@@ -127,8 +133,8 @@ if __name__ == '__main__':
     # brut_plot('chomage', count = 5000)
     # retraite OK (mais long !)
     # brut_plot('retraite', count = 10000)
-    # brut_plot('salaire', count = 101, max_revenu = 2000, min_revenu = 0)
+    brut_plot('salaire', count = 101, max_revenu = 2000, min_revenu = 0)
 
     # retraite OK
     # net_plot('retraite', count = 100)
-    net_plot('chomage', count = 101, max_revenu = 4000, min_revenu = 0)
+    # net_plot('chomage', count = 101, max_revenu = 4000, min_revenu = 0)
