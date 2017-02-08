@@ -38,7 +38,6 @@ setup(
         'matplotlib',
         'OpenFisca-France >= 6.0.1',
         'pandas',
-        'PySide',
         ],
     packages = find_packages(),
     message_extractors = {
