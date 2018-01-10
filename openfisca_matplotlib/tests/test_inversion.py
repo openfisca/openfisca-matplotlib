@@ -6,15 +6,14 @@ from __future__ import division
 import datetime
 
 from openfisca_core import periods
-from openfisca_france.tests.base import assert_near, tax_benefit_system, get_cached_reform
+from openfisca_core.tools import assert_near
+from openfisca_france import FranceTaxBenefitSystem
+from openfisca_france.reforms.inversion_directe_salaires import inversion_directe_salaires
 
 from matplotlib import pyplot
 
 
-tax_benefit_system = get_cached_reform(
-    reform_key = 'inversion_directe_salaires',
-    tax_benefit_system = tax_benefit_system,
-    )
+tax_benefit_system = inversion_directe_salaires(FranceTaxBenefitSystem())
 
 
 def brut_plot(revenu, count = 11, max_revenu = 5000, min_revenu = 0):
@@ -42,9 +41,10 @@ def brut_plot(revenu, count = 11, max_revenu = 5000, min_revenu = 0):
             date_naissance = datetime.date(year - 40, 1, 1),
             ),
         )
-    print single_entity_kwargs
+    print(single_entity_kwargs)
     simulation = tax_benefit_system.new_scenario().init_single_entity(
         **single_entity_kwargs).new_simulation()
+    boum
     brut = simulation.get_holder(brut_name).array
     imposable = simulation.calculate(imposable_name)
 
@@ -137,4 +137,4 @@ if __name__ == '__main__':
 
     # retraite OK
     # net_plot('retraite', count = 100)
-    # net_plot('chomage', count = 101, max_revenu = 4000, min_revenu = 0)
+    # net_plot('chomage', count = 101, max_revenu = 4000, min_revenu = 0)

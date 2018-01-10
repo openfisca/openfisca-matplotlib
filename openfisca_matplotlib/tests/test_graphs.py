@@ -136,7 +136,7 @@ def create_simulation2(year = 2014, bareme = False):
         axes = axes if bareme else None,
         menage = menage,
         parent1 = parent1,
-        period = periods.period('year', year),
+        period = periods.period(year),
         )
     simulation_1p = scenario_1p.new_simulation(debug = True)
 
@@ -145,7 +145,7 @@ def create_simulation2(year = 2014, bareme = False):
         menage = menage,
         parent1 = parent1,
         parent2 = parent2,
-        period = periods.period('year', year),
+        period = periods.period(year),
         )
     simulation_2p = scenario_2p.new_simulation(debug = True)
 
@@ -182,9 +182,9 @@ def create_simulation(year = 2014, bareme = False):
         menage = menage,
         parent1 = parent1,
         # parent2 = parent2,
-        period = periods.period('year', year),
+        period = periods.period(year),
         )
-    reference_simulation = scenario.new_simulation(debug = True, reference = True)
+    reference_simulation = scenario.new_simulation(debug = True, use_baseline = True)
     reform_simulation = scenario.new_simulation(debug = True)
     return reform_simulation, reference_simulation
 

@@ -4,28 +4,26 @@ import datetime
 
 from openfisca_core import periods, reforms
 from openfisca_core.reforms import Reform
+from openfisca_core.tools import assert_near
 
-from openfisca_france.tests.base import assert_near, tax_benefit_system
+
+from openfisca_france import FranceTaxBenefitSystem
+tax_benefit_system = FranceTaxBenefitSystem()
 
 simulation_year = 2013
-simulation_period = periods.period('year', simulation_year)
+simulation_period = periods.period(simulation_year)
 
 
-def modify_legislation_json(reference_legislation_json_copy):
-    reform_legislation_json = reforms.update_legislation(
-        legislation_json = reference_legislation_json_copy,
-        path = ['children', 'impot_revenu', 'children', 'bareme', 'brackets', 0, 'rate'],
-        period = simulation_period,
-        value = 1,
-        )
-    return reform_legislation_json
+def modify_parameters(parameters):
+    parameters.impot_revenu.bareme[0].rate.update(start = '2010', value=1)
+    return parameters
 
 
 class ir_100_tranche_1(Reform):
     name = u"Imposition à 100% dès le premier euro et jusqu'à la fin de la 1ère tranche"
 
     def apply(self):
-        self.modify_legislation_json(modifier_function = modify_legislation_json)
+        self.modify_parameters(modifier_function = modify_parameters)
 
 
 def test_parametric_reform():
@@ -44,15 +42,18 @@ def test_parametric_reform():
         parent1 = dict(date_naissance = datetime.date(simulation_year - 40, 1, 1)),
         )
 
-    reference_simulation = scenario.new_simulation(reference = True)
-    assert_near(reference_simulation.calculate('impots_directs'), [0, -7889.20019531, -23435.52929688],
-        absolute_error_margin = .01)
+    reference_simulation = scenario.new_simulation(use_baseline = True)
+    assert_near(
+        reference_simulation.calculate('impots_directs', period = simulation_period),
+        [0, -7889.20019531, -23435.52929688],
+        absolute_error_margin = .01
+        )
 
     reform_simulation = scenario.new_simulation()
     assert_near(
-        reform_simulation.calculate('impots_directs'),
-        [0, -13900.20019531, -29446.52929688],
-        absolute_error_margin = .0001,
+        reform_simulation.calculate('impots_directs', period = simulation_period),
+        [0, -13900.20, -29446.53],
+        absolute_error_margin = .01,
         )
 
 
