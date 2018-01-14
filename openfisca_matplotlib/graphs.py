@@ -65,6 +65,7 @@ def draw_bareme(simulation, axes = None, x_axis = None, reference_simulation = N
             data[code].visible = 1
             data[code].typevar = 2
 
+    assert data[x_axis] is not None, 'x_axis {} is not present in data {}'.format(x_axis, data)
     data[x_axis].setHidden(changeParent = True)
     if is_reform and hide_all is True:
         data.hideAll()
@@ -89,7 +90,8 @@ def draw_rates(simulation, axes = None, x_axis = None, y_axis = None, reference_
         axes = fig.gca()
     assert x_axis is not None
     assert y_axis is not None
-    varying = simulation.calculate(x_axis, period = period)
+    assert period is not None
+    varying = simulation.calculate_add(x_axis, period = period)
     target = simulation.calculate(y_axis, period = period)
     avg_rate = average_rate(target, varying)
     marg_rate = marginal_rate(target, varying)

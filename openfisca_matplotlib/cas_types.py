@@ -11,9 +11,6 @@ import openfisca_france
 from openfisca_core import periods
 from openfisca_france.reforms.inversion_directe_salaires import TAUX_DE_PRIME
 
-
-from taxipp.tests.base import create_taxipp_tax_benefit_system
-
 tax_benefit_system = openfisca_france.FranceTaxBenefitSystem()
 
 
@@ -21,9 +18,7 @@ smic_horaire_by_year, smic_annuel_by_year = dict(), dict()
 smic_horaire_by_year = dict([
     (
         year,
-        tax_benefit_system.get_compact_legislation(
-            instant = periods.period(year).start
-            ).cotsoc.gen.smic_h_b
+        tax_benefit_system.parameters(periods.period(year).start).cotsoc.gen.smic_h_b
         )
     for year in range(2005, 2018)
     ])
@@ -211,7 +206,8 @@ def create_scenario_inferieur_smic(biactif = False, couple = False, loyer = None
                 period = year,
                 ),
             ]],
-        period = '{}:3'.format(year - 2),
+        # period = 'year:{}:3'.format(year - 2),
+        period = year,
         )
 
     scenario_kwargs.update(additionnal_scenario_kwargs)
@@ -298,7 +294,8 @@ def create_scenario_superieur_smic(biactif = False, categorie_salarie = 'prive_n
 
     additionnal_scenario_kwargs = dict(
         axes = [axes],
-        period = '{}:3'.format(year - 2),
+        # period = 'year:{}:3'.format(year - 2),
+        period = year
         )
     scenario_kwargs.update(additionnal_scenario_kwargs)
 
@@ -310,10 +307,7 @@ def calculate(variables = None, scenarios_kwargs = None, period = None, tax_bene
     assert period is not None
     assert isinstance(scenarios_kwargs, list)
     if tax_benefit_system is None:
-        tax_benefit_system = create_taxipp_tax_benefit_system(
-            full_take_up = True,
-            annee_initialisation = period - 1,
-            )
+        tax_benefit_system = tax_benefit_system
     if reform is not None:
         tax_benefit_system = reform(tax_benefit_system)
 

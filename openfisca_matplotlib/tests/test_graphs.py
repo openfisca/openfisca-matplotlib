@@ -33,14 +33,14 @@ class ApplicationWindow(QMainWindow):
 
 def waterfall():
     simulation, _ = create_simulation()
-
+    year = 2014
     app = QApplication(sys.argv)
     win = ApplicationWindow()
 
     axes = win.mplwidget.axes
     title = "Mon titre"
     axes.set_title(title)
-    simulation.calculate('revenu_disponible')
+    simulation.calculate('revenu_disponible', period = year)
     graphs.draw_waterfall(
         simulation = simulation,
         axes = axes,
@@ -57,8 +57,9 @@ def bareme():
     app = QApplication(sys.argv)
     win = ApplicationWindow()
     axes = win.mplwidget.axes
-    reference_simulation.calculate('revenu_disponible')
-    reform_simulation.calculate('revenu_disponible')
+    year = 2014
+    reference_simulation.calculate('revenu_disponible', period = year)
+    reform_simulation.calculate('revenu_disponible', period = year)
     graphs.draw_bareme(
         simulation = reform_simulation,
         axes = axes,
@@ -70,7 +71,7 @@ def bareme():
     sys.exit(app.exec_())
 
 
-def rates():
+def rates(year = 2014):
     reform_simulation, reference_simulation = create_simulation(bareme = True)
     app = QApplication(sys.argv)
     win = ApplicationWindow()
@@ -80,6 +81,7 @@ def rates():
         axes = axes,
         x_axis = 'salaire_de_base',
         y_axis = 'revenu_disponible',
+        period = year,
         reference_simulation = reference_simulation,
         )
     win.resize(1400, 700)
@@ -94,13 +96,13 @@ def bareme_compare_household():
     app = QApplication(sys.argv)
     win = ApplicationWindow()
     axes = win.mplwidget.axes
-
-    simulation_1p.calculate('revenu_disponible')
-    simulation_2p.calculate('revenu_disponible')
+    year = 2014
+    simulation_1p.calculate('revenu_disponible', period = year)
+    simulation_2p.calculate('revenu_disponible', period = year)
     graphs.draw_bareme(
         simulation = simulation_2p,
         axes = axes,
-        x_axis = 'salaire_de_base',
+        x_axis = 'salaire_brut',  # instead of salaire_de_base
         reference_simulation = simulation_1p,
         visible_lines = ['revenu_disponible'],
         )
@@ -138,7 +140,7 @@ def create_simulation2(year = 2014, bareme = False):
         parent1 = parent1,
         period = periods.period(year),
         )
-    simulation_1p = scenario_1p.new_simulation(debug = True)
+    simulation_1p = scenario_1p.new_simulation()
 
     scenario_2p = tax_benefit_system.new_scenario().init_single_entity(
         axes = axes if bareme else None,
@@ -147,7 +149,7 @@ def create_simulation2(year = 2014, bareme = False):
         parent2 = parent2,
         period = periods.period(year),
         )
-    simulation_2p = scenario_2p.new_simulation(debug = True)
+    simulation_2p = scenario_2p.new_simulation()
 
     return simulation_1p, simulation_2p
 
@@ -192,5 +194,5 @@ def create_simulation(year = 2014, bareme = False):
 if __name__ == '__main__':
     # bareme_compare_household()
     # waterfall()
-    bareme()
-    # rates()
+    # bareme()
+    rates()
