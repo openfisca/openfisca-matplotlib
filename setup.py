@@ -38,8 +38,10 @@ setup(
         'matplotlib',
         'OpenFisca-France >= 6.0.1',
         'pandas',
-        'PySide',
         ],
+    extras_require={
+        'qt': ["PySide"],
+        },
     packages = find_packages(),
     message_extractors = {
         'openfisca_matplotlib': [
