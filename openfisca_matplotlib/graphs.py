@@ -37,7 +37,7 @@ def draw_waterfall(simulation, axes = None, decomposition_json = None, visible =
 
 
 def draw_bareme(simulation, axes = None, x_axis = None, reference_simulation = None, decomposition_json = None,
-        visible_lines = None, hide_all = False, legend = True, legend_position = None):
+        visible_lines = None, hide_all = False, legend = True, legend_position = None, bbox_to_anchor = None):
     if axes is None:
         fig = plt.figure()
         axes = fig.gca()
@@ -80,11 +80,12 @@ def draw_bareme(simulation, axes = None, x_axis = None, reference_simulation = N
         reference_data = reference_data,
         currency = currency,
         legend_position = legend_position,
+        bbox_to_anchor = bbox_to_anchor,
         )
 
 
 def draw_rates(simulation, axes = None, x_axis = None, y_axis = None, reference_simulation = None, legend = True,
-               period = None):
+               bbox_to_anchor = None, period = None):
     if axes is None:
         fig = plt.figure()
         axes = fig.gca()
@@ -107,14 +108,14 @@ def draw_rates(simulation, axes = None, x_axis = None, y_axis = None, reference_
 
     axes.yaxis.set_major_formatter(FuncFormatter(percent_formatter))
     if legend:
-        create_legend(axes)
+        create_legend(axes, bbox_to_anchor = bbox_to_anchor)
 
 
 def percent_formatter(x, pos = 0):
     return '%1.0f%%' % (x)
 
 
-def create_legend(ax, position = 2):
+def create_legend(ax, position = 2, bbox_to_anchor = None):
     '''
     Creates legend
     '''
@@ -129,7 +130,7 @@ def create_legend(ax, position = 2):
         if line._visible and (line._label != 'x_axis'):
             p.insert(0, Line2D([0, 1], [.5, .5], color = line._color))
             l.insert(0, line._label)
-    ax.legend(p, l, loc = position, prop = {'size': 'medium'})
+    ax.legend(p, l, loc = position, prop = {'size': 'medium'}, bbox_to_anchor = bbox_to_anchor)
 
 
 def draw_waterfall_from_node_data(data, ax, currency = None):
@@ -216,7 +217,8 @@ def draw_bareme_from_node_data(
         reform = False,
         legend = True,
         currency = None,
-        legend_position = 2
+        legend_position = 2,
+        bbox_to_anchor = None,
         ):
     '''
     Draws bareme
@@ -270,11 +272,11 @@ def draw_bareme_from_node_data(
     prv = np.zeros(n_points)
     drawNode(data, prv)
     if legend:
-        create_legend(axes, position = legend_position)
+        create_legend(axes, position = legend_position, bbox_to_anchor = bbox_to_anchor)
 
 
 def draw_bareme_comparing_households_from_node_data(
-        data, ax, x_axis, dataDefault = None, legend = True, currency = "", position = 2
+        data, ax, x_axis, dataDefault = None, legend = True, currency = "", position = 2, bbox_to_anchor = None
         ):
     '''
     Draws bareme
@@ -322,4 +324,4 @@ def draw_bareme_comparing_households_from_node_data(
         prv += node.vals
 
     if legend:
-        create_legend(ax, position = position)
+        create_legend(ax, position = position, bbox_to_anchor = bbox_to_anchor)
