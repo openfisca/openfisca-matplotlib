@@ -41,18 +41,18 @@ def create_adulte(moins_de_25_ans = False, temps_partiel = False, union_legale =
     assert year is not None
     parent = dict(
         date_naissance = date(year - 40, 1, 1) if not moins_de_25_ans else date(year - 23, 1, 1),
-        statut_marital = 1 if union_legale else 2,
+        statut_marital = "marie" if union_legale else 'celibataire',
         )
 
     if actif:
         activite = dict(
-            activite = 0,
-            allegement_cotisation_allocations_familiales_mode_recouvrement = 0,
-            allegement_fillon_mode_recouvrement = 0,
-            categorie_salarie = 0,
-            contrat_de_travail = 1 if temps_partiel else 0,  # CDI
-            contrat_de_travail_duree = 0,  # CDI
-            cotisation_sociale_mode_recouvrement = 2,
+            activite = "actif",
+            allegement_cotisation_allocations_familiales_mode_recouvrement = "fin_d_annee",
+            allegement_fillon_mode_recouvrement = "fin_d_annee",
+            categorie_salarie = "prive_non_cadre",
+            contrat_de_travail = "temps_partiel" if temps_partiel else "temps_plein",  # CDI
+            contrat_de_travail_duree = "cdi",  # CDI
+            cotisation_sociale_mode_recouvrement = "mensuel_strict",
             depcom_entreprise = "75114",
             effectif_entreprise = 25,
             entreprise_assujettie_is = True,
@@ -230,13 +230,10 @@ def create_scenario_superieur_smic(biactif = False, categorie_salarie = 'prive_n
             u"public_titulaire_hospitaliere",
             u"public_non_titulaire",
             ]
-        assert categorie_salarie in categories_salarie
-        categorie_salarie = categories_salarie.index(categorie_salarie)
-
-    assert categorie_salarie in range(3)
+        assert categorie_salarie in categories_salarie[:3]
 
     name_prime = None
-    if categorie_salarie in range(2):
+    if categorie_salarie in [u"prive_non_cadre", u"prive_cadre"]:
         name_salaire = 'salaire_de_base'
         # name_prime =
     else:
