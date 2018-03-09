@@ -25,7 +25,6 @@ except:
         from PySide.QtCore import QSize
     except:
         QSizePolicy, QSize = None, None
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as Canvas
 from matplotlib.figure import Figure
 
 from matplotlib import rcParams
@@ -36,6 +35,8 @@ rcParams['font.size'] = 9
 
 
 if QSize and QSizePolicy:
+    from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as Canvas
+
     class MatplotlibWidget(Canvas):
         """
         MatplotlibWidget inherits PyQt4.QtGui.QWidget
@@ -129,3 +130,5 @@ if __name__ == '__main__':
     win = ApplicationWindow()
     win.show()
     sys.exit(app.exec_())
+    else:
+        MatplotlibWidget = None
