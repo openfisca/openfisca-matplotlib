@@ -160,7 +160,7 @@ def create_simulation(year = 2014, bareme = False):
     parent1 = dict(
         date_naissance = datetime.date(year - 40, 1, 1),
         salaire_de_base = 10000 if bareme is False else None,
-        categorie_salarie = 0,
+        categorie_salarie = 'prive_non_cadre',
         )
 #    parent2 = dict(
 #        date_naissance = datetime.date(year - 40, 1, 1),
@@ -169,7 +169,7 @@ def create_simulation(year = 2014, bareme = False):
     # Adding a husband/wife on the same tax sheet (foyer)
     menage = dict(
         loyer = 1000,
-        statut_occupation_logement = 4,
+        statut_occupation_logement = "locataire_vide",
         )
     axes = [
         dict(
