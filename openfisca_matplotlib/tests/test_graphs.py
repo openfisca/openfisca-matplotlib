@@ -10,7 +10,11 @@ import sys
 try:
     from PyQt4.Qt import QMainWindow, QApplication
 except ImportError:
-    from PySide.QtGui import QMainWindow, QApplication
+    try:
+        from PySide.QtGui import QMainWindow, QApplication
+    except ImportError:
+        QMainWindow, QApplication = None, None
+        import matplotlib.pyplot as plt
 
 from openfisca_core import periods
 from openfisca_france import FranceTaxBenefitSystem
@@ -23,40 +27,56 @@ from openfisca_matplotlib import graphs
 tax_benefit_system = FranceTaxBenefitSystem()
 
 
-class ApplicationWindow(QMainWindow):
-    def __init__(self):
-        QMainWindow.__init__(self)
-        self.mplwidget = MatplotlibWidget(self)
-        self.mplwidget.setFocus()
-        self.setCentralWidget(self.mplwidget)
+def get_axes():
+    if QMainWindow and QApplication:
+        class ApplicationWindow(QMainWindow):
+            def __init__(self):
+                QMainWindow.__init__(self)
+                self.mplwidget = MatplotlibWidget(self)
+                self.mplwidget.setFocus()
+                self.setCentralWidget(self.mplwidget)
+
+        app = QApplication(sys.argv)
+        win = ApplicationWindow()
+        axes = win.mplwidget.axes
+    else:
+        axes = plt.axes()
+        win = None
+        app = None
+
+    return axes, win, app
 
 
-def waterfall():
+def post_plot(axes, win, app):
+    if win is None:
+        plt.show()
+        del axes
+        return
+    else:
+        win.resize(1400, 700)
+        win.mplwidget.draw()
+        win.show()
+        sys.exit(app.exec_())
+
+
+def test_waterfall():
     simulation, _ = create_simulation()
     year = 2014
-    app = QApplication(sys.argv)
-    win = ApplicationWindow()
-
-    axes = win.mplwidget.axes
     title = "Mon titre"
+    axes, win, app = get_axes()
     axes.set_title(title)
     simulation.calculate('revenu_disponible', period = year)
     graphs.draw_waterfall(
         simulation = simulation,
         axes = axes,
         )
-    win.resize(1400, 700)
-    win.mplwidget.draw()
-    win.show()
-    sys.exit(app.exec_())
+    post_plot(axes, win, app)
 
 
-def bareme():
+def test_bareme():
     reform_simulation, reference_simulation = create_simulation(bareme = True)
 
-    app = QApplication(sys.argv)
-    win = ApplicationWindow()
-    axes = win.mplwidget.axes
+    axes, win, app = get_axes()
     year = 2014
     reference_simulation.calculate('revenu_disponible', period = year)
     reform_simulation.calculate('revenu_disponible', period = year)
@@ -65,17 +85,12 @@ def bareme():
         axes = axes,
         x_axis = 'salaire_brut',  # instead of salaire_de_base
         visible_lines = ['revenu_disponible'])
-    win.resize(1400, 700)
-    win.mplwidget.draw()
-    win.show()
-    sys.exit(app.exec_())
+    post_plot(axes, win, app)
 
 
-def rates(year = 2014):
+def test_rates(year = 2014):
     reform_simulation, reference_simulation = create_simulation(bareme = True)
-    app = QApplication(sys.argv)
-    win = ApplicationWindow()
-    axes = win.mplwidget.axes
+    axes, win, app = get_axes()
     graphs.draw_rates(
         simulation = reform_simulation,
         axes = axes,
@@ -84,18 +99,13 @@ def rates(year = 2014):
         period = year,
         reference_simulation = reference_simulation,
         )
-    win.resize(1400, 700)
-    win.mplwidget.draw()
-    win.show()
-    sys.exit(app.exec_())
+    post_plot(axes, win, app)
 
 
-def bareme_compare_household():
+def test_bareme_compare_household():
     simulation_1p, simulation_2p = create_simulation2(bareme = True)
 
-    app = QApplication(sys.argv)
-    win = ApplicationWindow()
-    axes = win.mplwidget.axes
+    axes, win, app = get_axes()
     year = 2014
     simulation_1p.calculate('revenu_disponible', period = year)
     simulation_2p.calculate('revenu_disponible', period = year)
@@ -106,10 +116,7 @@ def bareme_compare_household():
         reference_simulation = simulation_1p,
         visible_lines = ['revenu_disponible'],
         )
-    win.resize(1400, 700)
-    win.mplwidget.draw()
-    win.show()
-    sys.exit(app.exec_())
+    post_plot(axes, win, app)
 
 
 def create_simulation2(year = 2014, bareme = False):
@@ -124,7 +131,7 @@ def create_simulation2(year = 2014, bareme = False):
     # Adding a husband/wife on the same tax sheet (foyer)
     menage = dict(
         loyer = 1000,
-        statut_occupation_logement = 4,
+        statut_occupation_logement = "locataire_vide",
         )
     axes = [
         dict(
@@ -192,7 +199,7 @@ def create_simulation(year = 2014, bareme = False):
 
 
 if __name__ == '__main__':
-    # bareme_compare_household()
-    # waterfall()
-    # bareme()
-    rates()
+    test_bareme_compare_household()
+    test_waterfall()
+    test_bareme()
+    test_rates()
