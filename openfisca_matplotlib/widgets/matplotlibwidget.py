@@ -130,5 +130,3 @@ if __name__ == '__main__':
     win = ApplicationWindow()
     win.show()
     sys.exit(app.exec_())
-    else:
-        MatplotlibWidget = None
