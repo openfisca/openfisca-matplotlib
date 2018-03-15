@@ -9,7 +9,7 @@ import os
 from openfisca_core.decompositions import get_decomposition_json
 from openfisca_france import FranceTaxBenefitSystem
 
-from openfisca_matplotlib.tests.test_graphs import create_simulation
+from openfisca_matplotlib.tests.helpers import create_simulation
 from openfisca_matplotlib.dataframes import data_frame_from_decomposition_json
 
 

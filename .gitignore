@@ -12,3 +12,4 @@ tags
 .spyproject
 .noseids
 openfisca_matplotlib/tests/.ipynb_checkpoints
+notebooks/.ipynb_checkpoints
