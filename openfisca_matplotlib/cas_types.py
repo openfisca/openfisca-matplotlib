@@ -206,7 +206,7 @@ def create_scenario_inferieur_smic(biactif = False, couple = False, loyer = None
                 period = year,
                 ),
             ]],
-        # period = 'year:{}:3'.format(year - 2),
+        # period = 'year:{}:3'.format(year - 2),
         period = year,
         )
 
@@ -291,7 +291,7 @@ def create_scenario_superieur_smic(biactif = False, categorie_salarie = 'prive_n
 
     additionnal_scenario_kwargs = dict(
         axes = [axes],
-        # period = 'year:{}:3'.format(year - 2),
+        # period = 'year:{}:3'.format(year - 2),
         period = year
         )
     scenario_kwargs.update(additionnal_scenario_kwargs)

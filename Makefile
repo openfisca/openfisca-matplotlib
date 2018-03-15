@@ -21,3 +21,4 @@ flake8:
 
 test: check-syntax-errors
 	nosetests openfisca_matplotlib/tests --exe --with-doctest
+	python notebooks/test_notebooks.py
