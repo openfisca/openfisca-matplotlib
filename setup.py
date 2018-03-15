@@ -40,7 +40,14 @@ setup(
         'pandas',
         ],
     extras_require={
-        'test': ["PySide"],
+        'test': [
+            'ipykernel',
+            'jupyter-client',
+            'nbconvert >= 5.3.1',
+            'nbformat',
+            'nose',
+            'matplotlib',
+            ],
         },
     packages = find_packages(),
     message_extractors = {
