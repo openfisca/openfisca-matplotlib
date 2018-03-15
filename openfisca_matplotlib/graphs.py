@@ -24,7 +24,7 @@ def draw_waterfall(simulation, axes = None, decomposition_json = None, visible =
         decomposition_json = decompositions.get_decomposition_json(simulation.tax_benefit_system)
     try:
         currency = simulation.tax_benefit_system.CURRENCY
-    except:
+    except Exception:
         currency = simulation.tax_benefit_system.reference.CURRENCY
 
     data = OutNode.init_from_decomposition_json(simulation, decomposition_json)
@@ -45,7 +45,7 @@ def draw_bareme(simulation, axes = None, x_axis = None, reference_simulation = N
         decomposition_json = decompositions.get_decomposition_json(simulation.tax_benefit_system)
     try:
         currency = simulation.tax_benefit_system.CURRENCY
-    except:
+    except Exception:
         currency = simulation.tax_benefit_system.reference.CURRENCY
     if legend_position is None:
         legend_position = 2
@@ -119,7 +119,6 @@ def create_legend(ax, position = 2, bbox_to_anchor = None):
     '''
     Creates legend
     '''
-
     p = []
     l = []
     for collec in ax.collections:
@@ -142,12 +141,12 @@ def draw_waterfall_from_node_data(data, ax, currency = None):
     codes = []
     shortnames = []
 
-    def drawNode(node, prv):
+    def draw_node(node, prv):
         prev = prv + 0
         val = node.vals[0]
         bot = prev
         for child in node.children:
-            drawNode(child, prev)
+            draw_node(child, prev)
             prev += child.vals[0]
         if (val != 0) and node.visible:
             r, g, b = node.color
@@ -178,7 +177,7 @@ def draw_waterfall_from_node_data(data, ax, currency = None):
             number[0] += 1
 
     prv = 0
-    drawNode(data, prv)
+    draw_node(data, prv)
     for patch in patches:
         ax.add_patch(patch)
 
@@ -241,7 +240,7 @@ def draw_bareme_from_node_data(
         axes.set_ylim(np.amin(x_axis_data.vals), np.amax(x_axis_data.vals))
     axes.plot(x_axis_data.vals, np.zeros(n_points), color = 'black', label = 'x_axis')
 
-    def drawNode(node, prv):
+    def draw_node(node, prv):
         prev = prv + 0
         if np.any(node.vals != 0) and node.visible:
             r, g, b = node.color
@@ -266,28 +265,27 @@ def draw_bareme_from_node_data(
                     )
                 a.set_label(prefix + node.desc)
         for child in node.children:
-            drawNode(child, prev)
+            draw_node(child, prev)
             prev += child.vals
 
     prv = np.zeros(n_points)
-    drawNode(data, prv)
+    draw_node(data, prv)
     if legend:
         create_legend(axes, position = legend_position, bbox_to_anchor = bbox_to_anchor)
 
 
-def draw_bareme_comparing_households_from_node_data(
-        data, ax, x_axis, dataDefault = None, legend = True, currency = "", position = 2, bbox_to_anchor = None
-        ):
+def draw_bareme_comparing_households_from_node_data(data, ax, x_axis, default_data = None, legend = True, currency = "",
+        position = 2, bbox_to_anchor = None):
     '''
     Draws bareme
     '''
-    if dataDefault is None:
-        raise Exception('draw_bareme_comparing_households_from_node_data: dataDefault must be defined')
+    if default_data is None:
+        raise Exception('draw_bareme_comparing_households_from_node_data: default_data must be defined')
 
     ax.figure.subplots_adjust(bottom = 0.09, top = 0.95, left = 0.11, right = 0.95)
     prefix = 'Variation '
     ax.hold(True)
-    xdata = dataDefault[x_axis]
+    xdata = default_data[x_axis]
     NMEN = len(xdata.vals)
     xlabel = xdata.desc
     ax.set_xlabel(xlabel)
