@@ -18,27 +18,32 @@ from nbconvert.preprocessors import CellExecutionError
 import os
 
 directory = os.path.dirname(os.path.realpath(__file__))
-notebook_filename = os.path.join(directory, 'test_graphs.ipynb')
-run_path = directory
+notebooks = [
+    'test_graphs.ipynb',
+    'test_dataframes.ipynb',
+    ]
 notebook_filename_out = os.path.join(directory, 'executed_notebook.ipynb')
 
-with io.open(notebook_filename) as f:
-    nb = nbformat.read(f, as_version=4)
+run_path = directory
 
-ep = ExecutePreprocessor(timeout=600, kernel_name='python')
-error = False
-try:
-    out = ep.preprocess(nb, {'metadata': {'path': run_path}})
-except CellExecutionError:
-    error = True
-    out = None
-    msg = 'Error executing the notebook "%s".\n\n' % notebook_filename
-    msg += 'See notebook "%s" for the traceback.' % notebook_filename_out
-    print(msg)
-    raise
-finally:
-    with io.open(notebook_filename_out, mode='wt') as f:  # io.open avoids UnicodeEncodeError
-        nbformat.write(nb, f)
+for notebook in notebooks:
+    notebook_filename = os.path.join(directory, notebook)
+    with io.open(notebook_filename) as f:
+        nb = nbformat.read(f, as_version=4)
+    ep = ExecutePreprocessor(timeout=600, kernel_name='python')
+    error = False
+    try:
+        out = ep.preprocess(nb, {'metadata': {'path': run_path}})
+    except CellExecutionError:
+        error = True
+        out = None
+        msg = 'Error executing the notebook "%s".\n\n' % notebook_filename
+        msg += 'See notebook "%s" for the traceback.' % notebook_filename_out
+        print(msg)
+        raise
+    finally:
+        with io.open(notebook_filename_out, mode='wt') as f:  # io.open avoids UnicodeEncodeError
+            nbformat.write(nb, f)
 
-if not error:
-    os.remove(notebook_filename_out)
+    if not error:
+        os.remove(notebook_filename_out)
