@@ -22,7 +22,7 @@ doc_lines = __doc__.split('\n')
 
 setup(
     name = 'OpenFisca-Matplotlib',
-    version = '0.7',
+    version = '0.7.1',
 
     author = 'OpenFisca Team',
     author_email = 'contact@openfisca.fr',

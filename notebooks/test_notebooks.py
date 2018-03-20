@@ -21,6 +21,7 @@ directory = os.path.dirname(os.path.realpath(__file__))
 notebooks = [
     'test_graphs.ipynb',
     'test_dataframes.ipynb',
+    'test_generateur_cas_types.ipynb',
     ]
 notebook_filename_out = os.path.join(directory, 'executed_notebook.ipynb')
 
