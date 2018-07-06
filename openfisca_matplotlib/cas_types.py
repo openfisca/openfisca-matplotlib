@@ -11,14 +11,14 @@ import openfisca_france
 from openfisca_core import periods
 from openfisca_france.reforms.inversion_directe_salaires import TAUX_DE_PRIME
 
-tax_benefit_system = openfisca_france.FranceTaxBenefitSystem()
+france_tax_benefit_system = openfisca_france.FranceTaxBenefitSystem()
 
 
 smic_horaire_by_year, smic_annuel_by_year = dict(), dict()
 smic_horaire_by_year = dict([
     (
         year,
-        tax_benefit_system.parameters(periods.period(year).start).cotsoc.gen.smic_h_b
+        france_tax_benefit_system.parameters(periods.period(year).start).cotsoc.gen.smic_h_b
         )
     for year in range(2005, 2018)
     ])
@@ -304,7 +304,7 @@ def calculate(variables = None, scenarios_kwargs = None, period = None, tax_bene
     assert period is not None
     assert isinstance(scenarios_kwargs, list)
     if tax_benefit_system is None:
-        tax_benefit_system = tax_benefit_system
+        tax_benefit_system = france_tax_benefit_system
     if reform is not None:
         tax_benefit_system = reform(tax_benefit_system)
 
@@ -357,14 +357,13 @@ if __name__ == '__main__':
         'prestations_sociales',
         'ppe',
         'impots_directs',
-        'loyer_fictif',
         ]
     scenario_superieur_smic = create_scenario_superieur_smic(
         year = year,
         couple = True,
         nb_enfants = 1,
-        loyer_fictif = 500,
-        statut_occupation_logement = 2,
+#        loyer = 500,
+#        statut_occupation_logement = 2,
         )
     scenarios_kwargs = [scenario_superieur_smic]
     df = calculate(variables, scenarios_kwargs, period)
