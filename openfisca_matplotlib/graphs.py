@@ -15,13 +15,12 @@ from openfisca_core import decompositions
 from openfisca_core.rates import average_rate, marginal_rate
 from openfisca_matplotlib.utils import OutNode
 
+from ruamel.yaml import YAML
 
 def draw_waterfall(simulation, axes = None, decomposition_json = None, visible = None):
     if axes is None:
         fig = plt.figure()
         axes = fig.gca()
-    if decomposition_json is None:
-        decomposition_json = decompositions.get_decomposition_json(simulation.tax_benefit_system)
     try:
         currency = simulation.tax_benefit_system.CURRENCY
     except Exception:
@@ -96,7 +95,7 @@ def draw_rates(simulation, axes = None, x_axis = None, y_axis = None, reference_
     target = simulation.calculate(y_axis, period = period)
     avg_rate = average_rate(target, varying)
     marg_rate = marginal_rate(target, varying)
-    axes.hold(True)
+    # axes.hold(True)
     axes.set_xlim(np.amin(varying), np.amax(varying))
     axes.set_ylabel(
         r"$\left(1 - \frac{RevDisponible}{RevInitial} \right)\ et\ \left(1 - \frac{d (RevDisponible)}{d (RevInitial)}\right)$")
@@ -184,7 +183,7 @@ def draw_waterfall_from_node_data(data, ax, currency = None):
     n = len(patches)
     abscisses = np.arange(n)
     xlim = (- barwidth * 0.5, n - 1 + barwidth * 1.5)
-    ax.hold(True)
+    # ax.hold(True)
     ax.plot(xlim, [0, 0], color = 'black')
     ax.set_xticklabels(shortnames, rotation = '45')
     ax.set_xticks(abscisses + barwidth / 2)
@@ -229,7 +228,7 @@ def draw_bareme_from_node_data(
         prefix = 'Variation '
     else:
         prefix = ''
-    axes.hold(True)
+    # axes.hold(True)
     x_axis_data = reference_data[x_axis]
     n_points = len(x_axis_data.vals)
     xlabel = x_axis_data.desc
@@ -284,7 +283,7 @@ def draw_bareme_comparing_households_from_node_data(data, ax, x_axis, default_da
 
     ax.figure.subplots_adjust(bottom = 0.09, top = 0.95, left = 0.11, right = 0.95)
     prefix = 'Variation '
-    ax.hold(True)
+    # ax.hold(True)
     xdata = default_data[x_axis]
     length = len(xdata.vals)
     xlabel = xdata.desc

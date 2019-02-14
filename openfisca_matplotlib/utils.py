@@ -145,9 +145,8 @@ class OutNode(object):
     @classmethod
     def init_from_decomposition_json(cls, simulation, decomposition_json):
         simulations = [simulation]
-        root_node = decompositions.calculate(simulations, decomposition_json)
         self = cls()
-        convert_to_out_node(self, root_node)
+        convert_to_out_node(self, decomposition_json[0])
         return self
 
 
@@ -158,7 +157,7 @@ def convert_to_out_node(out_node, node):
         out_node.color = node['color']
     else:
         out_node.color = [0, 0, 0]
-    out_node.shortname = node['short_name']
+    out_node.shortname = node['name']
     out_node.typv = 0
     if 'type' in node:
         out_node.typv = node['type']
@@ -170,7 +169,7 @@ def convert_to_out_node(out_node, node):
                 color = child['color']
             else:
                 color = [0, 0, 0]
-            shortname = child['short_name']
+            shortname = child['name']
             typv = 0
             if 'type' in child:
                 typv = child['type']
