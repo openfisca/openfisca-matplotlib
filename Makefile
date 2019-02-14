@@ -1,5 +1,9 @@
 all: flake8 test
 
+install:
+	pip install --upgrade pip twine wheel
+	pip install --editable .[test] --upgrade
+
 check-no-prints:
 	@test -z "`git grep -w print openfisca_matplotlib`"
 

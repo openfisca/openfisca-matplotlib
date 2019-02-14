@@ -41,6 +41,15 @@ setup(
         ],
     extras_require={
         'qt': ["PySide"],
+        'test': [
+            'jupyter >= 1.0.0',
+            'ipykernel',
+            'jupyter-client',
+            'nbconvert >= 5.3.1',
+            'nbformat',
+            'nose',
+            'matplotlib',
+            ],
         },
     packages = find_packages(),
     message_extractors = {
